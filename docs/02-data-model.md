@@ -25,6 +25,7 @@ document. The chip read makes that easy: take the fields, never store a document
 |---|---|
 | `IdNumberCipher` | `VARBINARY(512)`. Ciphertext. Never stored in clear. |
 | `IdNumberHash` | `BINARY(32)`. HMAC-SHA256 under a server-side pepper. |
+| `IdNumberMasked` | The display form, computed once at registration so listing never decrypts. |
 | `IdExpiryDate` | Drives the Expired ID Report (§20). |
 | `Photo` | Optional, subject to policy (§3). Portrait only — never a full document scan. |
 | `CaptureMethod` | `Manual`/`Ocr`/`Mrz`/`Nfc`/`BarcodeOrQr`/`CardReader` — audit of *how* identity was established. |
@@ -60,9 +61,12 @@ report (§20) stays honest instead of being quietly cleaned up.
 
 ## Visit numbering
 
-`VIS-2026-00001245` (§7): `VIS-{year}-{8-digit sequence}`, via `vms.VisitNumberSequence`
-and `vms.NextVisitNumber`. Allocated at check-in, not at pre-registration, so numbers
-track actual arrivals.
+`VIS-2026-00001245` (§7): `VIS-{year}-{8-digit sequence}`, via `vms.VisitNumberSequence`.
+
+Allocated when the visit row is created, not at check-in. Deferring it would mean
+pre-registered visits carrying a placeholder, and `VisitNumber` is `UNIQUE` — the second
+pre-registration would fail to insert. A pre-registered no-show therefore consumes a
+number, which is correct: the visit record exists.
 
 ## Indexing
 

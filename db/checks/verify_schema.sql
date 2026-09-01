@@ -60,6 +60,13 @@ SELECT
                         AND schema_id = SCHEMA_ID(N'vms'))
          THEN 'ok' ELSE '*** MISSING ***' END AS Status;
 
+/* Columns added by later scripts. */
+SELECT
+    N'vms.Visitor.IdNumberMasked' AS ObjectName,
+    'COLUMN' AS ObjectKind,
+    CASE WHEN COL_LENGTH(N'vms.Visitor', N'IdNumberMasked') IS NULL
+         THEN '*** MISSING *** (run 003_add_idnumber_masked.sql)' ELSE 'ok' END AS Status;
+
 /* Row counts - masters must be seeded before the tablet's host search works. */
 SELECT 'vms.DiEntity' AS TableName, COUNT(*) AS Rows FROM vms.DiEntity
 UNION ALL SELECT 'vms.Employee', COUNT(*) FROM vms.Employee

@@ -1,13 +1,17 @@
-using DI.Vms.Domain.Common;
-
 namespace DI.Vms.Domain.Entities;
 
 /// <summary>
 /// Append-only record of every modification (BRD 19). Rows are never updated or deleted
 /// outside the retention job.
 /// </summary>
-public class AuditLog : Entity
+/// <remarks>
+/// Does not derive from <c>Entity</c>: the audit table is high-volume and append-only, so
+/// it uses a monotonic BIGINT identity rather than a GUID, matching db/schema.
+/// </remarks>
+public class AuditLog
 {
+    public long Id { get; set; }
+
     public Guid UserId { get; set; }
 
     /// <summary>e.g. CHECK-IN, CHECK-OUT, UPDATE-HOST, VIEW-UNMASKED-ID.</summary>

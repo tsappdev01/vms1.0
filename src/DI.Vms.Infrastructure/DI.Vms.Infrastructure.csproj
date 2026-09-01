@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>DI.Vms.Infrastructure</RootNamespace>
+    <AssemblyName>DI.Vms.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DI.Vms.Application\DI.Vms.Application.csproj" />
+    <ProjectReference Include="..\DI.Vms.Domain\DI.Vms.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

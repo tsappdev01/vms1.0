@@ -1,6 +1,5 @@
 using DI.Vms.Domain.Common;
 using DI.Vms.Domain.Enums;
-using DI.Vms.Domain.ValueObjects;
 
 namespace DI.Vms.Domain.Entities;
 
@@ -16,16 +15,23 @@ public class Visitor : AuditableEntity
     public IdType IdType { get; set; }
 
     /// <summary>
-    /// The ID number, encrypted at rest (BRD 22). Read it through the application layer's
-    /// masking service rather than directly.
+    /// The ID number as ciphertext (BRD 22). Decrypting it requires the permission-gated,
+    /// audited path in the application layer - never read it directly for display.
     /// </summary>
-    public required IdNumber IdNumber { get; set; }
+    public required byte[] IdNumberCipher { get; set; }
 
     /// <summary>
     /// Deterministic keyed hash of the normalised ID number, used for lookup and for the
     /// uniqueness index. Lets us find a repeat visitor without decrypting every row.
     /// </summary>
     public required byte[] IdNumberHash { get; set; }
+
+    /// <summary>
+    /// The masked form, e.g. <c>784-XXXX-XXXXXXX-1</c>, computed once at registration.
+    /// Storing it means listing visitors never decrypts anything: the common read path
+    /// touches no plaintext at all.
+    /// </summary>
+    public required string IdNumberMasked { get; set; }
 
     public DateOnly? IdExpiryDate { get; set; }
     public string? Nationality { get; set; }
