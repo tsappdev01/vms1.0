@@ -1,2 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>DI.Vms.Domain</RootNamespace>
+    <AssemblyName>DI.Vms.Domain</AssemblyName>
+  </PropertyGroup>
+
 </Project>

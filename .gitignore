@@ -1,0 +1,26 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+artifacts/
+
+# Android
+.gradle/
+local.properties
+*.iml
+.idea/
+
+# Node
+node_modules/
+dist/
+.env
+.env.local
+
+# Secrets - never commit toolkit credentials or production configs
+appsettings.Production.json
+appsettings.*.Local.json
+*.pfx
+*.snk
+secrets.json
