@@ -20,7 +20,11 @@ public class AuditLog
     /// <summary>The entity type affected, e.g. "Visit".</summary>
     public required string EntityName { get; set; }
 
-    public Guid RecordId { get; set; }
+    /// <summary>
+    /// The affected row, where the action targets one. Nullable: some actions (a login,
+    /// a failed authentication) have no record, and the column is NULL in the schema.
+    /// </summary>
+    public Guid? RecordId { get; set; }
 
     /// <summary>JSON of the changed fields before and after. Must never contain an unmasked ID number.</summary>
     public string? OldValue { get; set; }

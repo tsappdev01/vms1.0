@@ -1,3 +1,7 @@
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+
 /* =============================================================================
    Visitor, Visit, Signature and Audit tables.
    ID numbers are encrypted at rest and looked up by keyed hash (BRD 22).

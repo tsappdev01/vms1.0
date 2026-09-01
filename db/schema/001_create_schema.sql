@@ -1,3 +1,7 @@
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+
 /* =============================================================================
    Dubai Investments - Visitor Management System
    Baseline schema (Phase 1). Target: SQL Server 2019+.
