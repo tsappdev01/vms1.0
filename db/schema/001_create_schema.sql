@@ -2,6 +2,9 @@
    Dubai Investments - Visitor Management System
    Baseline schema (Phase 1). Target: SQL Server 2019+.
    Derived from BRD section 17, with the privacy controls of section 22 applied.
+
+   Re-runnable: every object is guarded, so applying this to a database that is
+   already partly built is safe and makes no changes to existing objects.
    ============================================================================= */
 
 IF SCHEMA_ID(N'vms') IS NULL
@@ -10,6 +13,7 @@ GO
 
 /* ---------------------------------------------------------------- Master data */
 
+IF OBJECT_ID(N'vms.DiEntity', N'U') IS NULL
 CREATE TABLE vms.DiEntity
 (
     Id               UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_DiEntity PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -24,6 +28,7 @@ CREATE TABLE vms.DiEntity
 );
 GO
 
+IF OBJECT_ID(N'vms.Building', N'U') IS NULL
 CREATE TABLE vms.Building
 (
     Id               UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Building PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -37,6 +42,7 @@ CREATE TABLE vms.Building
 );
 GO
 
+IF OBJECT_ID(N'vms.Floor', N'U') IS NULL
 CREATE TABLE vms.Floor
 (
     Id               UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Floor PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -52,6 +58,7 @@ CREATE TABLE vms.Floor
 );
 GO
 
+IF OBJECT_ID(N'vms.Office', N'U') IS NULL
 CREATE TABLE vms.Office
 (
     Id               UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Office PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -67,6 +74,7 @@ CREATE TABLE vms.Office
 );
 GO
 
+IF OBJECT_ID(N'vms.Employee', N'U') IS NULL
 CREATE TABLE vms.Employee
 (
     Id               UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Employee PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -92,9 +100,11 @@ CREATE TABLE vms.Employee
 GO
 
 /* Host search (BRD 5) is the hottest master-data query on the tablet. */
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Employee_Name_Active' AND object_id = OBJECT_ID(N'vms.Employee'))
 CREATE INDEX IX_Employee_Name_Active ON vms.Employee (Name) INCLUDE (DiEntityId, Department, FloorId, OfficeId) WHERE IsActive = 1;
 GO
 
+IF OBJECT_ID(N'vms.[User]', N'U') IS NULL
 CREATE TABLE vms.[User]
 (
     Id                UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_User PRIMARY KEY DEFAULT NEWSEQUENTIALID(),

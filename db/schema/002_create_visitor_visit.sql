@@ -1,8 +1,12 @@
 /* =============================================================================
    Visitor, Visit, Signature and Audit tables.
    ID numbers are encrypted at rest and looked up by keyed hash (BRD 22).
+
+   Re-runnable: every object is guarded, so applying this to a database that is
+   already partly built is safe and makes no changes to existing objects.
    ============================================================================= */
 
+IF OBJECT_ID(N'vms.Visitor', N'U') IS NULL
 CREATE TABLE vms.Visitor
 (
     Id               UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Visitor PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -34,12 +38,18 @@ CREATE TABLE vms.Visitor
 );
 GO
 
-CREATE INDEX IX_Visitor_Name    ON vms.Visitor (Name)    INCLUDE (Company);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Visitor_Name' AND object_id = OBJECT_ID(N'vms.Visitor'))
+CREATE INDEX IX_Visitor_Name ON vms.Visitor (Name) INCLUDE (Company);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Visitor_Company' AND object_id = OBJECT_ID(N'vms.Visitor'))
 CREATE INDEX IX_Visitor_Company ON vms.Visitor (Company) WHERE Company IS NOT NULL;
+GO
 /* Expired ID Report (BRD 20). */
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Visitor_IdExpiry' AND object_id = OBJECT_ID(N'vms.Visitor'))
 CREATE INDEX IX_Visitor_IdExpiry ON vms.Visitor (IdExpiryDate) WHERE IdExpiryDate IS NOT NULL;
 GO
 
+IF OBJECT_ID(N'vms.Visit', N'U') IS NULL
 CREATE TABLE vms.Visit
 (
     Id                   UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Visit PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -88,12 +98,20 @@ CREATE TABLE vms.Visit
 GO
 
 /* The dashboard's "currently inside" query (BRD 11) and the evacuation list (BRD 12). */
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Visit_Inside' AND object_id = OBJECT_ID(N'vms.Visit'))
 CREATE INDEX IX_Visit_Inside ON vms.Visit (InTimeUtc) INCLUDE (VisitorId, HostEmployeeId, DiEntityId, [Floor]) WHERE Status = 2;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Visit_Visitor_InTime' AND object_id = OBJECT_ID(N'vms.Visit'))
 CREATE INDEX IX_Visit_Visitor_InTime ON vms.Visit (VisitorId, InTimeUtc DESC);
-CREATE INDEX IX_Visit_Host_InTime    ON vms.Visit (HostEmployeeId, InTimeUtc DESC);
-CREATE INDEX IX_Visit_Expected       ON vms.Visit (ExpectedDate) WHERE Status = 1;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Visit_Host_InTime' AND object_id = OBJECT_ID(N'vms.Visit'))
+CREATE INDEX IX_Visit_Host_InTime ON vms.Visit (HostEmployeeId, InTimeUtc DESC);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Visit_Expected' AND object_id = OBJECT_ID(N'vms.Visit'))
+CREATE INDEX IX_Visit_Expected ON vms.Visit (ExpectedDate) WHERE Status = 1;
 GO
 
+IF OBJECT_ID(N'vms.VisitorSignature', N'U') IS NULL
 CREATE TABLE vms.VisitorSignature
 (
     Id            UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_VisitorSignature PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -107,6 +125,7 @@ CREATE TABLE vms.VisitorSignature
 GO
 
 /* Append-only. Grant INSERT and SELECT only; no UPDATE or DELETE outside the retention job. */
+IF OBJECT_ID(N'vms.AuditLog', N'U') IS NULL
 CREATE TABLE vms.AuditLog
 (
     Id           BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AuditLog PRIMARY KEY,
@@ -122,12 +141,18 @@ CREATE TABLE vms.AuditLog
 );
 GO
 
-CREATE INDEX IX_AuditLog_Ts     ON vms.AuditLog (TimestampUtc DESC);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_AuditLog_Ts' AND object_id = OBJECT_ID(N'vms.AuditLog'))
+CREATE INDEX IX_AuditLog_Ts ON vms.AuditLog (TimestampUtc DESC);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_AuditLog_Record' AND object_id = OBJECT_ID(N'vms.AuditLog'))
 CREATE INDEX IX_AuditLog_Record ON vms.AuditLog (EntityName, RecordId, TimestampUtc DESC);
-CREATE INDEX IX_AuditLog_User   ON vms.AuditLog (UserId, TimestampUtc DESC);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_AuditLog_User' AND object_id = OBJECT_ID(N'vms.AuditLog'))
+CREATE INDEX IX_AuditLog_User ON vms.AuditLog (UserId, TimestampUtc DESC);
 GO
 
 /* Gap-free, year-scoped visit numbers: VIS-2026-00001245 (BRD 7). */
+IF NOT EXISTS (SELECT 1 FROM sys.sequences WHERE name = N'VisitNumberSequence' AND schema_id = SCHEMA_ID(N'vms'))
 CREATE SEQUENCE vms.VisitNumberSequence AS INT START WITH 1 INCREMENT BY 1;
 GO
 
