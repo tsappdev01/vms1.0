@@ -22,5 +22,32 @@ jobs:
       - name: Build
         run: dotnet build DI.Vms.sln --configuration Release --no-restore
 
+      # No test project exists yet; skip rather than fail the pipeline for it.
       - name: Test
-        run: dotnet test DI.Vms.sln --configuration Release --no-build --verbosity normal
+        run: |
+          if ls **/*Tests*.csproj >/dev/null 2>&1 || ls **/*.Tests/*.csproj >/dev/null 2>&1; then
+            dotnet test DI.Vms.sln --configuration Release --no-build --verbosity normal
+          else
+            echo "No test projects found; skipping."
+          fi
+        shell: bash
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/DI.Vms.Web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/DI.Vms.Web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck and build
+        run: npm run build
