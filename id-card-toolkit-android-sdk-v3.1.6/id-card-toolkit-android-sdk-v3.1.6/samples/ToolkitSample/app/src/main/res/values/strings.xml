@@ -1,0 +1,57 @@
+<resources>
+    <string name="app_name"> Emirates ID Toolkit Android Sample App</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_read_public_data_activiity">ReadPublicDataActiviity</string>
+
+
+    <!--Dot SDK Strings-->
+    <string name="navigation_destination_document_auto_capture">Document Auto Capture</string>
+    <string name="navigation_destination_face_auto_capture">Face Auto Capture</string>
+    <string name="navigation_destination_home">Home</string>
+    <string name="navigation_destination_magnifeye_liveness">MagnifEye Liveness</string>
+    <string name="navigation_destination_nfc_reading">NFC Reading</string>
+    <string name="navigation_destination_smile_liveness">Smile Liveness</string>
+    <string name="sample_document_auto_capture_title">Document Auto Capture</string>
+    <string name="sample_document_auto_capture_description">Basic component sample.</string>
+    <string name="sample_face_auto_capture_title">Face Auto Capture</string>
+    <string name="sample_face_auto_capture_description">Basic component sample.</string>
+    <string name="sample_magnifeye_liveness_title">MagnifEye Liveness</string>
+    <string name="sample_magnifeye_liveness_description">Basic component sample.</string>
+    <string name="sample_magnifeye_liveness_summary">Use the Digital Identity Service in order to evaluate the MagnifEye liveness score. See: https://developers.innovatrics.com/digital-onboarding/technical/remote/dot-dis/latest/documentation/#_magnifeye_liveness_check</string>
+    <string name="sample_nfc_reading_title">NFC Reading</string>
+    <string name="sample_nfc_reading_description">Combination of Document Auto Capture component with enabled MRZ recognition and NFC Travel Document Reader component.</string>
+    <string name="sample_nfc_reading_start_instruction">Place your Travel Document against your phone and wait for the progress.</string>
+    <string name="sample_smile_liveness_title">Smile Liveness</string>
+    <string name="sample_smile_liveness_description">Basic component sample.</string>
+    <string name="sample_smile_liveness_summary">Use the Digital Identity Service in order to evaluate the smile liveness score. See: https://developers.innovatrics.com/digital-onboarding/technical/remote/dot-dis/latest/documentation/#_smile_liveness_check</string>
+    <string name="sample_start">Start</string>
+
+    <string name="profile">Profile</string>
+    <string name="scanning">Scanning</string>
+    <string name="back">Back</string>
+
+    <string name="id_number">ID Number</string>
+    <string name="card_number">Card Number</string>
+    <string name="issuing_place">Issuing Place</string>
+    <string name="issuing_date">Issue Date</string>
+    <string name="name">Name</string>
+    <string name="name_arabic">Name Arabic</string>
+    <string name="date_of_birth">Date of Birth</string>
+    <string name="card_expiry_date">Card Expiry Date</string>
+    <string name="nationality">Nationality</string>
+    <string name="nationality_arabic">Nationality Arabic</string>
+    <string name="address">Address</string>
+    <string name="please_fill">Please fill in the below details to proceed</string>
+    <string name="passport_number">Passport Number</string>
+    <string name="expiry_date">Expiry Date</string>
+    <string name="passport_country">Passport Country</string>
+    <string name="proceed">Proceed</string>
+    <string name="please_insert">Please insert the ID card into the Card reader</string>
+    <string name="select_the_verification_type">Select the Verification type</string>
+    <string name="passport">Passport</string>
+    <string name="id_card">ID Card</string>
+    <string name="please_position_your_face">Please position your face to the phone camera</string>
+    <string name="face_verification_cam">Face Verification</string>
+</resources>

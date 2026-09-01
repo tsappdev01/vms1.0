@@ -1,0 +1,6 @@
+ICA Toolkit Android Plugin :
+Combi Plugin for BioPOS-100 Smartcard and finger print reader.
+
+Supported Android Application Binary Interfaces (ABIs):
+	1.armeabi-v7a
+	2.arm64-v8a

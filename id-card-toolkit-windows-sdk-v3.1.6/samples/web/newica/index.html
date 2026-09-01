@@ -1,0 +1,438 @@
+<!doctype html>
+<html>
+
+<head>
+    <style>
+        tr:nth-child(even) {
+            background-color : #F4F0E8; 
+        }
+        table,
+        td,
+        tr {
+            padding: 7.5px;
+        }
+
+        li {
+            padding: 3px;
+        }
+    </style>
+    <title>ICAWebToolkit</title>
+    <link href="images/ICA_Logo_Small-2.png" rel="icon">
+    <!-- Bootstrap CSS File -->
+    <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Libraries CSS Files -->
+    <link rel="stylesheet" type="text/css" href="toolkitstyle.css">
+    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script type="text/javascript" language="javascript" src="toolkit_sample.js"></script>
+    <script type="text/javascript" language="javascript" src="eidatoolkit.js"></script>
+  <script type="module" src="lib/smile-liveness.js"></script>
+  <script type="module" src="lib/smile-liveness-ui.js"></script>
+    <!-- <script src="index.js"></script> -->
+    <script type="text/javascript">
+        function setHeight() {
+            var heights = window.innerHeight;
+            document.getElementById("mainNav1").style.height = "462px";
+            document.getElementById("body").style.height = "500px";
+        }
+        window.onresize = function () {
+            setHeight();
+        };
+    </script>
+</head>
+
+<body onload="setHeight()">
+    <div class="custom-container-fluid" style="display:none">
+        <div class="custom-position">
+            <img class="custom-img" src="images/ICA_Logo_Small-2.png">
+            <div class="loader">
+            </div>
+        </div>
+    </div>
+    <div id="pageWrapper">
+        <div class="mainLogo">
+            <img src="./images/ICA_Logo.png" />
+        </div>
+        <div class="fontStyle title">
+            <p>Emirates ID Toolkit Web Sample Application</p>
+        </div>
+        
+        <div id="bodWrap">
+            <div id="mainNav1">
+                <div id="navContent">
+                    <ul id="sideList" class="fontStyle form-control">
+                        <li>
+                            <button onclick="Initialize()" class="btn-grad1 fontStyle">
+                                Initialize
+                            </button>
+                        </li>
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="registerDevice()">
+                                Register Device
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="deviceIdBtn" disabled onclick="deviceId()">
+                                DeviceId
+                            </button>
+                        </li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="getCardVersion()">
+                                Card Version
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="setNfcParamsBtn" disabled onclick="NFCAuth()">
+                                NFC
+                            </button>
+                        </li> -->
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="setNfcParamsBtn" disabled onclick="GetReaderNameAndSerialNumber()">
+                                Reader Name and Serial Number
+                            </button>
+                        </li>
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" id="publicDataBtn" disabled
+                                onclick="DisplayPublicData()">
+                                Read Public Data
+                            </button>
+                        </li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="DisplayFamilyBookDataN()">
+                                Family Book Data
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="CheckCardStatus()">
+                                Check Card Status
+                            </button>
+                        </li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" id="matchon" disabled onclick="MatchOnCard()">
+                                Match On Card
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="GetFingerIndex()">
+                                Get Finger Index
+                            </button>
+                        </li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="ReadCertificate()">
+                                Read Certificates
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="PKIAuth()">
+                                PKI Authentication
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="SignData()">
+                                Sign Data
+                            </button>
+                        </li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="SignChallengeData()">
+                                Sign Challenge Data
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="VerifySignature()">
+                                Verify Signature
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="CardGenuine()">
+                                Is Card Genuine
+                            </button>
+                        </li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" id="toolkitVersionBtn" disabled
+                                onclick="ToolkitVersion()">
+                                Toolkit Version
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="parseMRZBtn" disabled onclick="parseMRZ()">
+                                Parse MRZ
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="verifyToolkitResponseBtn" disabled
+                                onclick="VerifyToolkitResponse()">
+                                Verify Toolkit Response
+                            </button>
+                        </li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" id="publicDataEfTypeBtn" disabled
+                                onclick="publicDataEfType()">
+                                Elementry File Data
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="csnBtn" disabled onclick="getCSN()">
+                                Card Serial Number
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="licenseExpiryDateBtn" disabled
+                                onclick="getLicenseExpiryDate()">
+                                License Expiry Date
+                            </button>
+                        </li> -->
+                        <!-- <li>
+								<button class="buttonInitial btn-grad1" id="newReadDataBtn" disabled onclick="getReadData()" >
+									Read Health Data
+								</button>
+							</li>
+							<li>
+								<button class="buttonInitial btn-grad1" id="updateDataBtn" disabled onclick="getUpdateData()">
+									Update Data
+								</button>
+							</li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" id="configFilesExpiryDatesBtn" disabled
+                                onclick="getConfigFilesExpiryDates()">
+                                Config Files Expiry Dates
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="pinReset()">
+                                PIN Reset
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" disabled onclick="PinUnblock()">
+                                Un-Block PIN
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="verifyBioBtn" disabled onclick="VerifyBio()">
+                                Verify Biometric
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="verifyBioandCardBtn" disabled
+                                onclick="VerifyBioandCard()">
+                                Verify Biometric and Card
+                            </button>
+                        </li> -->
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" onclick="signDSSTypes()" disabled>
+                                Digital Signature
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" onclick="verifyDSSTypes()" disabled>
+                                Verify Digital Signature
+                            </button>
+                        </li> -->
+
+                        <li>
+                          
+                            <button id="showFormButton" class="buttonInitial btn-grad1" onclick="AuthenticateFaceId()"  >
+                                Authenticate with FaceId
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" onclick="Aunthenticatepassport()">
+                                Authenticate with Passport
+                            </button>
+                        </li>
+
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="disconnectBtn" disabled
+                                onclick="disconnectWS()">
+                                Disconnect
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div id="body">
+                <div id="workAreaDiv" class="temp-progress-initial" style="background-color: #F4F0E8;">
+                    <table id="progressTable" align="center" style="margin-top: 0.5%;">
+                        <tr>
+                            <td>
+                                <p style="color:#021C1E" class="fontStyle">
+                                    Progress
+                                </p>
+                            </td>
+                            <td>
+                                <textarea class="fontStyle textinput" placeholder="logs"
+                                    style="background-color: #F4F0E8;" id="prgssText" disabled></textarea>
+                            </td>
+
+                        </tr>
+                    </table>
+                    <!-- ##  Main working area table  ## -->
+                    <br>
+                    <div id="mainTable" style="background-image: url(./images/az-subtle.png);" class="rcorners">
+                        </br>
+                        <button style="display: none;" type="button" id="vxs"
+                            class="buttonInitial btn btn-secondary float-right" onclick="setVerifyXml()" disabled>Verify
+                            XML Signature</button>
+                        </br>
+                        </br>
+                        <input style="display: none;" type="text" id="res" class="fontStyle float-right" size="27"
+                            placeholder="result" />
+                        </br>
+                       
+                       
+
+
+
+
+                        
+                        
+                        <div id="AuthFaceid" class="public-data-div">
+                            <table align="center" border="2px">
+                                <tr>
+                                    <td colspan="6" align="center" class="fontStyle">
+                                        <h2>Authenticate Face with Id</h2>
+                                    </td>
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Id Number</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="id_number" name="fname" value="">
+                                    </td>   
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>Digital Docs</td>
+                                    <td> <input type="checkbox" id="digitaldocs" name="checkbox" value="false"></td>
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>Capture Face</td>
+                                    <td> <button id="smile" class="button" onclick="Authfacewithid('smile')">Capture Face</button>
+                                        
+                                    </td>
+                                </tr>
+
+
+                                <tr class="fontStyle" align="center">
+                                    
+                                    <td colspan="2" align="center"> <button id="submit" class="button">Athenticate Face</button>
+                                     
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+
+                        <div id="AuthPassport" class="public-data-div">
+                            <table align="center" border="2px">
+                                <tr>
+                                    <td colspan="6" align="center" class="fontStyle">
+                                        <h2>Authenticate Face with Passport</h2>
+                                    </td>
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Passport Number</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="passportnumber" name="passportnumber" value="">
+                                    </td>   
+                                </tr>
+
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Issuing Country</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="issuecountry" name="issuecountry" value="">
+                                    </td>   
+                                </tr>
+
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Expiry Date</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="expirydate" name="expirydate" value="">
+                                    </td>   
+                                </tr>
+
+
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Date Of Birth</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="dob" name="dob" value="">
+                                    </td>   
+                                </tr>
+
+
+                                <tr class="fontStyle" align="center">
+                                    <td>Digital Docs</td>
+                                    <td> <input type="checkbox" id="passportdigital" name="passportdigital" value=""></td>
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>Capture Face</td>
+                                    <td> <button id="selfie" class="button" onclick="captureFace('selfie')">Capture Face</button></td>
+                                </tr>
+
+                                <tr class="fontStyle" align="center">
+                                    
+                                    <td colspan="2" align="center"> <button id="submitpassport" class="button">Athenticate Passport</button>
+                                        
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+
+                    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="container" >
+        <!-- custom components will render here -->
+      </div>
+    
+    
+    
+    <script>
+        var elems = document.getElementById("sideList").getElementsByTagName("li");
+        makeActive = function () {
+            for (var i = 0; i < elems.length; i++)
+                elems[i].classList.remove('active');
+            this.classList.add('active');
+        };
+        for (var i = 0; i < elems.length; i++)
+            elems[i].addEventListener('click', makeActive);
+            
+            document.getElementById('submit').addEventListener('click', function() {
+
+            var idnum = document.getElementById('id_number').value;
+            var isChecked = document.getElementById('digitaldocs').checked;
+            var checkboxState = isChecked ? true : false;
+            facevalues(idnum, checkboxState);
+
+            });
+
+            document.getElementById('submitpassport').addEventListener('click', function() {
+
+            var passnum = document.getElementById('passportnumber').value;
+            var issuecty = document.getElementById('issuecountry').value;
+            var expdate = document.getElementById('expirydate').value;
+            var dateofbirth = document.getElementById('dob').value;
+            var isChecked = document.getElementById('passportdigital').checked;
+            var checkboxState = isChecked ? true : false;
+            passportvalues(passnum,issuecty,expdate,dateofbirth, checkboxState);
+
+            });
+
+    </script>
+
+                  <textarea id="response" rows="40" cols="150" style="border:none;" ></textarea>
+</body>
+
+</html>

@@ -1,0 +1,40 @@
+version = '3.1.6'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'EIDAToolkitSample',
+                   'Implementation-Version': version,
+                   'Main-Class': 'ae.emiratesid.idcard.toolkit.sample.Application'
+    }
+
+    archivesBaseName = 'EIDAToolkitSample'
+
+    from {
+        configurations.compileClasspath.findAll {
+            it.isDirectory() || !(it.name.contains('junit'))
+        }.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+    exclude 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/*.SF',
+            'META-INF/*DEPENDENCIES', 'META-INF/*LICENSE*', 'META-INF/*NOTICE*'
+}
+
+dependencies {
+    implementation files('libs/EIDAToolkit.jar')
+    implementation files('libs/gson-2.8.9.jar')
+
+    testImplementation 'junit:junit:4.13.2'
+}

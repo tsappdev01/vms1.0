@@ -1,0 +1,268 @@
+<!doctype html>
+<html>
+
+<head>
+    <style>
+        tr:nth-child(even) {
+            background-color : #F4F0E8; 
+        }
+        table,
+        td,
+        tr {
+            padding: 7.5px;
+        }
+
+        li {
+            padding: 3px;
+        }
+    </style>
+    <title>ICAWebToolkit</title>
+    <link href="images/ICA_Logo_Small-2.png" rel="icon">
+    <!-- Bootstrap CSS File -->
+    <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Libraries CSS Files -->
+    <link rel="stylesheet" type="text/css" href="toolkitstyle.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script type="text/javascript" language="javascript" src="facetoolkit_sample.js"></script>
+    <script type="text/javascript" language="javascript" src="eidafacetoolkit.js"></script>
+    <script type="module" src="lib/face.js"></script>
+    <script type="module" src="lib/face-ui.js"></script>
+   
+    <!-- <script src="index.js"></script> -->
+    <script type="text/javascript">
+        function setHeight() {
+            var heights = window.innerHeight;
+            document.getElementById("mainNav1").style.height = ((heights / 100) * 90) + 5 + "px";
+            document.getElementById("body").style.height = ((heights / 100) * 90) + 5 + "px";
+        }
+        window.onresize = function () {
+            setHeight();
+        };
+    </script>
+</head>
+
+<body onload="setHeight()">
+    <div class="custom-container-fluid" style="display:none">
+        <div class="custom-position">
+            <img class="custom-img" src="images/ICA_Logo_Small-2.png">
+            <div class="loader">
+            </div>
+        </div>
+    </div>
+    <div id="pageWrapper">
+        <div class="mainLogo">
+            <img src="./images/ICA_Logo.png" />
+        </div>
+        <div class="fontStyle title">
+            <p>Emirates ID Toolkit Web Sample Application</p>
+        </div>
+        
+        <div id="bodWrap">
+            <div id="mainNav1">
+                <div id="navContent">
+                    <ul id="sideList" class="fontStyle form-control">
+                        <li>
+                            <button onclick="Initialize()" class="btn-grad1 fontStyle">
+                                Initialize
+                            </button>
+ 
+</li>
+                        <li>
+                          
+                            <button id="showFormButton" class="buttonInitial btn-grad1" onclick="AuthenticateFaceId()"  >
+                                Authenticate with FaceId
+                            </button>
+                        </li>
+                        <li>
+                            <button class="buttonInitial btn-grad1" onclick="Aunthenticatepassport()">
+                                Authenticate with Passport
+                            </button>
+                        </li>
+                        <!-- <li>
+                            <button class="buttonInitial btn-grad1" onclick="Face()"  >
+                                Face
+                            </button>
+                        </li> -->
+                        <li>
+                            <button class="buttonInitial btn-grad1" id="disconnectBtn" disabled
+                                onclick="disconnectWS()">
+                                Disconnect
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div id="body">
+                <div id="workAreaDiv" class="temp-progress-initial" style="background-color: #F4F0E8;">
+                   
+                    <!-- ##  Main working area table  ## -->
+                    <br>
+                    <div id="mainTable" style="background-image: url(./images/az-subtle.png);" class="rcorners">
+                        </br>
+                        <button style="display: none;" type="button" id="vxs"
+                            class="buttonInitial btn btn-secondary float-right" onclick="setVerifyXml()" disabled>Verify
+                            XML Signature</button>
+                        </br>
+                        </br>
+                        <input style="display: none;" type="text" id="res" class="fontStyle float-right" size="27"
+                            placeholder="result" />
+                        </br>
+                        <!------------- ################## ---------  Family Book Data display area --- ################## -------->
+                       
+                        <!------------- ################## ---------  Reader Name and Serial Number Data display area --- ################## -------->
+                  
+
+                    
+                  
+                       
+                
+              
+                     
+                        <div id="Facecap" class="public-data-div">
+                        </br>
+                        <table align="center" border="2px">
+                            <tr>
+                                <td colspan="6" align="center" class="fontStyle">
+                                    <h2>Face Capture</h2>
+                                </td>
+                            </tr>
+                            <tr class="fontStyle" align="center">
+                                <td>
+                                    <label>Verify Face</label>
+                                </td>
+                                <td>
+                                <button id="selfie" class="button" onclick="captureFace('selfie')">Selfie</button>
+
+                                
+                                <button id="magnifeye" class="button">MagnifEye Liveness</button><br/>
+                                
+                                </td>
+                                <tr>
+                                    <td></td>
+                                <td><button id="smile" class="button">Smile Liveness</button></td></tr>
+
+
+
+                                <tr>
+                                    <td></td>
+                                <td>
+                                    
+                                    <button onclick="captureFace()">Capture Face</button>
+
+                                </td></tr>
+                            </tr>
+                        </table>
+                        </div>
+                        
+                        
+                        <div id="AuthFaceid" class="public-data-div">
+                            <table align="center" border="2px">
+                                <tr>
+                                    <td colspan="6" align="center" class="fontStyle">
+                                        <h2>Authenticate Face with Id</h2>
+                                    </td>
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Id Number</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="id_number" name="fname" value="">
+                                    </td>   
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>Digital Docs</td>
+                                    <td> <input type="checkbox" id="digitaldocs" name="checkbox" value=""></td>
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>Capture Face</td>
+                                    <td> <button id="selfie" class="button" onclick="captureFace('selfie')">Capture Face</button></td>
+                                </tr>
+                            </table>
+                        </div>
+
+
+                        <div id="AuthPassport" class="public-data-div">
+                            <table align="center" border="2px">
+                                <tr>
+                                    <td colspan="6" align="center" class="fontStyle">
+                                        <h2>Authenticate Face with Passport</h2>
+                                    </td>
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Passport Number</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="fname" name="fname" value="">
+                                    </td>   
+                                </tr>
+
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Issuing Country</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="fname" name="fname" value="">
+                                    </td>   
+                                </tr>
+
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Expiry Date</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="fname" name="fname" value="">
+                                    </td>   
+                                </tr>
+
+
+                                <tr class="fontStyle" align="center">
+                                    <td>
+                                        <label>Date Of Birth</label>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="fname" name="fname" value="">
+                                    </td>   
+                                </tr>
+
+
+                                <tr class="fontStyle" align="center">
+                                    <td>Digital Docs</td>
+                                    <td> <input type="checkbox" id="checkbox" name="checkbox" value="Doe"></td>
+                                </tr>
+                                <tr class="fontStyle" align="center">
+                                    <td>Capture Face</td>
+                                    <td> <button id="selfie" class="button" onclick="captureFace('selfie')">Capture Face</button></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    <div id="container" >
+                        <!-- custom components will render here -->
+                      </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<div>
+    
+</div>
+    
+    <div id="result" class="dis"></div>
+    <script>
+        var elems = document.getElementById("sideList").getElementsByTagName("li");
+        makeActive = function () {
+            for (var i = 0; i < elems.length; i++)
+                elems[i].classList.remove('active');
+            this.classList.add('active');
+        };
+        for (var i = 0; i < elems.length; i++)
+            elems[i].addEventListener('click', makeActive);
+
+    </script>
+</body>
+
+</html>

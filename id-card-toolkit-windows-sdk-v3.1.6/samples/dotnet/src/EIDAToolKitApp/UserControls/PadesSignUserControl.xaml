@@ -1,0 +1,401 @@
+﻿<UserControl x:Class="EIDAToolkitApp.UserControls.PadesSignUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EIDAToolkitApp.UserControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Background="{StaticResource linearGradientStyle}" Height="30">
+            <TextBlock FontSize="20" 
+                                                       FontFamily="Times New Roman" 
+                                                       FontWeight="Normal"  
+                                                       FontStyle="Normal"  
+                                                       KeyboardNavigation.TabNavigation="None" 
+                                                       Text="Signing PADES Document" 
+                                                       Foreground="White" 
+                                                       Width="Auto"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center">
+            </TextBlock>
+        </Border>
+
+        <ScrollViewer x:Name="ScrollViewerPadesSign" Padding="5" Grid.Row="2">
+            <StackPanel Orientation="Vertical">
+
+                <StackPanel Orientation="Horizontal" >
+                    <TextBox x:Name="PadesSignFilePathText" Width="350" IsReadOnly="True" IsReadOnlyCaretVisible="True" />
+                    <Button x:Name="BrowsePadesSignFile" Content="Browse File" Margin="10,0,0,0" Padding="3"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBox x:Name="PadesSignSignSignatureImagePathText" Width="350" IsReadOnly="True" IsReadOnlyCaretVisible="True" 
+                                                             Text=""/>
+                    <Button x:Name="BrowsePadesSignatureImage" Content="Browse Signature Image" Margin="10,0,0,0" Padding="3"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Margin="0,0,0,0" 
+                                                    TextAlignment="Right" Text="PIN" 
+                                                    VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                    Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                    TextAlignment="Right" Text=":" 
+                                                    VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                    Foreground="Black" FontWeight="SemiBold"/>
+                    <PasswordBox Margin="0,0,0,0" Height="23"
+                                                     Name="PadesSignPinText" Password=""
+                                                    VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                                    Foreground="Black" Width="240" PreviewTextInput="NumberValidationTextBox"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Margin="0,0,0,0" 
+                                                    TextAlignment="Right" Text="TSA URL" 
+                                                    VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                    Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                    TextAlignment="Right" Text=":" 
+                                                    VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                    Foreground="Black" FontWeight="SemiBold"/>
+                    <TextBox Margin="0,0,0,0" Height="23"
+                                                    TextAlignment="Left" Name="PadesSignTsaUrlText" Text="" 
+                                                    VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                                    Foreground="Black" Width="240"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Margin="0,0,0,0" 
+                                                    TextAlignment="Right" Text="OCSP URL" 
+                                                    VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                    Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                    TextAlignment="Right" Text=":" 
+                                                    VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                    Foreground="Black" FontWeight="SemiBold"/>
+                    <TextBox Margin="0,0,0,0" Height="23"
+                                                    TextAlignment="Left" Name="PadesSignOcspUrlText" Text="" 
+                                                    VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                                    Foreground="Black" Width="240"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Margin="0,0,0,0" 
+                                                    TextAlignment="Right" Text="Cert Path" 
+                                                    VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                    Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                    TextAlignment="Right" Text=":" 
+                                                    VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                    Foreground="Black" FontWeight="SemiBold"/>
+                    <TextBox Margin="0,0,0,0" Height="23"
+                                                    TextAlignment="Left" Name="PadesSignCertPathText" Text="" 
+                                                    VerticalAlignment="Top"  FontFamily="Segoe UI" 
+                                                    Foreground="Black" Width="240" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Margin="0,0,0,0" 
+                                                TextAlignment="Right" Text="Signature Level" 
+                                                VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                TextAlignment="Right" Text=":" 
+                                                VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                Foreground="Black" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="PadesSignSignatureLevelComboBox" Width="150" Margin="0,0,0,0">
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0" >
+                    <TextBlock Margin="0,0,0,0" 
+                                                TextAlignment="Right" Text="Package Mode" 
+                                                VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                TextAlignment="Right" Text=":" 
+                                                VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                Foreground="Black" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="PadesSignPackageModeComboBox" Width="150" Margin="0,0,0,0">
+                    </ComboBox>
+                </StackPanel>
+
+                <CheckBox x:Name="padesSignOtherOptionsCheckBox" Style="{StaticResource CheckBoxStyle}" Content="Other Options"
+                                                    Margin="110,20,0,0" FontWeight="SemiBold"/>
+
+                <StackPanel x:Name="PadesSignOtherOptionsPanel" Orientation="Horizontal" 
+                            Visibility="{Binding Path=IsChecked, ElementName=padesSignOtherOptionsCheckBox, Converter={StaticResource VisibleIfTrueConverter}}">
+                    <StackPanel >
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Country Code" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignCountryCodeText" Text="uae" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="State/Province" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignStateOrProvinceText" Text="AbuDhabi" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Postal Code" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignPostalCodeText" Text="1234" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="loacality" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignLocalityText" Text="uae" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Street" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignStreetText" Text="KhalifaCity" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Sign Reason" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignSignReasonText" Text="testing pades signature" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Signer Location" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignSignerLocationText" Text="uae" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Signer Contact Info" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignSignerContactInfoText" Text="mazyad mall abudhabi" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Signature X-Axis" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignSignatureXAxisText" Text="300" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" PreviewTextInput="NumberValidationTextBox"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Signature Y-Axis" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignSignatureYAxisText" Text="100" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" PreviewTextInput="NumberValidationTextBox"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Font Name" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignFontNameText" Text="sans" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Background Color" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignBackgroundColorText" Text="#FFEEFF" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Font Color" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignFontColorText" Text="#000000" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Font Size" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignFontSizeText" Text="20" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" PreviewTextInput="NumberValidationTextBox"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Signature Text" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignSignatureTextText" Text="testing pdf signature" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Sign Visible" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <CheckBox x:Name="PadesSignSignVisible" IsChecked="True"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Signer Name Position" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <ComboBox x:Name="PadesSignSignerNamePositionComboBoxText" Width="150" Margin="0,0,0,0">
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Margin="0,0,0,0" 
+                                            TextAlignment="Right" Text="Page Number" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold" Width="100" TextWrapping="Wrap"/>
+                            <TextBlock Height="27" Margin="5,0,5,0" 
+                                            TextAlignment="Right" Text=":" 
+                                            VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                            Foreground="Black" FontWeight="SemiBold"/>
+                            <TextBox Margin="0,0,0,0" Height="23"
+                                            TextAlignment="Left" Name="PadesSignPageNumberText" Text="1" 
+                                            VerticalAlignment="Top" FontFamily="Segoe UI" 
+                                            Foreground="Black" Width="240" PreviewTextInput="NumberValidationTextBox"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Content="Set To Default Values" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                Margin="-100,-30,0,0" Name="PadesSignSetToDefaultValuesButton" 
+                                                VerticalAlignment="Top" Width="Auto" Click="PadesSignSetToDefaultValuesButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11"/>
+                </StackPanel>
+
+                <!--Xml Response Fields-->
+                <StackPanel Margin="0,10,0,0" VerticalAlignment="Center">
+                    <TextBlock Margin="10" Text="Xml Response:" TextAlignment="Left" FontSize="16" FontFamily="Segoe UI" 
+                                                   Foreground="Blue" />
+                    <TextBox x:Name="PadesSignXmlResponse" Margin="5,5,0,0" Height="300" Width="550"
+                                                 HorizontalAlignment="Left" VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" IsReadOnly="True"
+                                                 IsTabStop="False"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

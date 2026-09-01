@@ -1,0 +1,692 @@
+﻿<UserControl x:Class="EIDAToolkitApp.UserControls.ReadDataUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EIDAToolkitApp.UserControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Background="{StaticResource linearGradientStyle}" Height="30">
+            <TextBlock FontSize="20" 
+                                                       FontFamily="Times New Roman" 
+                                                       FontWeight="Normal"  
+                                                       FontStyle="Normal"  
+                                                       KeyboardNavigation.TabNavigation="None" 
+                                                       Text="Read Container data from card" 
+                                                       Foreground="White" 
+                                                       Width="Auto"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center">
+            </TextBlock>
+        </Border>
+
+        <ScrollViewer x:Name="ScrollViewerReadData" Padding="5" Grid.Row="2">
+            <StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Center">
+                    <TextBlock Height="27" Margin="5,0,0,0" HorizontalAlignment="Left"
+                                                       Text="Select Type" TextAlignment="Right"
+                                                       FontSize="15" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" VerticalAlignment="Center"/>
+                    <TextBlock Height="27" Margin="2,0,2,0" 
+                                                           TextAlignment="Right" Text="*" 
+                                                           VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                           Foreground="IndianRed" FontWeight="SemiBold"/>
+                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Center" FontSize="17" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="ReadDataFileTypeComboBox" Width="180" Margin="0,0,0,0" HorizontalAlignment="Left" 
+                                                        Height="25" VerticalAlignment="Center" SelectionChanged="ReadDataFileTypeComboBox_SelectionChanged">
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel x:Name="HealthDataSP" Margin="0,20,0,0">
+                    <TextBlock Margin="10" Text="Health Data:" TextAlignment="Left" FontSize="16" FontFamily="Segoe UI" 
+                                                   Foreground="Blue" />
+
+                    <GroupBox Header="Allergy" x:Name="AllergyType1GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType1_AllergyDisplay_Label" Text="Allergy Display" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType1_AllergyDisplay_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType1_AllergyRecordedDate_Label" Text="Allergy Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType1_AllergyRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Allergy" x:Name="AllergyType2GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType2_AllergyDisplay_Label" Text="Allergy Display" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType2_AllergyDisplay_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType2_AllergyRecordedDate_Label" Text="Allergy Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType2_AllergyRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Allergy" x:Name="AllergyType3GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType3_AllergyDisplay_Label" Text="Allergy Display" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType3_AllergyDisplay_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType3_AllergyRecordedDate_Label" Text="Allergy Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType3_AllergyRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Allergy" x:Name="AllergyType4GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType4_AllergyDisplay_Label" Text="Allergy Display" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType4_AllergyDisplay_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType4_AllergyRecordedDate_Label" Text="Allergy Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType4_AllergyRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Allergy" x:Name="AllergyType5GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType5_AllergyDisplay_Label" Text="Allergy Display" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType5_AllergyDisplay_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType5_AllergyRecordedDate_Label" Text="Allergy Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType5_AllergyRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Allergy" x:Name="AllergyType6GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType6_AllergyDisplay_Label" Text="Allergy Display" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType6_AllergyDisplay_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AllergyType6_AllergyRecordedDate_Label" Text="Allergy Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="AllergyType6_AllergyRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Diagnosis" x:Name="DiagnosisType1GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType1_DiagnosisCode_Label" Text="Diagnosis Code" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType1_DiagnosisCode_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType1_DiagnosisDescription_Label" Text="Diagnosis Description" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType1_DiagnosisDescription_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType1_DiagnosisRecordedDate_Label" Text="Diagnosis Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType1_DiagnosisRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Diagnosis" x:Name="DiagnosisType2GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType2_DiagnosisCode_Label" Text="Diagnosis Code" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType2_DiagnosisCode_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType2_DiagnosisDescription_Label" Text="Diagnosis Description" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType2_DiagnosisDescription_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType2_DiagnosisRecordedDate_Label" Text="Diagnosis Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType2_DiagnosisRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Diagnosis" x:Name="DiagnosisType3GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType3_DiagnosisCode_Label" Text="Diagnosis Code" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType3_DiagnosisCode_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType3_DiagnosisDescription_Label" Text="Diagnosis Description" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType3_DiagnosisDescription_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType3_DiagnosisRecordedDate_Label" Text="Diagnosis Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType3_DiagnosisRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Diagnosis" x:Name="DiagnosisType4GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType4_DiagnosisCode_Label" Text="Diagnosis Code" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType4_DiagnosisCode_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType4_DiagnosisDescription_Label" Text="Diagnosis Description" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType4_DiagnosisDescription_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType4_DiagnosisRecordedDate_Label" Text="Diagnosis Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType4_DiagnosisRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Diagnosis" x:Name="DiagnosisType5GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType5_DiagnosisCode_Label" Text="Diagnosis Code" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType5_DiagnosisCode_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType5_DiagnosisDescription_Label" Text="Diagnosis Description" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType5_DiagnosisDescription_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType5_DiagnosisRecordedDate_Label" Text="Diagnosis Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType5_DiagnosisRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Diagnosis" x:Name="DiagnosisType6GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType6_DiagnosisCode_Label" Text="Diagnosis Code" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType6_DiagnosisCode_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType6_DiagnosisDescription_Label" Text="Diagnosis Description" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType6_DiagnosisDescription_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType6_DiagnosisRecordedDate_Label" Text="Diagnosis Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType6_DiagnosisRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>                    
+                    <GroupBox Header="Diagnosis" x:Name="DiagnosisType7GroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType7_DiagnosisCode_Label" Text="Diagnosis Code" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType7_DiagnosisCode_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType7_DiagnosisDescription_Label" Text="Diagnosis Description" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType7_DiagnosisDescription_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DiagnosisType7_DiagnosisRecordedDate_Label" Text="Diagnosis Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DiagnosisType7_DiagnosisRecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Blood Group" x:Name="BloodGroupTypeGroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="BloodGroupType_BloodGroup_Label" Text="Blood Group" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="BloodGroupType_BloodGroup_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="BloodGroupType_RecordedDate_Label" Text="Recorded Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="BloodGroupType_RecordedDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Insurance" x:Name="InsuranceTypeGroupBox" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="InsuranceType_InsuranceName_Label" Text="Insurance Name" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="InsuranceType_InsuranceName_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="InsuranceType_InsuranceNumber_Label" Text="Insurance Number" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="InsuranceType_InsuranceNumber_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="InsuranceType_InsuranceValidityStartDate_Label" Text="Insurance Validity Start Date" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="InsuranceType_InsuranceValidityStartDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="InsuranceType_InsuranceValidityEndDate_Label" Text="Insurance Validity EndDate" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="InsuranceType_InsuranceValidityEndDate_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <StackPanel Orientation="Horizontal" Margin="10">
+                        <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="OrganDonor_Label" Text="Organ Donor" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                        <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                        <TextBlock  Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="OrganDonor_Text" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!--Xml Response Fields-->
+                <StackPanel Margin="0,20,0,0">
+                    <TextBlock Margin="10" Text="Xml Response:" TextAlignment="Left" FontSize="16" FontFamily="Segoe UI" 
+                                                   Foreground="Blue" />
+                    <TextBox x:Name="ReadDataXmlResponse" Margin="0,0,0,0" Height="300" Width="600"
+                                                 HorizontalAlignment="Left" VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" IsReadOnly="True"
+                                                 IsTabStop="False"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+    </Grid>
+</UserControl>

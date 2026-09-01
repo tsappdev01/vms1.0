@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>EIDAToolkit Web SDK - Test Console</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+        .header { background: #1a3a4a; color: white; padding: 15px 30px; display: flex; align-items: center; gap: 20px; }
+        .header h1 { font-size: 20px; font-weight: 400; }
+        .header .version { background: #2a5a6a; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+        .container { display: flex; height: calc(100vh - 56px); }
+        .sidebar { width: 280px; background: white; border-right: 1px solid #ddd; overflow-y: auto; padding: 10px; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .output { flex: 1; padding: 15px; overflow-y: auto; background: #1e1e1e; color: #d4d4d4; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
+        .status-bar { background: #252526; color: #888; padding: 5px 15px; font-size: 12px; font-family: monospace; border-top: 1px solid #333; }
+        .section { margin-bottom: 8px; }
+        .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; color: #888; padding: 8px 10px 4px; letter-spacing: 0.5px; }
+        .btn { display: block; width: 100%; padding: 8px 12px; margin: 2px 0; border: none; background: #e8edf2; color: #333; text-align: left; cursor: pointer; border-radius: 4px; font-size: 13px; transition: background 0.15s; }
+        .btn:hover:not(:disabled) { background: #d0d8e0; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.primary { background: #1a73e8; color: white; }
+        .btn.primary:hover:not(:disabled) { background: #1557b0; }
+        .btn.danger { background: #dc3545; color: white; }
+        .btn.danger:hover:not(:disabled) { background: #b02a37; }
+        .input-group { display: flex; gap: 4px; margin: 2px 0; }
+        .input-group input { flex: 1; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+        .input-group select { padding: 6px 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+        .log-info { color: #569cd6; }
+        .log-success { color: #4ec9b0; }
+        .log-error { color: #f44747; }
+        .log-warn { color: #dcdcaa; }
+        .log-data { color: #ce9178; }
+        .log-time { color: #666; }
+        .indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .indicator.connected { background: #4ec9b0; }
+        .indicator.disconnected { background: #f44747; }
+        .indicator.pending { background: #dcdcaa; }
+        .divider { height: 1px; background: #e0e0e0; margin: 6px 0; }
+        .btn-browse { flex: 0 0 auto; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0; cursor: pointer; font-size: 11px; }
+        .btn-browse:hover { background: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>EIDAToolkit Web SDK Test Console</h1>
+        <span class="version">v3.1.3</span>
+        <span id="wsStatus"><span class="indicator disconnected"></span>Disconnected</span>
+    </div>
+    <div class="container">
+        <div class="sidebar">
+            <div class="section">
+                <div class="section-title">Connection</div>
+                <button class="btn primary" id="btnInit" onclick="doInitialize()">Initialize</button>
+                <button class="btn" id="btnListReaders" onclick="doListReaders()" disabled>List Readers</button>
+                <button class="btn" id="btnReaderWithEid" onclick="doGetReaderWithEmiratesId()" disabled>Reader With EID</button>
+                <button class="btn" id="btnConnect" onclick="doConnect()" disabled>Connect Reader</button>
+                <button class="btn" id="btnDisconnect" onclick="doDisconnect()" disabled>Disconnect Reader</button>
+                <button class="btn danger" id="btnCleanup" onclick="doCleanup()" disabled>Cleanup</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">Card Info</div>
+                <button class="btn" id="btnCheckCard" onclick="doCheckCardStatus()" disabled>Check Card Status</button>
+                <button class="btn" id="btnCardVersion" onclick="doGetCardVersion()" disabled>Card Version</button>
+                <button class="btn" id="btnCSN" onclick="doGetCSN()" disabled>Card Serial Number</button>
+                <button class="btn" id="btnInterface" onclick="doGetInterface()" disabled>Interface Type</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">Public Data</div>
+                <button class="btn" id="btnReadPubData" onclick="doReadPublicData()" disabled>Read Public Data</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">Biometric</div>
+                <button class="btn" id="btnFingerIndex" onclick="doGetFingerIndex()" disabled>Get Finger Index</button>
+                <div class="input-group">
+                    <select id="selFinger" disabled style="flex:1">
+                        <option value="">-- Get Finger Index first --</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <span style="font-size:11px;color:#888;align-self:center;white-space:nowrap">Sensor timeout (sec)</span>
+                    <input type="number" id="txtTimeout" value="30" style="width:50px;flex:none" disabled>
+                </div>
+                <button class="btn" id="btnVerifyBio" onclick="doVerifyBiometric()" disabled>Verify Biometric</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">PIN Operations</div>
+                <div class="input-group">
+                    <input type="password" id="txtNewPin" placeholder="New PIN" autocomplete="off" disabled>
+                </div>
+                <button class="btn" id="btnResetPin" onclick="doResetPin()" disabled>Reset PIN</button>
+                <div class="input-group">
+                    <input type="password" id="txtUnblockPin" placeholder="Unblock PIN" autocomplete="off" disabled>
+                </div>
+                <button class="btn" id="btnUnblockPin" onclick="doUnblockPin()" disabled>Unblock PIN</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">PKI / Signing</div>
+                <div class="input-group">
+                    <input type="password" id="txtPin" placeholder="Card PIN" autocomplete="off" disabled>
+                </div>
+                <button class="btn" id="btnReadCert" onclick="doReadCertificates()" disabled>Read Certificates</button>
+                <button class="btn" id="btnPKIAuth" onclick="doPKIAuth()" disabled>PKI Authentication</button>
+                <div class="input-group">
+                    <input type="text" id="txtSignData" placeholder="Data to sign" disabled>
+                </div>
+                <button class="btn" id="btnSignData" onclick="doSignData()" disabled>Sign Data</button>
+                <button class="btn" id="btnSignChallenge" onclick="doSignChallenge()" disabled>Sign Challenge</button>
+                <button class="btn" id="btnVerifySig" onclick="doVerifySignature()" disabled>Verify Signature</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">Family Book</div>
+                <div class="input-group">
+                    <input type="password" id="txtFamilyBookPin" placeholder="Card PIN" autocomplete="off" disabled>
+                </div>
+                <button class="btn" id="btnReadFamilyBook" onclick="doReadFamilyBookData()" disabled>Read Family Book Data</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">Device</div>
+                <div class="input-group">
+                    <input type="text" id="txtUserId" placeholder="User ID" disabled>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="txtPassword" placeholder="Password" autocomplete="off" disabled>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="txtDeviceRef" placeholder="Device Reference ID" disabled>
+                </div>
+                <button class="btn" id="btnRegDevice" onclick="doRegisterDevice()" disabled>Register Device</button>
+                <button class="btn" id="btnDeviceId" onclick="doGetDeviceId()" disabled>Get Device ID</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">Toolkit</div>
+                <button class="btn" id="btnVersion" onclick="doGetToolkitVersion()" disabled>Toolkit Version</button>
+                <button class="btn" id="btnDPK" onclick="doGetDataProtectionKey()" disabled>Data Protection Key</button>
+                <button class="btn" id="btnLicExpiry" onclick="doGetLicenseExpiry()" disabled>License Expiry Date</button>
+                <button class="btn" id="btnConfigExpiry" onclick="doGetConfigExpiry()" disabled>Config Files Expiry</button>
+                <div class="input-group">
+                    <input type="text" id="txtMRZ" placeholder="MRZ string" disabled>
+                </div>
+                <button class="btn" id="btnParseMRZ" onclick="doParseMRZ()" disabled>Parse MRZ</button>
+                <button class="btn" id="btnVerifyResponse" onclick="doVerifyToolkitResponse()" disabled>Verify Toolkit Response</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">AdES Signing</div>
+                <div class="input-group">
+                    <input type="password" id="txtAdesPin" placeholder="Card PIN" autocomplete="off" disabled>
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-title">CAdES-B</div>
+                <div class="input-group">
+                    <input type="text" id="txtAdesFile" placeholder="File path to sign" disabled>
+                    <button class="btn-browse" onclick="browseFile('txtAdesFile','*')">...</button>
+                </div>
+                <button class="btn primary" id="btnCadesSign" onclick="doCadesSign()" disabled>Sign</button>
+                <button class="btn" id="btnCadesVerify" onclick="doCadesVerify()" disabled>Verify</button>
+            </div>
+            <div class="section">
+                <div class="section-title">XAdES-B</div>
+                <div class="input-group">
+                    <input type="text" id="txtXadesFile" placeholder="XML file path" disabled>
+                    <button class="btn-browse" onclick="browseFile('txtXadesFile','.xml')">...</button>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="txtXadesOutput" placeholder="Signed XML output path" disabled>
+                </div>
+                <button class="btn primary" id="btnXadesSign" onclick="doXadesSign()" disabled>Sign</button>
+            </div>
+            <div class="section">
+                <div class="section-title">PAdES-B</div>
+                <div class="input-group">
+                    <input type="text" id="txtPadesFile" placeholder="PDF file path" disabled>
+                    <button class="btn-browse" onclick="browseFile('txtPadesFile','.pdf')">...</button>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="txtPadesOutput" placeholder="Signed PDF output path" disabled>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="txtPadesReason" placeholder="Reason (optional)" disabled>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="txtPadesLocation" placeholder="Location (optional)" disabled>
+                </div>
+                <button class="btn primary" id="btnPadesSign" onclick="doPadesSign()" disabled>Sign</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <div class="section-title">Console</div>
+                <button class="btn" onclick="copyLog()">Copy Log</button>
+                <button class="btn" onclick="clearOutput()">Clear Output</button>
+            </div>
+        </div>
+        <div class="main">
+            <div class="output" id="output"></div>
+            <div class="status-bar" id="statusBar">Ready</div>
+        </div>
+    </div>
+
+    <script src="eidatoolkit.js"></script>
+    <script src="../health-probe.js"></script>
+    <script>
+        "use strict";
+
+        // =====================================================================
+        // State
+        // =====================================================================
+        var ToolkitOB = null;
+        var readerClass = null;
+        var fingerDataCache = null;
+        var lastSignature = null;
+        var lastSignedData = null;
+        var lastSigningCert = null;
+        var lastAuthCert = null;
+        var lastSignatureCert = null;
+        var lastXmlResponse = null;
+        var cachedModulus = null;
+        var cachedExponent = null;
+        var operationInProgress = false;
+
+        // =====================================================================
+        // Logging
+        // =====================================================================
+        var outputEl = document.getElementById('output');
+
+        // Track whether the user has scrolled away from the bottom. When they
+        // have, new log entries should NOT snap the view back — the developer
+        // is reading earlier output and we must not steal their place. 4px of
+        // slack absorbs sub-pixel rounding on high-DPI displays.
+        var stickToBottom = true;
+        outputEl.addEventListener('scroll', function () {
+            var distanceFromBottom = outputEl.scrollHeight
+                - outputEl.scrollTop - outputEl.clientHeight;
+            stickToBottom = (distanceFromBottom < 4);
+        });
+
+        function log(msg, cls) {
+            var ts = new Date().toLocaleTimeString('en-GB', {hour12: false});
+            var line = document.createElement('div');
+            var timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = '[' + ts + '] ';
+            line.appendChild(timeSpan);
+            var msgSpan = document.createElement('span');
+            msgSpan.className = cls || '';
+            msgSpan.textContent = msg;
+            line.appendChild(msgSpan);
+            outputEl.appendChild(line);
+            if (stickToBottom) {
+                outputEl.scrollTop = outputEl.scrollHeight;
+            }
+        }
+
+        function logInfo(msg)    { log(msg, 'log-info'); }
+        function logSuccess(msg) { log(msg, 'log-success'); }
+        function logError(msg)   { log(msg, 'log-error'); }
+        function logWarn(msg)    { log(msg, 'log-warn'); }
+        function logData(msg)    { log(msg, 'log-data'); }
+        function clearOutput()   {
+            outputEl.textContent = '';
+            stickToBottom = true;
+        }
+
+        // Copy the full log text (timestamps + messages) to the clipboard so
+        // developers can paste it into a bug report or support ticket.
+        function copyLog() {
+            var text = outputEl.innerText || outputEl.textContent || '';
+            if (!text) { logWarn('Log is empty'); return; }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                    logSuccess('Log copied to clipboard (' + text.length + ' chars)');
+                }, function (err) {
+                    logError('Copy failed: ' + (err && err.message ? err.message : err));
+                });
+            } else {
+                // file:// pages in older Chromium builds lose navigator.clipboard;
+                // fall back to an off-screen textarea + execCommand('copy').
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    var ok = document.execCommand('copy');
+                    logSuccess(ok ? ('Log copied to clipboard ('
+                        + text.length + ' chars)') : 'Copy failed');
+                } catch (e) {
+                    logError('Copy failed: ' + e.message);
+                }
+                document.body.removeChild(ta);
+            }
+        }
+
+        function setStatus(msg) {
+            document.getElementById('statusBar').textContent = msg;
+        }
+
+        function setWSStatus(state) {
+            var el = document.getElementById('wsStatus');
+            el.textContent = '';
+            var indicator = document.createElement('span');
+            indicator.className = 'indicator ' + (state === 'connected' ? 'connected' :
+                state === 'pending' ? 'pending' : 'disconnected');
+            el.appendChild(indicator);
+            var label = state === 'connected' ? 'Connected' :
+                state === 'pending' ? 'Connecting...' : 'Disconnected';
+            el.appendChild(document.createTextNode(label));
+        }
+
+        function logErr(label, error) {
+            if (!error) { logError(label + ': Unknown error'); return; }
+            var msg = label + ' ERROR';
+            if (error.code) { msg += ' [' + error.code + ']'; }
+            if (error.message) { msg += ': ' + error.message; }
+            if (error.attemptsLeft !== null && error.attemptsLeft !== undefined) {
+                msg += ' (attempts left: ' + error.attemptsLeft + ')';
+            }
+            logError(msg);
+        }
+
+        // Display all meaningful fields from a response object
+        function logFields(response) {
+            if (!response || typeof response !== 'object') {
+                logData('  ' + String(response));
+                return;
+            }
+            var skip = {status:1, sequence:1, service_context:1, tooklitResponse:1,
+                message:1, xmlString:1, response:1, cardNumber:1, cardSerialNumber:1,
+                iDNumber:1, requestId:1, service:1, timeStamp:1};
+            for (var key in response) {
+                if (skip[key]) { continue; }
+                if (typeof response[key] === 'function') { continue; }
+                var val = response[key];
+                if (val === null || val === undefined) { continue; }
+                if (typeof val === 'object') { continue; }
+                logData('  ' + key + ': ' + val);
+            }
+            if (response.xmlString) {
+                logSuccess('XML Response:');
+                logData(formatXml(response.xmlString));
+            }
+        }
+
+        // =====================================================================
+        // UI State Management
+        // =====================================================================
+        function setInitButtons(connected) {
+            document.getElementById('btnInit').disabled = connected;
+            var initIds = ['btnListReaders', 'btnReaderWithEid', 'btnConnect', 'btnCleanup',
+                'btnVersion', 'btnDPK', 'btnLicExpiry', 'btnConfigExpiry',
+                'btnParseMRZ', 'btnRegDevice', 'btnDeviceId'];
+            var initInputs = ['txtMRZ', 'txtUserId', 'txtPassword', 'txtDeviceRef'];
+            initIds.forEach(function(id) { document.getElementById(id).disabled = !connected; });
+            initInputs.forEach(function(id) { document.getElementById(id).disabled = !connected; });
+        }
+
+        function setCardButtons(connected) {
+            var cardIds = ['btnDisconnect', 'btnCheckCard', 'btnCardVersion', 'btnCSN',
+                'btnInterface', 'btnReadPubData', 'btnFingerIndex', 'btnVerifyBio',
+                'btnReadCert', 'btnPKIAuth', 'btnSignData', 'btnSignChallenge',
+                'btnVerifySig', 'btnResetPin', 'btnUnblockPin', 'btnVerifyResponse',
+                'btnReadFamilyBook',
+                'btnCadesSign', 'btnCadesVerify', 'btnXadesSign', 'btnPadesSign'];
+            var cardInputs = ['txtPin', 'txtSignData', 'txtTimeout', 'txtNewPin',
+                'txtUnblockPin',
+                'txtFamilyBookPin',
+                'txtAdesPin', 'txtAdesFile', 'txtXadesFile', 'txtXadesOutput',
+                'txtPadesFile', 'txtPadesOutput', 'txtPadesReason', 'txtPadesLocation'];
+            cardIds.forEach(function(id) { document.getElementById(id).disabled = !connected; });
+            cardInputs.forEach(function(id) { document.getElementById(id).disabled = !connected; });
+            if (!connected) {
+                document.getElementById('selFinger').disabled = true;
+            }
+        }
+
+        function resetCardState() {
+            fingerDataCache = null;
+            lastSignature = null;
+            lastSignedData = null;
+            lastSigningCert = null;
+            lastAuthCert = null;
+            lastSignatureCert = null;
+            lastXmlResponse = null;
+            operationInProgress = false;
+            // Reset finger dropdown
+            var sel = document.getElementById('selFinger');
+            sel.textContent = '';
+            var opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '-- Get Finger Index first --';
+            sel.appendChild(opt);
+            sel.disabled = true;
+            // Reset input fields
+            ['txtPin', 'txtSignData', 'txtNewPin', 'txtUnblockPin'].forEach(function(id) {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('txtTimeout').value = '30';
+        }
+
+        // =====================================================================
+        // Helpers
+        // =====================================================================
+
+        // Safe string display — handles null, undefined, objects
+        function str(val) {
+            if (val === null || val === undefined) { return ''; }
+            if (typeof val === 'object') { return ''; }
+            return String(val);
+        }
+
+        // Format "value (code)" — only shows parentheses if code has a value
+        function strWithCode(val, code) {
+            var v = str(val);
+            var c = str(code);
+            if (v && c) { return v + ' (' + c + ')'; }
+            if (v) { return v; }
+            if (c) { return c; }
+            return '-';
+        }
+
+        // Format "label: value" pair, returns null if value is empty
+        function field(label, val) {
+            var v = str(val);
+            return v ? (label + ': ' + v) : null;
+        }
+
+        // Log an array of field strings, skipping nulls
+        function logFieldList(fields) {
+            fields.forEach(function(f) {
+                if (f) { logData('  ' + (f.indexOf('  ') === 0 ? f.substring(2) : f)); }
+            });
+        }
+
+        function generateRequestId() {
+            var text = '';
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            for (var i = 0; i < 40; i++) {
+                text += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return btoa(text);
+        }
+
+        function formatXml(xml) {
+            if (!xml) { return '(empty)'; }
+            var formatted = '';
+            var indent = 0;
+            var parts = xml.replace(/>\s*</g, '>\n<').split('\n');
+            parts.forEach(function(line) {
+                var trimmed = line.trim();
+                if (!trimmed) { return; }
+                if (trimmed.match(/^<\/\w/)) { indent = Math.max(0, indent - 1); }
+                formatted += '  '.repeat(indent) + trimmed + '\n';
+                if (trimmed.match(/^<\w[^>]*[^\/]>$/) && !trimmed.match(/^<(br|hr|img|input|meta)/)) {
+                    indent++;
+                }
+            });
+            return formatted.trimEnd();
+        }
+
+        // Format base64 DER certificate data as PEM
+        function formatPEM(base64Data, type) {
+            if (!base64Data) { return '(empty)'; }
+            type = type || 'CERTIFICATE';
+            var lines = ['-----BEGIN ' + type + '-----'];
+            for (var i = 0; i < base64Data.length; i += 64) {
+                lines.push(base64Data.substring(i, i + 64));
+            }
+            lines.push('-----END ' + type + '-----');
+            return lines.join('\n');
+        }
+
+        // Get PIN from input with validation
+        function getPin() {
+            var pin = document.getElementById('txtPin').value;
+            if (!pin || pin.length < 4) {
+                logWarn('Enter a valid PIN (4+ digits)');
+                return null;
+            }
+            return pin;
+        }
+
+        // Check reader is connected
+        function requireReader() {
+            if (!readerClass || !readerClass.isConnected()) {
+                logWarn('Reader not connected');
+                return false;
+            }
+            return true;
+        }
+
+        // Check toolkit is initialized
+        function requireToolkit() {
+            if (!ToolkitOB) {
+                logWarn('Not initialized');
+                return false;
+            }
+            return true;
+        }
+
+        // =====================================================================
+        // RSA PKCS1v1.5 Encryption (pure JS using BigInt)
+        // Required because Web Crypto API does not support PKCS1v1.5 encryption.
+        // The toolkit service uses RSA/ECB/PKCS1Padding (Java).
+        // =====================================================================
+
+        function hexToBytes(hex) {
+            var bytes = new Uint8Array(hex.length / 2);
+            for (var i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+            }
+            return bytes;
+        }
+
+        function bytesToBigInt(bytes) {
+            var hex = '';
+            for (var i = 0; i < bytes.length; i++) {
+                hex += bytes[i].toString(16).padStart(2, '0');
+            }
+            return BigInt('0x' + hex);
+        }
+
+        function bigIntToBytes(n, length) {
+            var hex = n.toString(16);
+            if (hex.length % 2) { hex = '0' + hex; }
+            var bytes = new Uint8Array(length);
+            var hexBytes = hex.length / 2;
+            var offset = length - hexBytes;
+            for (var i = 0; i < hexBytes; i++) {
+                bytes[offset + i] = parseInt(hex.substr(i * 2, 2), 16);
+            }
+            return bytes;
+        }
+
+        function modPow(base, exp, mod) {
+            var result = 1n;
+            base = base % mod;
+            while (exp > 0n) {
+                if (exp % 2n === 1n) {
+                    result = (result * base) % mod;
+                }
+                exp = exp / 2n;
+                base = (base * base) % mod;
+            }
+            return result;
+        }
+
+        // PKCS1 v1.5 Type 2 padding: 0x00 0x02 [random non-zero bytes] 0x00 [data]
+        function pkcs1v15Pad(data, keyLength) {
+            var padLength = keyLength - data.length - 3;
+            if (padLength < 8) {
+                throw new Error('Data too long for RSA key size');
+            }
+            var padded = new Uint8Array(keyLength);
+            padded[0] = 0x00;
+            padded[1] = 0x02;
+            var randomBytes = new Uint8Array(padLength);
+            crypto.getRandomValues(randomBytes);
+            for (var i = 0; i < padLength; i++) {
+                while (randomBytes[i] === 0) {
+                    var tmp = new Uint8Array(1);
+                    crypto.getRandomValues(tmp);
+                    randomBytes[i] = tmp[0];
+                }
+                padded[2 + i] = randomBytes[i];
+            }
+            padded[2 + padLength] = 0x00;
+            padded.set(data, 3 + padLength);
+            return padded;
+        }
+
+        function rsaPkcs1Encrypt(data, modulusHex, exponentHex) {
+            var modBytes = hexToBytes(modulusHex);
+            var expBytes = hexToBytes(exponentHex);
+            var padded = pkcs1v15Pad(data, modBytes.length);
+            var m = bytesToBigInt(padded);
+            var n = bytesToBigInt(modBytes);
+            var e = bytesToBigInt(expBytes);
+            var c = modPow(m, e, n);
+            return bigIntToBytes(c, modBytes.length);
+        }
+
+        function isAsciiSafe(str) {
+            for (var i = 0; i < str.length; i++) {
+                if (str.charCodeAt(i) > 127) { return false; }
+            }
+            return true;
+        }
+
+        // RSA-PKCS1v1.5: base64decode(requestHandle) || plaintextBytes → encrypt → base64
+        // Matches Java CryptoUtils.encryptPin and .NET EncryptWithDataProtectionKey
+        function encryptWithDataProtectionKey(plaintext, requestHandle, modulusHex, exponentHex) {
+            try {
+                var handleStr = atob(requestHandle);
+                var handleBytes = new Uint8Array(handleStr.length);
+                for (var i = 0; i < handleStr.length; i++) {
+                    handleBytes[i] = handleStr.charCodeAt(i);
+                }
+
+                var encoder = new TextEncoder();
+                var plaintextBytes = encoder.encode(plaintext);
+
+                var plainData = new Uint8Array(handleBytes.length + plaintextBytes.length);
+                plainData.set(handleBytes, 0);
+                plainData.set(plaintextBytes, handleBytes.length);
+
+                var encrypted = rsaPkcs1Encrypt(plainData, modulusHex, exponentHex);
+
+                var binary = '';
+                for (var j = 0; j < encrypted.length; j++) {
+                    binary += String.fromCharCode(encrypted[j]);
+                }
+                return btoa(binary);
+            } catch (e) {
+                logError('PIN encryption failed: ' + e.message);
+                return null;
+            }
+        }
+
+        // =====================================================================
+        // PIN Encryption Flow
+        // PrepareRequest → GetDataProtectionKey (cached) → RSA Encrypt
+        // Never sends plain PIN to server.
+        // =====================================================================
+
+        function doPrepareRequest(callback) {
+            if (!readerClass) { logError('PrepareRequest failed: no reader connected'); callback(null); return; }
+            var requestId = generateRequestId();
+            readerClass.prepareRequest(requestId, function(response, error) {
+                if (error) {
+                    logError('PrepareRequest failed: ' + (error.message || error));
+                    callback(null);
+                    return;
+                }
+                callback(response);
+            });
+        }
+
+        function getEncryptedPin(pin, callback) {
+            logInfo('PrepareRequest...');
+            doPrepareRequest(function(requestHandle) {
+                if (requestHandle === null || requestHandle === undefined) {
+                    logError('PrepareRequest failed - cannot proceed without encrypted PIN');
+                    callback(null);
+                    return;
+                }
+
+                logInfo('PrepareRequest OK');
+
+                // Use cached key if available (data protection key is static)
+                if (cachedModulus && cachedExponent) {
+                    logInfo('Encrypting PIN with RSA PKCS1v1.5...');
+                    var encodedPin = encryptWithDataProtectionKey(pin, requestHandle, cachedModulus, cachedExponent);
+                    if (encodedPin) {
+                        logSuccess('PIN encrypted successfully');
+                    } else {
+                        logError('PIN encryption failed - cannot proceed');
+                    }
+                    callback(encodedPin);
+                    return;
+                }
+
+                // First time — fetch and cache the key
+                logInfo('Fetching data protection key...');
+                ToolkitOB.getDataProtectionKey(function(response, error) {
+                    if (error) {
+                        logError('getDataProtectionKey failed: ' + (error.message || error));
+                        callback(null);
+                        return;
+                    }
+
+                    if (response.modulus && response.exponent) {
+                        cachedModulus = response.modulus;
+                        cachedExponent = response.exponent;
+                        logSuccess('Data protection key cached');
+                        logInfo('Encrypting PIN with RSA PKCS1v1.5...');
+                        var encodedPin = encryptWithDataProtectionKey(pin, requestHandle, cachedModulus, cachedExponent);
+                        if (encodedPin) {
+                            logSuccess('PIN encrypted successfully');
+                        } else {
+                            logError('PIN encryption failed - cannot proceed');
+                        }
+                        callback(encodedPin);
+                    } else {
+                        logError('No modulus/exponent in data protection key response');
+                        callback(null);
+                    }
+                });
+            });
+        }
+
+        // =====================================================================
+        // SDK Options + connection-attempt strategy
+        //
+        // Tries non-TLS to localhost first (the simplest dev setup, no hosts
+        // entry or cert-trust required). Falls back to TLS to the production
+        // agent DNS name if the first attempt fails. Customers integrating
+        // the JS SDK should pick one of these directly and remove the
+        // fallback once they know which mode their deployment uses.
+        // =====================================================================
+        var connectionAttempts = [
+            { tls: false, host: "localhost",                  label: "ws://localhost (non-TLS)" },
+            { tls: true,  host: "toolkitagent.emiratesid.ae", label: "wss://toolkitagent.emiratesid.ae (TLS)" }
+        ];
+        var currentAttempt = -1;
+        var connectionEstablished = false;
+
+        function buildOptions(attemptIdx) {
+            var a = connectionAttempts[attemptIdx];
+            var opts = {
+                "debugEnabled": true,
+                "agent_tls_enabled": a.tls,
+                "agent_host_name": a.host
+            };
+            opts.toolkitConfig = 'vg_connection_timeout = 60\n';
+            opts.toolkitConfig += 'log_level = "INFO"\n';
+            opts.toolkitConfig += 'log_performance_time = true\n';
+            return opts;
+        }
+
+        // Redirect SDK debug logs to browser console only
+        var LOG = function() {
+            console.log.apply(console, arguments);
+        };
+
+        // Schedule the next attempt if one is available; return true if we
+        // did so (so callers can stop their normal failure path).
+        function fallbackOrFail(reason) {
+            if (connectionEstablished) { return false; }
+            var nextIdx = currentAttempt + 1;
+            if (nextIdx >= connectionAttempts.length) { return false; }
+            logWarn('Attempt ' + (currentAttempt + 1) + ' (' +
+                connectionAttempts[currentAttempt].label + ') failed: ' + reason +
+                '. Trying ' + connectionAttempts[nextIdx].label + '...');
+            ToolkitOB = null;
+            setTimeout(function() { tryConnect(nextIdx); }, 50);
+            return true;
+        }
+
+        // /health-aware boot: ask the agent what mode it's in instead of
+        // guessing through the hardcoded fallback chain. On probe success
+        // the auto-detected entry is unshifted at index 0 so the existing
+        // fallbackOrFail cascade still runs if WS connection fails.
+        // On probe unavailable, falls through to today's behaviour. See
+        // docs/superpowers/specs/2026-05-10-modern-console-samples-
+        // health-probe-design.md.
+        function startConnection() {
+            probeHealth().then(function (probed) {
+                if (probed) {
+                    logInfo('/health probe succeeded: tls=' + probed.tls +
+                        ', host=' + probed.host);
+                    setStatus('Connecting via /health auto-detect (' +
+                        (probed.tls ? 'wss' : 'ws') + '://' + probed.host +
+                        ')...');
+                    connectionAttempts.unshift({
+                        tls: probed.tls,
+                        host: probed.host,
+                        label: (probed.tls ? 'wss' : 'ws') + '://' +
+                            probed.host + ' (auto-detected from /health)'
+                    });
+                    tryConnect(0);
+                } else {
+                    logInfo('/health probe unavailable; using sample ' +
+                        'fallback chain');
+                    tryConnect(0);
+                }
+            });
+        }
+
+        function tryConnect(idx) {
+            currentAttempt = idx;
+            var a = connectionAttempts[idx];
+            logInfo('Connection attempt ' + (idx + 1) + '/' + connectionAttempts.length +
+                ': ' + a.label);
+            ToolkitOB = new Toolkit(onOpenHandlerCB, closeHandlerCB, errorHandlerCB,
+                buildOptions(idx));
+        }
+
+        // =====================================================================
+        // WebSocket Callbacks
+        // =====================================================================
+        function logDiagnosticGuidance() {
+            logInfo('Diagnostic steps:');
+            logInfo('  1. services.msc -> "Emirates ID Card Toolkit Service" ' +
+                '-> Status must be "Running".');
+            logInfo('  2. Confirm the agent is bound to a port (cmd / PowerShell):');
+            logInfo('       netstat -ano | findstr "9004 9005 9020"');
+            logInfo('     If the service is "Running" but no port is listening, ' +
+                'the toolkit failed to initialise inside the service.');
+            logInfo('  3. Read the service log:');
+            logInfo('       <install dir>\\EIDAToolkit_<version>_<YYYYMMDD>.log');
+            logInfo('     (default install dir: C:\\Program Files (x86)\\ICAToolkitService\\)');
+            logInfo('     Look for "Toolkit is not intitialized" or ' +
+                '"[EXT:Agent] Failed to initialize toolkit".');
+            logInfo('  4. The MSI installer writes <install dir>\\config_ag_ap ' +
+                'from the CONFIG_URL or CONFIG_DIRECTORY value supplied at install ' +
+                'time. The toolkit then loads its full config (config_ap, ' +
+                'config_li, config_lv_*, config_pg, config_tk_*, config_vg_*) ' +
+                'either from the URL (CONFIG_URL mode) or from that directory ' +
+                '(CONFIG_DIRECTORY mode). If config_ag_ap is empty / missing ' +
+                'either key, the toolkit falls back to looking in the install ' +
+                'dir itself - and if no license files live there, it logs ' +
+                '"Failed to read file ...config_li" and the agent never binds.');
+        }
+
+        var errorHandlerCB = function(err) {
+            if (fallbackOrFail(err || 'connection error')) { return; }
+            logError('WebSocket error: ' + (err || 'Connection failed'));
+            logDiagnosticGuidance();
+            resetCardState();
+            readerClass = null;
+            ToolkitOB = null;
+            cachedModulus = null;
+            cachedExponent = null;
+            setInitButtons(false);
+            setCardButtons(false);
+            setWSStatus('disconnected');
+            setStatus('All connection attempts failed');
+        };
+
+        var closeHandlerCB = function(response) {
+            if (fallbackOrFail('close code ' + response)) { return; }
+            logWarn('WebSocket closed (code: ' + response + ')');
+            if (!connectionEstablished) { logDiagnosticGuidance(); }
+            resetCardState();
+            ToolkitOB = null;
+            readerClass = null;
+            cachedModulus = null;
+            cachedExponent = null;
+            setInitButtons(false);
+            setCardButtons(false);
+            setWSStatus('disconnected');
+            setStatus('Disconnected');
+        };
+
+        var onOpenHandlerCB = function(response, error) {
+            if (error) {
+                if (fallbackOrFail(error.message || error)) { return; }
+                logError('Initialize failed: ' + (error.message || error));
+                ToolkitOB = null;
+                setWSStatus('disconnected');
+                setStatus('Initialize failed');
+                return;
+            }
+            connectionEstablished = true;
+            logSuccess('WebSocket connected via ' +
+                connectionAttempts[currentAttempt].label + ', context established');
+            setInitButtons(true);
+            setWSStatus('connected');
+            setStatus('Connected (' + connectionAttempts[currentAttempt].label + ')');
+        };
+
+        // =====================================================================
+        // Connection Actions
+        // =====================================================================
+        function doInitialize() {
+            try {
+                if (ToolkitOB !== null) {
+                    logWarn('Already initialized');
+                    return;
+                }
+                connectionEstablished = false;
+                logInfo('Initializing (probe /health, fall back to ' +
+                    'hardcoded chain)');
+                setWSStatus('pending');
+                setStatus('Connecting...');
+                startConnection();
+            } catch (e) {
+                logError('Initialize exception: ' + e);
+                setWSStatus('disconnected');
+            }
+        }
+
+        function doListReaders() {
+            if (!requireToolkit()) { return; }
+            logInfo('Listing readers...');
+            setStatus('Listing readers...');
+            ToolkitOB.listReaders(function(response, error) {
+                if (error) { logErr('ListReaders', error); return; }
+                if (!response || response.length === 0) {
+                    logWarn('No readers found');
+                    return;
+                }
+                logSuccess('Found ' + response.length + ' reader(s):');
+                for (var i = 0; i < response.length; i++) {
+                    logData('  [' + i + '] ' + response[i].readerName);
+                    if (i === 0) { readerClass = response[i]; }
+                }
+                setStatus('Found ' + response.length + ' reader(s)');
+            });
+        }
+
+        // Auto-select the first reader that has an Emirates ID card inserted.
+        // Useful when multiple readers are attached — saves the developer from
+        // having to List Readers and pick by index.
+        function doGetReaderWithEmiratesId() {
+            if (!requireToolkit()) { return; }
+            logInfo('Searching for reader with Emirates ID...');
+            setStatus('Searching...');
+            ToolkitOB.getReaderWithEmiratesId(function(response, error) {
+                if (error) { logErr('GetReaderWithEmiratesId', error); setStatus('Not found'); return; }
+                if (!response) { logWarn('No reader with Emirates ID found'); return; }
+                readerClass = response;
+                logSuccess('Reader with Emirates ID: ' + response.readerName);
+                setStatus('Reader: ' + response.readerName);
+            });
+        }
+
+        function doConnect() {
+            if (!readerClass) { logWarn('No reader selected - run List Readers first'); return; }
+            logInfo('Connecting to reader: ' + readerClass.readerName);
+            setStatus('Connecting to reader...');
+            readerClass.connect(function(response, error) {
+                if (error) {
+                    logErr('Connect', error);
+                    setStatus('Connect failed');
+                    return;
+                }
+                logSuccess('Reader connected successfully');
+                resetCardState();
+                setCardButtons(true);
+                setStatus('Reader connected: ' + readerClass.readerName);
+            });
+        }
+
+        function doDisconnect() {
+            if (!requireReader()) { return; }
+            logInfo('Disconnecting reader...');
+            readerClass.disconnect(function(response, error) {
+                if (error) { logErr('Disconnect', error); return; }
+                logSuccess('Reader disconnected');
+                resetCardState();
+                setCardButtons(false);
+                setStatus('Reader disconnected');
+            });
+        }
+
+        function doCleanup() {
+            if (!requireToolkit()) { return; }
+            logInfo('Cleaning up...');
+            resetCardState();
+            readerClass = null;
+            cachedModulus = null;
+            cachedExponent = null;
+            ToolkitOB.cleanup();
+            ToolkitOB = null;
+            setInitButtons(false);
+            setCardButtons(false);
+            setWSStatus('disconnected');
+            setStatus('Cleaned up');
+        }
+
+        // =====================================================================
+        // Card Info Actions
+        // =====================================================================
+        function doCheckCardStatus() {
+            if (!requireReader()) { return; }
+            logInfo('Checking card status...');
+            setStatus('Checking card status...');
+            var requestId = generateRequestId();
+            readerClass.checkCardStatus(requestId, function(response, error) {
+                if (error) { logErr('CheckCardStatus', error); setStatus('Check failed'); return; }
+                logSuccess('Card Status: Valid');
+                if (response.xmlString) {
+                    lastXmlResponse = response.xmlString;
+                    logSuccess('XML Response:');
+                    logData(formatXml(response.xmlString));
+                }
+                setStatus('Card status checked');
+            });
+        }
+
+        function doGetCardVersion() {
+            if (!requireReader()) { return; }
+            logInfo('Getting card version...');
+            readerClass.getCardVersion(function(response, error) {
+                if (error) { logErr('CardVersion', error); return; }
+                var ver = response.card_version || response;
+                var versionNames = {2: 'V2', 3: 'V3', 4: 'V4', 5: 'V5'};
+                logSuccess('Card Version: ' + (versionNames[ver] || ('V' + ver)));
+            });
+        }
+
+        function doGetCSN() {
+            if (!requireReader()) { return; }
+            logInfo('Getting card serial number...');
+            readerClass.getCardSerialNumber(function(response, error) {
+                if (error) { logErr('CSN', error); return; }
+                var csn = response.CSN || response.csn || response;
+                logSuccess('Card Serial Number: ' + csn);
+            });
+        }
+
+        function doGetInterface() {
+            if (!requireReader()) { return; }
+            logInfo('Getting interface type...');
+            readerClass.getInterfaceType(function(response, error) {
+                if (error) { logErr('Interface', error); return; }
+                var types = {0: 'Unknown', 1: 'Contact', 2: 'NFC'};
+                logSuccess('Interface Type: ' + (types[response] || response));
+            });
+        }
+
+        // =====================================================================
+        // Public Data
+        // =====================================================================
+        function doReadPublicData() {
+            if (!requireReader()) { return; }
+            logInfo('Reading public data...');
+            setStatus('Reading public data...');
+            var requestId = generateRequestId();
+            readerClass.readPublicData(requestId, true, true, true, true, true, function(response, error) {
+                if (error) { logErr('ReadPublicData', error); setStatus('Read failed'); return; }
+                logSuccess('=== Public Data ===');
+                if (response.nonModifiablePublicData) {
+                    var nm = response.nonModifiablePublicData;
+                    logSuccess('Non-Modifiable Data:');
+                    logFieldList([
+                        field('Name (EN)', nm.fullNameEnglish),
+                        field('Name (AR)', nm.fullNameArabic),
+                        field('Gender', nm.gender),
+                        field('DOB', nm.dateOfBirth),
+                        '  Nationality: ' + strWithCode(nm.nationalityEnglish, nm.nationalityCode),
+                        field('ID Type', nm.iDType),
+                        field('Title (EN)', nm.titleEnglish),
+                        field('Title (AR)', nm.titleArabic),
+                        field('Place of Birth', nm.placeOfBirthEnglish),
+                        field('Issue Date', nm.issueDate),
+                        field('Expiry Date', nm.expiryDate)
+                    ]);
+                }
+                if (response.modifiablePublicData) {
+                    var m = response.modifiablePublicData;
+                    logSuccess('Modifiable Data:');
+                    logFieldList([
+                        '  Occupation: ' + strWithCode(m.occupationEnglish, m.occupationCode),
+                        field('Company', m.companyNameEnglish),
+                        field('Marital Status', m.maritalStatusCode),
+                        field('Sponsor', m.sponsorName),
+                        field('Sponsor No', m.sponsorUnifiedNumber),
+                        field('Residency No', m.residencyNumber),
+                        field('Residency Type', m.residencyTypeCode),
+                        field('Residency Expiry', m.residencyExpiryDate),
+                        '  Passport: ' + strWithCode(m.passportNumber, m.passportCountryEnglish),
+                        field('Passport Issue', m.passportIssueDate),
+                        field('Passport Expiry', m.passportExpiryDate),
+                        field('Mother (EN)', m.motherFullNameEnglish)
+                    ]);
+                }
+                if (response.homeAddress) {
+                    var h = response.homeAddress;
+                    logSuccess('Home Address:');
+                    logFieldList([
+                        field('Building', h.buildingNameEnglish),
+                        field('Street', h.streetEnglish),
+                        '  Area: ' + strWithCode(h.areaDescEnglish, h.areaCode),
+                        '  City: ' + strWithCode(h.cityDescEnglish, h.cityCode),
+                        '  Emirate: ' + strWithCode(h.emiratesDescEnglish, h.emiratesCode),
+                        field('PO Box', h.pOBOX),
+                        field('Mobile', h.mobilePhoneNumber),
+                        field('Phone', h.residentPhoneNumber),
+                        field('Email', h.email)
+                    ]);
+                }
+                if (response.workAddress) {
+                    var w = response.workAddress;
+                    logSuccess('Work Address:');
+                    logFieldList([
+                        field('Company', w.companyNameEnglish),
+                        '  City: ' + strWithCode(w.cityDescEnglish, w.cityCode),
+                        '  Emirate: ' + strWithCode(w.emiratesDescEnglish, w.emiratesCode),
+                        field('Mobile', w.mobilePhoneNumber),
+                        field('Phone', w.landPhoneNumber),
+                        field('Email', w.email)
+                    ]);
+                }
+                if (response.cardHolderPhoto) {
+                    logData('Photo: [base64, ' + response.cardHolderPhoto.length + ' chars]');
+                }
+                if (response.holderSignatureImage) {
+                    logData('Signature Image: [base64, ' + response.holderSignatureImage.length + ' chars]');
+                }
+                if (response.xmlString) {
+                    lastXmlResponse = response.xmlString;
+                    logSuccess('XML Response:');
+                    logData(formatXml(response.xmlString));
+                    logInfo('Use "Verify Toolkit Response" to validate the XML response signature');
+                }
+                setStatus('Public data read complete');
+            });
+        }
+
+        // =====================================================================
+        // Biometric Actions
+        // =====================================================================
+        function doGetFingerIndex() {
+            if (!requireReader()) { return; }
+            logInfo('Getting finger index...');
+            readerClass.getFingerData(function(response, error) {
+                if (error) { logErr('FingerIndex', error); return; }
+                fingerDataCache = response;
+                logSuccess('Finger data (' + response.length + ' fingers):');
+                var sel = document.getElementById('selFinger');
+                sel.textContent = '';
+                for (var i = 0; i < response.length; i++) {
+                    logData('  Finger ' + (i + 1) + ': ID=' + response[i].fingerId +
+                        ', Index=' + response[i].fingerIndex);
+                    var opt = document.createElement('option');
+                    opt.value = response[i].fingerIndex;
+                    opt.textContent = response[i].fingerIndex.replace(/_/g, ' ');
+                    sel.appendChild(opt);
+                }
+                sel.disabled = false;
+            });
+        }
+
+        // Get the selected FingerData object from cache
+        function getSelectedFinger() {
+            if (!fingerDataCache || fingerDataCache.length === 0) {
+                logWarn('Get Finger Index first');
+                return null;
+            }
+            var selectedIndex = document.getElementById('selFinger').value;
+            if (!selectedIndex) {
+                logWarn('Select a finger from dropdown');
+                return null;
+            }
+            for (var i = 0; i < fingerDataCache.length; i++) {
+                if (fingerDataCache[i].fingerIndex === selectedIndex) {
+                    return fingerDataCache[i];
+                }
+            }
+            logWarn('Selected finger not found in card data');
+            return null;
+        }
+
+        function doVerifyBiometric() {
+            if (!requireReader()) { return; }
+            var finger = getSelectedFinger();
+            if (!finger) { return; }
+            var timeout = parseInt(document.getElementById('txtTimeout').value) || 30;
+            logInfo('Verifying biometric: ' + finger.fingerIndex.replace(/_/g, ' ') +
+                ' (place finger on sensor, timeout: ' + timeout + 's)...');
+            setStatus('Waiting for fingerprint...');
+            var requestId = generateRequestId();
+            readerClass.authenticateBiometricOnServer(requestId, finger.fingerIndex, timeout,
+                function(response, error) {
+                    if (error) { logErr('VerifyBiometric', error); setStatus('Biometric failed'); return; }
+                    logSuccess('Biometric Verification: Success');
+                    if (response.xmlString) {
+                        lastXmlResponse = response.xmlString;
+                        logSuccess('XML Response:');
+                        logData(formatXml(response.xmlString));
+                    }
+                    setStatus('Biometric verification complete');
+                }
+            );
+        }
+
+        function doResetPin() {
+            if (!requireReader()) { return; }
+            var finger = getSelectedFinger();
+            if (!finger) { return; }
+            var newPin = document.getElementById('txtNewPin').value;
+            if (!newPin || newPin.length < 4) {
+                logWarn('Enter a valid new PIN (4+ digits)');
+                return;
+            }
+            var timeout = parseInt(document.getElementById('txtTimeout').value) || 30;
+            logInfo('Reset PIN using ' + finger.fingerIndex.replace(/_/g, ' ') +
+                ' (place finger on sensor)...');
+            setStatus('Waiting for fingerprint to reset PIN...');
+            getEncryptedPin(newPin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                readerClass.resetPin(encodedPin, finger, timeout, function(response, error) {
+                    if (error) { logErr('ResetPIN', error); setStatus('Reset PIN failed'); return; }
+                    logSuccess('PIN Reset: Success');
+                    if (response.xmlString) {
+                        lastXmlResponse = response.xmlString;
+                        logSuccess('XML Response:');
+                        logData(formatXml(response.xmlString));
+                    }
+                    setStatus('PIN reset complete');
+                });
+            });
+        }
+
+        // Unblock PIN: same card-level operation as Reset PIN but unblocks a
+        // blocked card using fingerprint verification. Requires Finger Index
+        // loaded and a finger selected in the dropdown.
+        function doUnblockPin() {
+            if (!requireReader()) { return; }
+            var finger = getSelectedFinger();
+            if (!finger) { return; }
+            var newPin = document.getElementById('txtUnblockPin').value;
+            if (!newPin || newPin.length < 4) {
+                logWarn('Enter a valid new PIN (4+ digits)');
+                return;
+            }
+            var timeout = parseInt(document.getElementById('txtTimeout').value) || 30;
+            logInfo('Unblock PIN using ' + finger.fingerIndex.replace(/_/g, ' ') +
+                ' (place finger on sensor)...');
+            setStatus('Waiting for fingerprint to unblock PIN...');
+            getEncryptedPin(newPin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                readerClass.unblockPin(encodedPin, finger, timeout, function(response, error) {
+                    if (error) { logErr('UnblockPIN', error); setStatus('Unblock PIN failed'); return; }
+                    logSuccess('PIN Unblock: Success');
+                    if (response.xmlString) {
+                        lastXmlResponse = response.xmlString;
+                        logSuccess('XML Response:');
+                        logData(formatXml(response.xmlString));
+                    }
+                    setStatus('PIN unblock complete');
+                });
+            });
+        }
+
+        // =====================================================================
+        // PKI / Signing Actions
+        // =====================================================================
+        function doReadCertificates() {
+            if (!requireReader()) { return; }
+            var pin = getPin();
+            if (!pin) { return; }
+            logInfo('Reading PKI certificates...');
+            setStatus('Reading certificates...');
+            getEncryptedPin(pin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                readerClass.getPkiCertificates(encodedPin, function(response, error) {
+                    if (error) { logErr('ReadCertificates', error); setStatus('Read certs failed'); return; }
+                    lastAuthCert = response.authenticationCertificate;
+                    lastSigningCert = response.signingCertificate;
+                    logSuccess('=== PKI Certificates ===');
+                    if (response.xmlString) {
+                        lastXmlResponse = response.xmlString;
+                        logSuccess('XML Response:');
+                        logData(formatXml(response.xmlString));
+                    }
+                    logSuccess('Authentication Certificate (PEM):');
+                    logData(formatPEM(response.authenticationCertificate));
+                    logSuccess('Signing Certificate (PEM):');
+                    logData(formatPEM(response.signingCertificate));
+                    setStatus('Certificates read');
+                });
+            });
+        }
+
+        function doPKIAuth() {
+            if (!requireReader()) { return; }
+            var pin = getPin();
+            if (!pin) { return; }
+            logInfo('PKI Authentication...');
+            setStatus('PKI authenticating...');
+            getEncryptedPin(pin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                readerClass.authenticatePki(encodedPin, function(response, error) {
+                    if (error) { logErr('PKIAuth', error); setStatus('PKI auth failed'); return; }
+                    logSuccess('PKI Authentication: Success');
+                    if (response.xmlString) {
+                        lastXmlResponse = response.xmlString;
+                        logSuccess('XML Response:');
+                        logData(formatXml(response.xmlString));
+                    }
+                    setStatus('PKI authentication complete');
+                });
+            });
+        }
+
+        // =====================================================================
+        // Family Book Data
+        // =====================================================================
+        function doReadFamilyBookData() {
+            if (!requireReader()) { return; }
+            var pin = document.getElementById('txtFamilyBookPin').value;
+            if (!pin) { logWarn('Enter card PIN for Family Book'); return; }
+            if (pin.length < 4 || pin.length > 16) {
+                logWarn('PIN must be between 4 and 16 digits');
+                return;
+            }
+
+            logInfo('Reading family book data...');
+            setStatus('Reading family book data...');
+            getEncryptedPin(pin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                readerClass.readFamilyBookData(encodedPin, function(response, error) {
+                    if (error) {
+                        logErr('ReadFamilyBookData', error);
+                        if (error.attemptsLeft !== undefined && error.attemptsLeft !== null) {
+                            logError('Attempts left: ' + error.attemptsLeft);
+                        }
+
+                        setStatus('Read family book failed');
+                        return;
+                    }
+
+                    if (response.xmlString) {
+                        lastXmlResponse = response.xmlString;
+                    }
+
+                    logSuccess('=== Family Book Data ===');
+
+                    if (response.HeadOfFamily) {
+                        var h = response.HeadOfFamily;
+                        logSuccess('-- Head of Family --');
+                        logData('HolderIdNumber         : ' + (h.HolderIdNumber || ''));
+                        logData('FamilyId               : ' + (h.FamilyId || ''));
+                        logData('EmirateNameArabic      : ' + (h.EmirateNameArabic || ''));
+                        logData('EmirateNameEnglish     : ' + (h.EmirateNameEnglish || ''));
+                        logData('FirstNameArabic        : ' + (h.FirstNameArabic || ''));
+                        logData('FirstNameEnglish       : ' + (h.FirstNameEnglish || ''));
+                        logData('FatherNameArabic       : ' + (h.FatherNameArabic || ''));
+                        logData('FatherNameEnglish      : ' + (h.FatherNameEnglish || ''));
+                        logData('GrandFatherNameArabic  : ' + (h.GrandFatherNameArabic || ''));
+                        logData('GrandFatherNameEnglish : ' + (h.GrandFatherNameEnglish || ''));
+                        logData('TribeArabic            : ' + (h.TribeArabic || ''));
+                        logData('TribeEnglish           : ' + (h.TribeEnglish || ''));
+                        logData('ClanArabic             : ' + (h.ClanArabic || ''));
+                        logData('ClanEnglish            : ' + (h.ClanEnglish || ''));
+                        logData('NationalityCode        : ' + (h.NationalityCode || ''));
+                        logData('NationalityArabic      : ' + (h.NationalityArabic || ''));
+                        logData('NationalityEnglish     : ' + (h.NationalityEnglish || ''));
+                        logData('Gender                 : ' + (h.Gender || ''));
+                        logData('DateOfBirth            : ' + (h.DateOfBirth || ''));
+                        logData('PlaceOfBirthArabic     : ' + (h.PlaceOfBirthArabic || ''));
+                        logData('PlaceOfBirthEnglish    : ' + (h.PlaceOfBirthEnglish || ''));
+                        logData('MotherFullNameArabic   : ' + (h.MotherFullNameArabic || ''));
+                        logData('MotherFullNameEnglish  : ' + (h.MotherFullNameEnglish || ''));
+                    }
+
+                    if (response.wives && response.wives.length > 0) {
+                        logSuccess('-- Wives (' + response.wives.length + ') --');
+                        for (var wi = 0; wi < response.wives.length; wi++) {
+                            var w = response.wives[wi];
+                            logSuccess('Wife ' + (wi + 1) + ':');
+                            logData('  WifeIdn            : ' + (w.WifeIdn || ''));
+                            logData('  FullNameArabic     : ' + (w.FullNameArabic || ''));
+                            logData('  FullNameEnglish    : ' + (w.FullNameEnglish || ''));
+                            logData('  NationalityCode    : ' + (w.NationalityCode || ''));
+                            logData('  NationalityArabic  : ' + (w.NationalityArabic || ''));
+                            logData('  NationalityEnglish : ' + (w.NationalityEnglish || ''));
+                        }
+                    }
+
+                    if (response.children && response.children.length > 0) {
+                        logSuccess('-- Children (' + response.children.length + ') --');
+                        for (var ci = 0; ci < response.children.length; ci++) {
+                            var c = response.children[ci];
+                            logSuccess('Child ' + (ci + 1) + ':');
+                            logData('  ChildIdn              : ' + (c.ChildIdn || ''));
+                            logData('  FirstNameArabic       : ' + (c.FirstNameArabic || ''));
+                            logData('  FirstNameEnglish      : ' + (c.FirstNameEnglish || ''));
+                            logData('  Gender                : ' + (c.Gender || ''));
+                            logData('  DateOfBirth           : ' + (c.DateOfBirth || ''));
+                            logData('  PlaceOfBirthArabic    : ' + (c.PlaceOfBirthArabic || ''));
+                            logData('  PlaceOfBirthEnglish   : ' + (c.PlaceOfBirthEnglish || ''));
+                            logData('  MotherIdn             : ' + (c.MotherIdn || ''));
+                            logData('  MotherFullNameArabic  : ' + (c.MotherFullNameArabic || ''));
+                            logData('  MotherFullNameEnglish : ' + (c.MotherFullNameEnglish || ''));
+                        }
+                    }
+
+                    if (response.xmlString) {
+                        logSuccess('XML Response:');
+                        logData(formatXml(response.xmlString));
+                    }
+
+                    setStatus('Family book data read');
+                });
+            });
+        }
+
+        function doSignData() {
+            if (!requireReader()) { return; }
+            var pin = getPin();
+            if (!pin) { return; }
+            var signInput = document.getElementById('txtSignData').value;
+            if (!signInput) { logWarn('Enter data to sign'); return; }
+            if (!isAsciiSafe(signInput)) { logWarn('Sign data must be ASCII-only (limitation of base64 encoding in the SDK)'); return; }
+            logInfo('Signing data: "' + signInput + '"');
+            setStatus('Signing data...');
+            getEncryptedPin(pin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                readerClass.signData(signInput, 0, encodedPin, function(response, error) {
+                    if (error) { logErr('SignData', error); setStatus('Sign failed'); return; }
+                    lastSignature = response.signature;
+                    lastSignedData = signInput;
+                    lastSignatureCert = lastSigningCert;
+                    logSuccess('=== Sign Data ===');
+                    if (response.xmlString) {
+                        lastXmlResponse = response.xmlString;
+                        logSuccess('XML Response:');
+                        logData(formatXml(response.xmlString));
+                    }
+                    logSuccess('Signature (base64):');
+                    logData(response.signature);
+                    setStatus('Data signed');
+                });
+            });
+        }
+
+        function doSignChallenge() {
+            if (!requireReader()) { return; }
+            var pin = getPin();
+            if (!pin) { return; }
+            var signInput = document.getElementById('txtSignData').value;
+            if (!signInput) { logWarn('Enter data to sign'); return; }
+            if (!isAsciiSafe(signInput)) { logWarn('Sign data must be ASCII-only (limitation of base64 encoding in the SDK)'); return; }
+            logInfo('Sign Challenge: "' + signInput + '"');
+            setStatus('Signing challenge...');
+            getEncryptedPin(pin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                readerClass.signChallenge(signInput, 0, encodedPin, function(response, error) {
+                    if (error) { logErr('SignChallenge', error); setStatus('Sign challenge failed'); return; }
+                    lastSignature = response.signature;
+                    lastSignedData = signInput;
+                    lastSignatureCert = lastAuthCert;
+                    logSuccess('=== Sign Challenge ===');
+                    if (response.xmlString) {
+                        lastXmlResponse = response.xmlString;
+                        logSuccess('XML Response:');
+                        logData(formatXml(response.xmlString));
+                    }
+                    logSuccess('Signature (base64):');
+                    logData(response.signature);
+                    setStatus('Challenge signed');
+                });
+            });
+        }
+
+        function doVerifySignature() {
+            if (!requireReader()) { return; }
+            if (!lastSignature) { logWarn('Sign data first to get a signature to verify'); return; }
+            if (!lastSignatureCert) { logWarn('Sign data or challenge first, then verify'); return; }
+            logInfo('Verifying signature for: "' + lastSignedData + '"');
+            setStatus('Verifying signature...');
+            readerClass.verifySignature(lastSignedData, 0, lastSignature, lastSignatureCert,
+                function(response, error) {
+                    if (error) { logErr('VerifySignature', error); setStatus('Verify failed'); return; }
+                    logSuccess('Signature Verification: ' +
+                        (response === 'success' || response === true ? 'Valid' : response));
+                    setStatus('Signature verified');
+                }
+            );
+        }
+
+        // =====================================================================
+        // Device Actions
+        // =====================================================================
+        function doRegisterDevice() {
+            if (!requireToolkit()) { return; }
+            var userId = document.getElementById('txtUserId').value;
+            var password = document.getElementById('txtPassword').value;
+            var deviceRef = document.getElementById('txtDeviceRef').value;
+            if (!userId) { logWarn('Enter User ID'); return; }
+            if (!password) { logWarn('Enter Password'); return; }
+            if (!deviceRef) { logWarn('Enter Device Reference ID'); return; }
+
+            // RegisterDevice is a toolkit-level VG call (not tied to a card),
+            // so it needs ToolkitOB.prepareRequest (card_context=0), NOT
+            // readerClass.prepareRequest which attaches the reader handle.
+            //
+            // The userId and password must be RSA-encrypted with the data
+            // protection key via encryptWithDataProtectionKey (concatenate the
+            // prepare-request handle bytes with the plaintext, then RSA-PKCS1v1.5
+            // encrypt, then base64 the ciphertext). This matches what the
+            // Modern .NET sample does via ToolkitService.EncryptWithDataProtectionKey.
+            // NEVER send plain credentials to the service.
+            logInfo('Preparing toolkit-level VG session...');
+            setStatus('Preparing...');
+            var requestId = generateRequestId();
+            ToolkitOB.prepareRequest(requestId, function(requestHandle, prepareError) {
+                if (prepareError || !requestHandle) {
+                    logErr('PrepareRequest', prepareError || new Error('no handle'));
+                    setStatus('PrepareRequest failed');
+                    return;
+                }
+
+                var proceed = function() {
+                    var encUserId = encryptWithDataProtectionKey(userId, requestHandle, cachedModulus, cachedExponent);
+                    var encPassword = encryptWithDataProtectionKey(password, requestHandle, cachedModulus, cachedExponent);
+                    if (!encUserId || !encPassword) {
+                        logError('Credential encryption failed - not sending to service');
+                        setStatus('Encryption failed');
+                        return;
+                    }
+                    logSuccess('Credentials encrypted');
+                    logInfo('Registering device...');
+                    setStatus('Registering device...');
+                    ToolkitOB.registerDevice(encUserId, encPassword, deviceRef,
+                        function(response, error) {
+                            if (error) { logErr('RegisterDevice', error); setStatus('Register failed'); return; }
+                            logSuccess('Device Registered');
+                            if (response.deviceRegistrationID) {
+                                logData('  Registration ID: ' + response.deviceRegistrationID);
+                            }
+                            if (response.xmlString) {
+                                logSuccess('XML Response:');
+                                logData(formatXml(response.xmlString));
+                            }
+                            setStatus('Device registered');
+                        }
+                    );
+                };
+
+                if (cachedModulus && cachedExponent) {
+                    proceed();
+                } else {
+                    logInfo('Fetching data protection key...');
+                    ToolkitOB.getDataProtectionKey(function(dpkResponse, dpkError) {
+                        if (dpkError) {
+                            logError('getDataProtectionKey failed: ' + (dpkError.message || dpkError));
+                            setStatus('DPK fetch failed');
+                            return;
+                        }
+                        if (!dpkResponse.modulus || !dpkResponse.exponent) {
+                            logError('No modulus/exponent in data protection key response');
+                            setStatus('DPK fetch failed');
+                            return;
+                        }
+                        cachedModulus = dpkResponse.modulus;
+                        cachedExponent = dpkResponse.exponent;
+                        logSuccess('Data protection key cached');
+                        proceed();
+                    });
+                }
+            });
+        }
+
+        function doGetDeviceId() {
+            if (!requireToolkit()) { return; }
+            logInfo('Getting device ID...');
+            ToolkitOB.getDeviceId(function(response, error) {
+                if (error) { logErr('DeviceId', error); return; }
+                logSuccess('Device ID: ' + response);
+            });
+        }
+
+        // =====================================================================
+        // Toolkit Actions
+        // =====================================================================
+        function doGetToolkitVersion() {
+            if (!requireToolkit()) { return; }
+            logInfo('Getting toolkit version...');
+            ToolkitOB.getToolkitVersion(function(response, error) {
+                if (error) { logErr('Version', error); return; }
+                logSuccess('Toolkit Version: ' + response);
+            });
+        }
+
+        function doGetDataProtectionKey() {
+            if (!requireToolkit()) { return; }
+            logInfo('Fetching data protection key...');
+            ToolkitOB.getDataProtectionKey(function(response, error) {
+                if (error) { logErr('DataProtectionKey', error); return; }
+                logSuccess('=== Data Protection Key ===');
+                logData('  Modulus (' + (response.modulus || '').length + ' hex chars): ' +
+                    (response.modulus || '').substring(0, 64) + '...');
+                logData('  Exponent: ' + response.exponent);
+                logData('  PublicKey (' + (response.publicKey || '').length + ' chars): ' +
+                    (response.publicKey || '').substring(0, 64) + '...');
+                if (cachedModulus) {
+                    if (cachedModulus === response.modulus) {
+                        logSuccess('  Modulus matches cached value');
+                    } else {
+                        logError('  Modulus DIFFERS from cached value!');
+                    }
+                }
+            });
+        }
+
+        function doGetLicenseExpiry() {
+            if (!requireToolkit()) { return; }
+            logInfo('Getting license expiry date...');
+            ToolkitOB.getLicenseExpiryDate(function(response, error) {
+                if (error) { logErr('LicenseExpiry', error); return; }
+                logSuccess('License Expiry Date:');
+                logFields(response);
+            });
+        }
+
+        function doGetConfigExpiry() {
+            if (!requireToolkit()) { return; }
+            logInfo('Getting config files expiry dates...');
+            ToolkitOB.getConfigFilesExpiryDates(function(response, error) {
+                if (error) { logErr('ConfigExpiry', error); return; }
+                logSuccess('Config Files Expiry Dates:');
+                logFields(response);
+            });
+        }
+
+        function doParseMRZ() {
+            if (!requireToolkit()) { return; }
+            var mrz = document.getElementById('txtMRZ').value;
+            if (!mrz) { logWarn('Enter MRZ string'); return; }
+            logInfo('Parsing MRZ...');
+            ToolkitOB.parseMRZ(mrz, function(response, error) {
+                if (error) { logErr('ParseMRZ', error); return; }
+                logSuccess('MRZ Parsed:');
+                logFields(response);
+            });
+        }
+
+        function doVerifyToolkitResponse() {
+            if (!requireToolkit()) { return; }
+            if (!lastXmlResponse) {
+                logWarn('Perform a card operation first (e.g. Check Card Status) to get a response to verify');
+                return;
+            }
+            logInfo('Verifying last toolkit response (' + lastXmlResponse.length + ' chars)...');
+            setStatus('Verifying toolkit response...');
+            logWarn('Note: verifying XML signature against embedded cert only (no external cert/chain provided)');
+            ToolkitOB.getverifyToolkitResponse(lastXmlResponse, null, null, function(response, error) {
+                if (error) { logErr('VerifyResponse', error); setStatus('Verify failed'); return; }
+                logSuccess('Toolkit Response Verification: Success');
+                logFields(response);
+                setStatus('Response verified');
+            });
+        }
+
+        // =====================================================================
+        // AdES Signing
+        // =====================================================================
+        var lastCadesSignature = null;
+        var lastCadesFile = null;
+
+        function getAdesPin() {
+            var pin = document.getElementById('txtAdesPin').value;
+            if (!pin) { pin = document.getElementById('txtPin').value; }
+            if (!pin || pin.length < 4) {
+                logWarn('Enter Card PIN (min 4 digits)');
+                return null;
+            }
+            return pin;
+        }
+
+        function doCadesSign() {
+            if (!requireReader()) { return; }
+            var pin = getAdesPin();
+            if (!pin) { return; }
+            var filePath = document.getElementById('txtAdesFile').value;
+            if (!filePath) { logWarn('Enter file path to sign'); return; }
+            logInfo('CAdES-B signing: ' + filePath);
+            setStatus('CAdES-B signing...');
+            getEncryptedPin(pin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                var ctx = {
+                    signatureLevel: 1,
+                    packagingMode: 3,
+                    userPin: encodedPin,
+                    tsaUrl: '',
+                    ocspUrl: '',
+                    certPath: '',
+                    countryCode: '',
+                    locality: '',
+                    postalCode: '',
+                    stateOrProvince: '',
+                    street: ''
+                };
+                readerClass.cadesSign(ctx, filePath, function(response, error) {
+                    if (error) { logErr('CAdES Sign', error); setStatus('CAdES sign failed'); return; }
+                    logSuccess('=== CAdES-B Signature Created ===');
+                    if (response && response.rawResult && response.rawResult.sign_data) {
+                        lastCadesSignature = response.rawResult.sign_data;
+                        lastCadesFile = filePath;
+                        logSuccess('Signature (base64): ' +
+                            lastCadesSignature.substring(0, 80) + '...');
+                        logSuccess('Signature size: ' + lastCadesSignature.length + ' chars');
+                    } else if (response && response.sign_data) {
+                        lastCadesSignature = response.sign_data;
+                        lastCadesFile = filePath;
+                        logSuccess('Signature (base64): ' +
+                            lastCadesSignature.substring(0, 80) + '...');
+                    } else {
+                        logSuccess('CAdES-B signature created');
+                        logData(JSON.stringify(response, null, 2));
+                    }
+                    setStatus('CAdES-B signed');
+                });
+            });
+        }
+
+        function doCadesVerify() {
+            if (!requireReader()) { return; }
+            if (!lastCadesSignature || !lastCadesFile) {
+                logWarn('No CAdES signature to verify. Sign first.');
+                return;
+            }
+            logInfo('CAdES-B verifying: ' + lastCadesFile);
+            setStatus('CAdES-B verifying...');
+            var ctx = { report_type: 1, ocspPath: '', certPath: '' };
+            readerClass.cadesVerify(ctx, lastCadesFile,
+                lastCadesSignature, function(response, error) {
+                if (error) { logErr('CAdES Verify', error); setStatus('Verify failed'); return; }
+                logSuccess('=== CAdES-B Verification ===');
+                logData(response);
+                setStatus('CAdES-B verified');
+            });
+        }
+
+        function doXadesSign() {
+            if (!requireReader()) { return; }
+            var pin = getAdesPin();
+            if (!pin) { return; }
+            var filePath = document.getElementById('txtXadesFile').value;
+            if (!filePath) { logWarn('Enter XML file path'); return; }
+            var outputPath = document.getElementById('txtXadesOutput').value;
+            if (!outputPath) {
+                outputPath = filePath.replace('.xml', '_signed.xml');
+                document.getElementById('txtXadesOutput').value = outputPath;
+            }
+            logInfo('XAdES-B signing: ' + filePath);
+            setStatus('XAdES-B signing...');
+            getEncryptedPin(pin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                var ctx = {
+                    signatureLevel: 1,
+                    packagingMode: 1,
+                    userPin: encodedPin,
+                    tsaUrl: '',
+                    ocspUrl: '',
+                    certPath: '',
+                    countryCode: '',
+                    locality: '',
+                    postalCode: '',
+                    stateOrProvince: '',
+                    street: ''
+                };
+                readerClass.xadesSign(ctx, filePath, outputPath,
+                    function(response, error) {
+                    if (error) { logErr('XAdES Sign', error); setStatus('XAdES sign failed'); return; }
+                    logSuccess('=== XAdES-B Signature Created ===');
+                    logSuccess('Signed XML: ' + outputPath);
+                    if (response && response.sign_data) {
+                        logData(response.sign_data);
+                    }
+                    setStatus('XAdES-B signed');
+                });
+            });
+        }
+
+        function doPadesSign() {
+            if (!requireReader()) { return; }
+            var pin = getAdesPin();
+            if (!pin) { return; }
+            var filePath = document.getElementById('txtPadesFile').value;
+            if (!filePath) { logWarn('Enter PDF file path'); return; }
+            var outputPath = document.getElementById('txtPadesOutput').value;
+            if (!outputPath) {
+                outputPath = filePath.replace('.pdf', '_signed.pdf');
+                document.getElementById('txtPadesOutput').value = outputPath;
+            }
+            var reason = document.getElementById('txtPadesReason').value || '';
+            var location = document.getElementById('txtPadesLocation').value || '';
+            logInfo('PAdES-B signing: ' + filePath);
+            setStatus('PAdES-B signing...');
+            getEncryptedPin(pin, function(encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed'); return; }
+                var ctx = {
+                    signatureLevel: 1,
+                    packagingMode: 1,
+                    userPin: encodedPin,
+                    tsaUrl: '',
+                    ocspUrl: '',
+                    certPath: '',
+                    countryCode: '',
+                    locality: '',
+                    postalCode: '',
+                    stateOrProvince: '',
+                    street: '',
+                    signNmPositionSelect: 0,
+                    sigVisibleSelect: 1,
+                    pgNumberTxtBx: 1,
+                    sigTextTxtBx: '',
+                    fontSizeTxtBx: 0,
+                    fontColorTxtBx: '',
+                    fontNameTxtBx: '',
+                    bgColorTxtBx: '',
+                    sigImgPathTxtBx: '',
+                    sigYaxisTxtBx: 50,
+                    sigXaxisTxtBx: 150,
+                    signerContactInfoTxtBx: '',
+                    signerLocationTxtBx: location,
+                    reasonSignTxtBx: reason
+                };
+                readerClass.padesSign(ctx, filePath, outputPath,
+                    function(response, error) {
+                    if (error) { logErr('PAdES Sign', error); setStatus('PAdES sign failed'); return; }
+                    logSuccess('=== PAdES-B Signature Created ===');
+                    logSuccess('Signed PDF: ' + outputPath);
+                    setStatus('PAdES-B signed');
+                });
+            });
+        }
+
+        // =====================================================================
+        // File Browse Helper
+        // =====================================================================
+        function browseFile(targetId, accept) {
+            var inp = document.createElement('input');
+            inp.type = 'file';
+            if (accept && accept !== '*') { inp.accept = accept; }
+            inp.onchange = function() {
+                if (inp.files && inp.files.length > 0) {
+                    // Chrome / Edge deliberately hide the real path for file
+                    // inputs (C:\fakepath\<name>). The AdES SDK needs an actual
+                    // filesystem path, so we can only fill in the file name and
+                    // ask the developer to prefix it with the real directory.
+                    var fullPath = inp.value || '';
+                    var name = inp.files[0].name;
+                    if ((fullPath.indexOf('fakepath') > -1) || (fullPath === '')) {
+                        document.getElementById(targetId).value = name;
+                        logWarn('Browser hid the real file path. Edit the path '
+                            + 'field to prefix with the full directory before signing.');
+                    } else {
+                        document.getElementById(targetId).value = fullPath;
+                        logInfo('Selected: ' + fullPath);
+                    }
+                }
+            };
+            inp.click();
+        }
+
+        // =====================================================================
+        // Startup
+        // =====================================================================
+        logInfo('EIDAToolkit Web SDK Test Console ready');
+        logInfo('Click "Initialize" to connect. Will try ws://localhost first, ' +
+            'then wss://toolkitagent.emiratesid.ae as fallback.');
+        logInfo('Agent listens on 9004 / 9005 / 9020 in priority order. ' +
+            'Each port serves whichever protocol the agent is configured for ' +
+            '(ws:// or wss://) - both modes use the same port range.');
+        logInfo('Pre-flight: confirm "Emirates ID Card Toolkit Service" is ' +
+            'Running in services.msc.');
+    </script>
+</body>
+</html>

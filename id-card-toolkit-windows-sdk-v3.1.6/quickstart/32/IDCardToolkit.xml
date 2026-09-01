@@ -1,0 +1,1202 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>IDCardToolkit</name>
+    </assembly>
+    <members>
+        <member name="T:AE.EmiratesId.IdCard.SMMode">
+            <summary>
+            Secure Messaging Mode
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.InterfaceType">
+            <summary>
+            Type of Interface
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.CardReader">
+            <summary>
+            Provides all methods required to perform operations with Emirates ID Card after 
+            successful connect operation with the provided CardReader class
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.#ctor(System.String,System.String)">
+            <summary>
+            CardReader constructor initilize with reader name
+            </summary>
+            <param name="cardReaderName">Smartcard Reader Name</param>
+            <param name="readerSerialNumber">Smartcard Reader Serial Number</param>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.CardReader.Name">
+            <summary>
+            Returns name of the card reader
+            </summary>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.CardReader.ReaderSerialNumber">
+            <summary>
+            Returns Serial Number of the card reader
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.IsConnected">
+            <summary>
+            Check whether the smartcard is connected with the reader or not
+            </summary>
+            <returns>true if connected else false</returns>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.CheckToDisconnectReader(System.Int32)">
+            <summary>
+            Check whether to disconnect the card from reader based on the error code
+            </summary>
+            <param name="result">Error code</param>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.Connect">
+            <summary>
+            Establish connection to the smartcard in the specific reader identified 
+            by the reader name
+            </summary>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.Disconnect">
+            <summary>
+            Disconnect the connected reader
+            </summary>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.GetInterfaceType">
+            <summary>
+            Get the Card communication interface type
+            </summary>
+            <returns>Card communication interface type</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.GetSMMode">
+            <summary>
+            Retrieves the Secure Messaging mode
+            </summary>
+            <returns>Type of Secure Messaging mode</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.SetNfcAuthenticationParameters(System.String)">
+            <summary>
+            Set parameters for authenticating with Emirates ID Card while accessing 
+            through NFC interface
+            </summary>
+            <param name="mrzData">
+            Scanned Machine Readable Zone (MRZ) data that is present on the back side 
+            of the ID Card
+            </param>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.SetNfcAuthenticationParameters(System.String,System.String,System.String)">
+            <summary>
+            Set parameters for authenticating with Emirates ID Card while accessing
+            through NFC interface
+            </summary>
+            <param name="cardNumber">Card Number of the Emirates ID Card holder</param>
+            <param name="dateOfBirth">Date of birth of Emirates ID Card holder</param>
+            <param name="expiryDate">Expiry date of Emirates ID Card</param>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.CheckCardStatus(System.String)">
+            <summary>
+            Performs the Emirates ID Card validation with the help of 
+            ICA Validation Gateway (VG) service
+            </summary>
+            <param name="requestId">Application random number</param>
+            <returns>
+            ToolkitResponse object which contains status of the 
+            inserted Emirates ID Card
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.ReadPublicData(System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Retrieve data stored on the public areas of the Emirates ID Card
+            </summary>
+            <param name="requestId">Application random number</param>
+            <param name="readNonModifiableData">
+            Flag to read non modifiable data from the card
+            </param>
+            <param name="readModifiableData">
+            Flag to read modifiable data from the card
+            </param>
+            <param name="readPhotography">
+            Flag to read photo data from the card
+            </param>
+            <param name="readSignatureImage">
+            Flag to read hand written signature image from the card
+            </param>
+            <param name="readAddress">
+            Flag to read home and work address from the card
+            </param>
+            <returns>
+            CardPublicData object which contains requested public data retrieved 
+            from the inserted Emirates ID Card
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.PrepareRequest(System.String)">
+            <summary>
+            Prepares Toolkit service request for subsequent Toolkit service functions
+            in CardReader class
+            </summary>
+            <param name="requestId">
+            Application random number
+            </param>
+            <returns>
+            string which contains 8-byte request handle in base64 encoded format
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.GetPkiCertificates(System.String)">
+            <summary>
+            Reads the authentication and digital signature certificates 
+            from the Emirates ID Card
+            </summary>
+            <param name="encodedPin">
+            ID Card PKI Pin which is encrypted and base64 encoded
+            </param>
+            <returns>
+            CardCertificates object which contains authentication and 
+            digital signature certificates retrieved from the inserted Emirates ID Card
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.AuthenticatePki(System.String)">
+            <summary>
+            Authenticate the Emirates ID Card holder's PKI Pin 
+            and validates the authentication certificate status using 
+            Validation Gateway (VG) Service
+            </summary>
+            <param name="encodedPin">
+            ID Card PKI Pin which is encrypted and base64 encoded
+            </param>
+            <returns>
+            ToolkitResponse object which contains the PKI authentication status
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.SignData(System.Byte[],System.Boolean,System.String)">
+            <summary>
+            Sign plain data or hash using digital signature certificate from the 
+            Emirates ID Card
+            </summary>
+            <param name="input">Plain data or hash to digitally sign</param>
+            <param name="isInputHash">
+            true if input is hash data/false if input is plain data
+            </param>
+            <param name="encodedPin">
+            ID Card PKI Pin which is encrypted and base64 encoded
+            </param>
+            <returns>SignatureResponse object which contains Signature</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.SignChallenge(System.Byte[],System.Boolean,System.String)">
+            <summary>
+            Digitally sign challenge or hash using authentication certificate from the 
+            Emirates ID Card
+            </summary>
+            <param name="input">
+            Challenge bytes to digitally sign
+            </param>
+            <param name="isInputHash">
+            true if input is hash data/false if input is plain data
+            </param>
+            <param name="encodedPin">
+            ID Card PKI Pin which is encrypted and base64 encoded
+            </param>
+            <returns>SignatureResponse object which contains Signature</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.GetFingerData">
+            <summary>
+            Get Finger index along with finger reference identifiers of the 
+            fingerprints stored in the Emirates ID Card
+            </summary>
+            <returns>
+            Array of FingerData object which contains biometric authentication reference 
+            identifiers and its corresponding finger index values of the inserted 
+            Emirates ID Card
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.IsCardGenuine(System.String)">
+            <summary>
+            Check if Emirates ID Card is Genuine
+            </summary>
+            <param name="requestId">Application random number</param>
+            <returns>
+            ToolkitResponse object which contains status of the inserted Emirates ID Card
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.AuthenticateBiometricOnServer(System.String,AE.EmiratesId.IdCard.DataModels.FingerIndex,System.Int32)">
+            <summary>
+            Performs Biometric authentication with Validation Gateway (VG) service
+            </summary>
+            <param name="requestId">Application random number</param>
+            <param name="fingerIndex">
+            Index of finger to be used for biometric authentication
+            </param>
+            <param name="sensorTimeout">
+            Timeout of capture for fingerprint sensor in number of seconds
+            </param>
+            <returns>
+            ToolkitResponse object which contains the biometric authentication status
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.AuthenticateBiometricOnCard(System.String,AE.EmiratesId.IdCard.DataModels.FingerData,System.Int32)">
+            <summary>
+            Perform biometric authentication on the card
+            </summary>
+            <param name="requestId">Application random number</param>
+            <param name="fingerData">
+            FingerData object referring to finger reference identifier and index values
+            </param>
+            <param name="sensorTimeout">
+            Timeout of capture for fingerprint sensor in number of seconds
+            </param>
+            <returns>
+            ToolkitResponse object which contains the biometric authentication status
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.ReadFamilyBookData(System.String)">
+            <summary>
+            Read the family book data from the Emirates ID Card
+            </summary>
+            <param name="encodedPin">
+            ID Card PKI Pin which is encrypted and base64 encoded
+            </param>
+            <returns>
+            CardFamilyBookData object which contains the Family Book data fields
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.VerifySignature(System.Byte[],System.Boolean,System.Byte[],System.Byte[])">
+            <summary>
+            Verify digital signature of input data with the corresponding certificate
+            </summary>
+            <param name="input">
+            Data or hash corresponding to the digital signature to be verified
+            </param>
+            <param name="isInputHash">
+            true if input is hash data/false if input is plain data
+            </param>
+            <param name="signature">Buffer containing digital signature</param>
+            <param name="certificate">
+            Certificate data corresponding to the signature verification
+            </param>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.PadesSign(AE.EmiratesId.IdCard.SigningContext,System.String,System.String,AE.EmiratesId.IdCard.PadesSignParams)">
+            <summary>
+            Perform digital signing of PDF document following 
+            PDF Advanced Electronic Signature(PAdES) standard
+            </summary>
+            <param name="signingContext">
+            Properties of the signature
+            </param>
+            <param name="pdfFilePath">
+            Path of the input pdf document for digital signing
+            </param>
+            <param name="signedPdfFilePath">
+            Path of the document to store the signed document
+            </param>
+            <param name="padesParams">
+            Properties of PAdES signature
+            </param>
+            <returns>
+            ToolkitResponse object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.PadesVerify(AE.EmiratesId.IdCard.VerificationContext,System.String)">
+            <summary>
+            Perform digital signature verification of PDF document following 
+            PDF Advanced Electronic Signature(PAdES) standard
+            </summary>
+            <param name="verificationContext">
+            Properties of the signature verification context
+            </param>
+            <param name="signedPdfFilePath">
+            Path of the signed PDF document to be verified
+            </param>
+            <returns>Verification report in XML format</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.XadesSign(AE.EmiratesId.IdCard.SigningContext,System.String,System.String)">
+            <summary>
+            Perform digital signing of XML document following 
+            XML Advanced Electronic Signature(XAdES) standard
+            </summary>
+            <param name="signingContext">
+            Properties of the signature
+            </param>
+            <param name="xmlFilePath">
+            Path of the input XML document for digital signing
+            </param>
+            <param name="signedXmlFilePath">
+            Path of the document to store the signed document
+            </param>
+            <returns>
+            ToolkitResponse object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.XadesVerify(AE.EmiratesId.IdCard.VerificationContext,System.String,System.Byte[])">
+            <summary>
+            Perform digital signature verification of XML document following 
+            XML Advanced Electronic Signature(XAdES) standard
+            </summary>
+            <param name="verificationContext">
+            Properties of the signature verification context
+            </param>
+            <param name="signedXmlFilePath">
+            Path of the signed XML document to be verified
+            </param>
+            <param name="signature">
+            Signature data if packaging mode is Detached
+            </param>
+            <returns>Verification report in XML format</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.CadesSign(AE.EmiratesId.IdCard.SigningContext,System.String)">
+            <summary>
+            Perform digital signing of document following 
+            CMS Advanced Electronic Signature(CAdES) standard
+            </summary>
+            <param name="signingContext">
+            Properties of the signature
+            </param>
+            <param name="inputFilePath">
+            Path of the input document for digital signing  
+            </param>
+            <returns>
+            ToolkitResponse object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.CadesVerify(AE.EmiratesId.IdCard.VerificationContext,System.String,System.Byte[])">
+            <summary>
+            Perform digital signature verification of document following
+            CMS Advanced Electronic Signature(CAdES) standard
+            </summary>
+            <param name="verificationContext">
+            Properties of the signature verification context
+            </param>
+            <param name="inputFilePath">
+            Path of the document to be verified with provided signature
+            </param>
+            <param name="signature">Signature value to be verified with</param>
+            <returns>Verification report in XML format</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.AuthenticateCardAndBiometric(System.String,AE.EmiratesId.IdCard.DataModels.FingerIndex,System.Int32)">
+            <summary>
+            Validates Emirates ID card and performs biometric authentication with 
+            Validation Gateway (VG) service against the captured finger image.
+            </summary>
+            <param name="requestId">Application random number</param>
+            <param name="fingerIndex">
+            Index of finger to be used for biometric authentication
+            </param>
+            <param name="sensorTimeout">
+            Timeout of capture for fingerprint sensor in number of seconds
+            </param>
+            <returns>
+            ToolkitResponse object which contains the biometric authentication status
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.ReadPublicDataEF(AE.EmiratesId.IdCard.PublicDataEFType,System.Boolean)">
+            <summary>
+            Retrieve Elementary File data stored on the public areas of the ID card
+            </summary>
+            <param name="publicDataEFType">
+            Enumeration value corresponding to the Elementary File to be read
+            </param>
+            <param name="validateSignature">
+            A value of TRUE indicates that the application wants to validate the 
+            digital signature of the read Elementary file, FALSE otherwise
+            </param>
+            <returns>
+            Elementary File Data as byte array
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.GetCSN">
+            <summary>
+            Retrieve the serial number of the Emirates ID Card
+            </summary>
+            <returns>
+            string which contains Emirates ID Card serial number
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.ResetPin(System.String,AE.EmiratesId.IdCard.DataModels.FingerData,System.Int32)">
+            <summary>
+            Resets the ID card PIN using the ICA Validation Gateway (VG) service
+            </summary>
+            <param name="encodedPin">
+            Emirates ID Card PKI Pin which is encrypted and base64 encoded
+            </param>
+            <param name="fingerData">
+            FingerData object referring to finger reference identifier and index values
+            </param>
+            <param name="sensorTimeout">
+            Timeout in number of seconds for sensor to capture the finger image
+            </param>
+            <returns>
+            ToolkitResponse object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.UnblockPin(System.String,AE.EmiratesId.IdCard.DataModels.FingerData,System.Int32)">
+            <summary>
+            Unblock the ID Card PIN, if the card is blocked after multiple unsuccessful PIN authentications
+            </summary>
+            <param name="encodedPin">
+            Emirates ID Card PKI Pin which is encrypted and base64 encoded
+            </param>
+            <param name="fingerData">
+            FingerData object referring to finger reference identifier and index values
+            </param>
+            <param name="sensorTimeout">
+            Timeout in number of seconds for sensor to capture the finger image
+            </param>
+            <returns>
+            ToolkitResponse object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.UpdateData(AE.EmiratesId.IdCard.ContainerType,System.String)">
+            <summary>
+            Update container data to card
+            </summary>
+            <param name="fileType">
+            Type of file to update
+            </param>
+            <param name="requestId">
+            Application random number
+            </param>
+            <returns>
+            ToolkitResponse object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.ReadData(AE.EmiratesId.IdCard.FileType,System.String)">
+            <summary>
+            Read container data from card
+            </summary>
+            <param name="fileType">
+            Type of file to update
+            </param>
+            <param name="requestId">
+            Application random number
+            </param>
+            <returns>
+            ToolkitResponse object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.ResetPinWithoutAuthenticateBiometric(System.String)">
+            <summary>
+            Reset pin on Emirates ID Card without biometric authentication
+            </summary>
+            <param name="encodedPin">
+            ID Card PKI Pin which is encrypted and base64 encoded
+            </param>
+            <returns>
+            ToolkitResponse object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.ParseEFData(System.Byte[])">
+            <summary>Parse EF data</summary>
+            <param name="efData">Buffer containing the EF data</param>
+            <returns>Parsed EF Data</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.GetCardVersion">
+            <summary>Get card version</summary>
+            <returns>Card version</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.CardReader.CleanupEFDataMemory">
+            <summary>Cleanup the EF data memory</summary>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.DataModels.ReaderState">
+            <summary>
+            Reader state bitmask returned by GetReaderStatus() and WaitForCardChange().
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.DataModels.ReaderEventArgs">
+            <summary>
+            Event arguments for card reader state-change events.
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.DataModels.ReaderEventArgs.#ctor(System.String,AE.EmiratesId.IdCard.DataModels.ReaderState)">
+            <summary>
+            Constructs a ReaderEventArgs. Public so that host applications
+            (notably watchdog / reconciliation paths that synthesize an
+            event after forcing a monitor restart) can raise the same
+            event handlers without a private round-trip into the monitor
+            thread.
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.ReaderMonitor">
+            <summary>
+            Provides event-driven card insertion, removal, and reader hot-plug
+            notifications backed by the toolkit's native monitoring API.
+            </summary>
+        </member>
+        <member name="E:AE.EmiratesId.IdCard.ReaderMonitor.CardInserted">
+            <summary>Raised when a card is inserted into any monitored reader.</summary>
+        </member>
+        <member name="E:AE.EmiratesId.IdCard.ReaderMonitor.CardRemoved">
+            <summary>Raised when a card is removed from any monitored reader.</summary>
+        </member>
+        <member name="E:AE.EmiratesId.IdCard.ReaderMonitor.ReaderConnected">
+            <summary>Raised when a new card reader is connected to the system.</summary>
+        </member>
+        <member name="E:AE.EmiratesId.IdCard.ReaderMonitor.ReaderDisconnected">
+            <summary>Raised when a card reader is disconnected from the system.</summary>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.ReaderMonitor.CardInsertedRaised">
+            <summary>Count of CardInserted events raised to subscribers.</summary>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.ReaderMonitor.CardRemovedRaised">
+            <summary>Count of CardRemoved events raised to subscribers.</summary>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.ReaderMonitor.ReaderConnectedRaised">
+            <summary>Count of ReaderConnected events raised.</summary>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.ReaderMonitor.ReaderDisconnectedRaised">
+            <summary>Count of ReaderDisconnected events raised.</summary>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.ReaderMonitor.SubscriberExceptions">
+            <summary>
+            Count of exceptions thrown by subscriber event handlers
+            (isolated by the monitor to avoid poisoning the loop).
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ReaderMonitor.#ctor(AE.EmiratesId.IdCard.Toolkit)">
+            <summary>
+            Constructs a ReaderMonitor bound to the provided Toolkit instance.
+            </summary>
+            <param name="toolkit">
+            An initialized Toolkit instance. The caller must have successfully
+            called toolkit.Initialize() before calling Start() on this monitor.
+            Passing an uninitialized Toolkit is not detected at construction time
+            but will result in empty reader enumeration and no events being raised
+            until the Toolkit is initialized.
+            </param>
+            <exception cref="T:System.ArgumentNullException">
+            Thrown if toolkit is null.
+            </exception>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.ReaderMonitor.IsSupported">
+             <summary>
+             True if the loaded toolkit DLL and its current PCSC plugin both
+             support reader monitoring. Thread-safe.
+            
+             Caching policy: only positive results and the EntryPointNotFound
+             case are cached. A non-success status from the native call (e.g.
+             "toolkit not initialized") is NOT cached -- re-query on next read
+             so a caller who happens to read this property before Toolkit
+             initialisation does not permanently disable monitoring.
+             </summary>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.ReaderMonitor.MillisecondsSinceLastActivity">
+             <summary>
+             Milliseconds since the monitor thread last made forward progress
+             (iteration boundary or pause-spin tick). Returns int.MaxValue if
+             the monitor has not yet started. External watchdogs use this to
+             detect a hung SCardEstablishContext after a PC/SC service
+             restart and force recovery via Stop() + Start().
+            
+             Cross-wraparound safe: unchecked subtraction on 32-bit
+             Environment.TickCount produces the correct elapsed interval
+             even when the TickCount wraps (every ~49 days of uptime).
+             </summary>
+        </member>
+        <member name="P:AE.EmiratesId.IdCard.ReaderMonitor.IsPaused">
+            <summary>True if the monitor is currently paused (suspended).</summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ReaderMonitor.ResetCapabilityCache">
+            <summary>
+            Resets the IsSupported cache. Call after toolkit re-initialization.
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ReaderMonitor.GetCurrentState(System.String)">
+            <summary>
+            Returns the current state of the named reader without blocking.
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ReaderMonitor.Start">
+            <summary>
+            Starts the monitoring background thread. Thread-safe -- concurrent
+            callers serialise on an instance lock so only one monitor thread
+            is ever created per ReaderMonitor instance.
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ReaderMonitor.Stop">
+             <summary>
+             Stops the monitoring background thread gracefully. Thread-safe --
+             concurrent Stop() / Dispose() / Start() callers serialise on the
+             instance lock for the full Stop duration (including Join). This
+             prevents a Start() from racing in between cancel-signal and
+             thread-exit and resetting _stopRequested while the prior thread
+             is still draining (which would orphan the prior thread forever).
+            
+             Contract: subscribers MUST NOT call Start / Stop / Dispose
+             synchronously from inside an event handler -- the monitor thread
+             is invoking the handler, and Stop's Join would self-deadlock.
+            
+             If the join times out (5 s), the orphan thread is logged via
+             Trace. The post-Dispose event guard suppresses its events
+             when the monitor was disposed, but on a Stop()+Start() cycle
+             (where the monitor is re-armed instead of disposed) the
+             orphan continues running until its next loop iteration; the
+             per-thread generation counter then makes it exit. This leaves
+             a brief window (up to ~CardChangeTimeoutMs = 2 s) during
+             which two monitor threads may concurrently call PCSCLib's
+             WaitForCardChange against the same SCARDCONTEXT. PCSCLib's
+             state cache is not synchronised against concurrent callers
+             (per its single-thread contract); the worst observable
+             effect is spurious add/remove events that self-correct on
+             the next clean tick.
+             </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ReaderMonitor.Pause">
+            <summary>
+            Suspends event processing without stopping the monitoring thread.
+            The thread remains alive but does not make PC/SC calls or raise
+            events while paused. Use for card operations that need exclusive
+            PC/SC access. Thread-safe -- can be called from any thread.
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ReaderMonitor.Resume">
+             <summary>
+             Resumes event processing after a Pause. Cancels any active
+             WaitForCardChange so the monitoring thread re-evaluates state
+             immediately rather than waiting up to 2000ms for the current
+             timeout to expire.
+            
+             CancelReaderWaitNative returns an int status code. Discard it
+             unconditionally -- a cancel that arrives when no wait is active
+             returns CodeNotSupported (369), which is harmless.
+             </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.SignatureLevel">
+            <summary>
+            Digital signature levels
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.PackagingMode">
+            <summary>
+            Digital signature packaging modes
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.SignerNamePosition">
+            <summary>
+            Signer name position
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.ReportType">
+            <summary>
+            Digital signature report type
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.PublicDataEFType">
+            <summary>
+            Represents Public Data Elementary File
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.FileType">
+            <summary>
+            Represents Data files to be updated
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.ContainerType">
+            <summary>
+            Represents Data files to be updated
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.SignatureValidator">
+            <summary>
+            This class provides a method to validate Toolkit XML Response received from 
+            various Toolkit API operations performed with Emirates ID Card
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.SignatureValidator.#ctor(System.Byte[],System.Byte[])">
+            <summary>
+            Set the attributes required to verify Toolkit XML Response with the 
+            corresponding certificate and its chain
+            </summary>
+            <param name="certificateData">
+            Certificate data corresponding to the Response verification
+            </param>
+            <param name="certificateChain">
+            Issuer Certificate chain data corresponding to the certificateData.
+            If null, Issuer Certificate chain validation is ignored
+            </param>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.SignatureValidator.ValidateToolkitResponse(System.String)">
+            <summary>
+            Validate Toolkit XML response.
+            </summary>
+            <param name="toolkitResponse">
+            Toolkit Response XML string
+            </param>
+            <returns>
+            ToolkitResponseData object which contains attributes of the 
+            verified Toolkit Response
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.SignerLocation">
+            <summary>
+            This structure represents signer location
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.SigningContext">
+            <summary>
+            This structure represents digital signature context
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.VerificationContext">
+            <summary>
+            This structure represents digital signature verification context
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.PadesSignParams">
+            <summary>
+            This structure represents PDF Advanced Electronic Signature (PAdES) signing parameters
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.ToolkitResponseData">
+            <summary>
+            This structure represents Toolkit Response Data attributes
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.MRZData">
+            <summary>
+            This structure represents MRZ Fields
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.ConfigCertExpiryDate">
+            <summary>
+            This structure stores the expiry dates of the service provider 
+            configuration certificates
+            </summary>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.Toolkit">
+            <summary>
+            Provides methods required to initialize the Toolkit and get the connected 
+            smartcard readers
+            </summary>
+        </member>
+        <member name="F:AE.EmiratesId.IdCard.Toolkit.LOG_INFO">
+            <summary>Log level: informational message.</summary>
+        </member>
+        <member name="F:AE.EmiratesId.IdCard.Toolkit.LOG_WARN">
+            <summary>Log level: warning message.</summary>
+        </member>
+        <member name="F:AE.EmiratesId.IdCard.Toolkit.LOG_ERROR">
+            <summary>Log level: error message.</summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.Log(System.Int32,System.String,System.String)">
+             <summary>
+             Writes a message to the toolkit's unified log file. Safe to call
+             at any time -- before <see cref="T:AE.EmiratesId.IdCard.Toolkit"/> is constructed, after
+             <see cref="M:AE.EmiratesId.IdCard.Toolkit.Cleanup"/> is called, from any thread. Fire-and-forget:
+             never throws, never returns an error code.
+            
+             If the loaded EIDAToolkit.dll is older than v3.0.6 and does not
+             export the ToolkitLog symbol, this call is a silent no-op. Use
+             <see cref="M:AE.EmiratesId.IdCard.Toolkit.IsLogSupported"/> at application startup if you want
+             a signal about whether log calls will actually appear in the file.
+            
+             The message is a pre-formatted string -- '%' characters are
+             rendered verbatim, not interpreted as format specifiers. Format
+             in C# using <c>string.Format</c>, <c>$"..."</c> interpolation,
+             or any other idiom before calling this method.
+            
+             Do not log PIN values, biometric samples, raw card APDU
+             responses, session cryptographic material, or private keys.
+             The unified toolkit log is an audit surface accessed by support
+             staff; content written here must not contain PII or sensitive
+             data.
+             </summary>
+             <param name="level">
+             <see cref="F:AE.EmiratesId.IdCard.Toolkit.LOG_INFO"/> (0), <see cref="F:AE.EmiratesId.IdCard.Toolkit.LOG_WARN"/> (1), or
+             <see cref="F:AE.EmiratesId.IdCard.Toolkit.LOG_ERROR"/> (2). Values outside this range are
+             treated as ERROR by the native logger.
+             </param>
+             <param name="module">
+             Short module identifier (e.g., "PaymentPage"). Appears as
+             <c>[EXT:module]</c> in the log line. NULL accepted (renders
+             as "?"). Recommended ≤ 64 ASCII characters.
+             </param>
+             <param name="message">
+             Pre-formatted message text. NULL accepted (renders as empty
+             string). Effective length limit is approximately 380 bytes
+             after UTF-8 encoding; larger messages are silently truncated
+             by the native logger.
+             </param>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.IsLogSupported">
+             <summary>
+             Returns true if the loaded EIDAToolkit.dll exports the
+             ToolkitLog symbol (v3.0.6 or later), false otherwise.
+            
+             Triggers a side-effect-free probe on first call (no log line
+             is written). Result is cached for the lifetime of the process;
+             calls after the first are effectively free.
+            
+             Applications that want a startup diagnostic ("is logging
+             wired up correctly?") can call this method. Applications
+             that just want to log can call <see cref="M:AE.EmiratesId.IdCard.Toolkit.Log(System.Int32,System.String,System.String)"/> directly
+             without checking -- <see cref="M:AE.EmiratesId.IdCard.Toolkit.Log(System.Int32,System.String,System.String)"/> silently no-ops if
+             <c>IsLogSupported</c> would return false.
+             </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.#ctor(System.Boolean,System.String)">
+            <summary>
+            Toolkit constructor initializes the Toolkit context and prepares the SDK for use
+            </summary>
+            <param name="inProcessMode">
+            If this flag is true, the Toolkit will fulfill the API/Service 
+            requests within the library itself. 
+            If the flag is false then the Toolkit shared library in the 
+            application process will forward the API/Service requests to 
+            Toolkit Agent running in the same system where the application is running
+            </param>
+            <param name="configParams">
+            Application specific configuration parameters
+            </param>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.GetToolkitVersion">
+            <summary>
+            Get the version of ICA's Toolkit being used
+            </summary>
+            <returns>
+            Toolkit version in the format of major.minor.patch version
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.Cleanup">
+            <summary>
+            Release the resources and close the Toolkit context
+            </summary>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.ListReaders">
+            <summary>
+            List all compatible smart card readers connected to the system
+            </summary>
+            <returns>
+            Array of CardReader object of connected smartcard readers.
+            If no readers available, will return an empty array object
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.GetReaderWithEmiratesId">
+            <summary>
+            Get the first reader with Emirates ID Card inserted
+            </summary>
+            <returns>
+            CardReader object of card reader with Emirates ID Card inserted
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.PrepareRequest(System.String)">
+            <summary>
+            Prepares Toolkit service request for RegisterDevice service
+            </summary>
+            <param name="requestId">
+            Application random number
+            </param>
+            <returns>
+            string which contains 8-byte request handle in base64 encoded format
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.RegisterDevice(System.String,System.String,System.String)">
+            <summary>
+            Registers a device with Validation Gateway(VG) 
+            against the Service Provider(SP) license
+            </summary>
+            <param name="encodedUserId">
+            User ID of an authorized Service Provider (SP) encrypted and base64 encoded
+            </param>
+            <param name="encodedPassword">
+            Password for the userId encrypted and base64 encoded
+            </param>
+            <param name="deviceReferenceId">
+            Registration reference Identifier of the device to be registered with 
+            validation gateway
+            </param>
+            <returns>
+            RegisterDeviceResponse object which 
+            contains Device Registration Identifier of the registered device
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.GetDeviceId">
+            <summary>
+            Get the Device Identifier of the connected device to register with 
+            Validation Gateway
+            </summary>
+            <returns>
+            string which contains Device Identifier
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.GetStatusMessage(System.Int32)">
+            <summary>
+            Get the status message corresponsing to the Toolkit status code
+            </summary>
+            <param name="status">Toolkit status code</param>
+            <returns>Status message</returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.FreeMemory(System.IntPtr)">
+            <summary>
+            Free the memory buffer allocated
+            </summary>
+            <param name="buffer">Memory buffer to free</param>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.GetDataProtectionKey">
+            <summary>
+            Get data protection key
+            </summary>
+            <returns>
+            Data protection key object which contains public key, modulus, exponent
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.ParseMRZData(System.String)">
+            <summary>
+            Parse the provided MRZ (Machine Readable Zone) string and 
+            retrieves the attributes corresponding to the MRZ data provided
+            </summary>
+            <param name="mrz">MRZ string to be parsed</param>
+            <returns>
+            MRZData structure object which contains parsed attributes. 
+            Parsed MRZ attributes can be accessed through the MRZData structure object.
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.GetLicenseExpiryDate">
+            <summary>
+            Get the expiry date of the Toolkit SDK License issued to the service provider
+            </summary>
+            <returns>
+            string which contains expiry date of the Toolkit SDK License
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.Toolkit.GetConfigCertificateExpiryDate">
+            <summary>
+            Get config certificate expiry date
+            </summary>
+            <returns>
+            Config Cert Expiry Date structure object which holds the 
+            expiry dates of the service provider
+            </returns>
+            <exception cref="T:AE.EmiratesId.IdCard.ToolkitException">
+            In case of error, the function throws ToolkitException
+            </exception>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ToolkitException.#ctor">
+            <summary>
+            Default Constructor initialize ToolkitException
+            </summary>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ToolkitException.#ctor(System.String)">
+            <summary>
+            Constructor to initialize ToolkitException with message
+            </summary>
+            <param name="message">
+            ToolkitException class is initialized with the given message
+            </param>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ToolkitException.#ctor(System.Int32)">
+            <summary>
+            Constructor to initialize ToolkitException with code
+            </summary>
+            <param name="code">Error code</param>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ToolkitException.#ctor(System.Exception)">
+            <summary>
+            Constructor to initialize ToolkitException with actual exception
+            </summary>
+            <param name="ex">
+            ToolkitException class is initialized with the given ex
+            </param>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ToolkitException.#ctor(System.String,System.Int32)">
+            <summary>
+            Constructor to initialize ToolkitException with message and code
+            </summary>
+            <param name="message">Error message</param>
+            <param name="code">Error code</param>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ToolkitException.#ctor(System.String,System.Int32,System.String)">
+            <summary>
+            Constructor to initialize ToolkitException with message, code and vg response
+            </summary>
+            <param name="message">Error message</param>
+            <param name="code">Error code</param>
+            <param name="response">VG Response</param>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ToolkitException.#ctor(System.String,System.Int32,System.Int32)">
+            <summary>
+            Constructor to initialize ToolkitException with message, code and attempts left
+            </summary>
+            <param name="message">Error message</param>
+            <param name="code">Error code</param>
+            <param name="attemptsLeft">Number of attempts left</param>
+        </member>
+        <member name="M:AE.EmiratesId.IdCard.ToolkitException.#ctor(System.String,System.Int32,System.Int32,System.String)">
+            <summary>
+            Constructor to initialize ToolkitException with message, code, attempts left 
+            and vg response
+            </summary>
+            <param name="message">Error message</param>
+            <param name="code">Error code</param>
+            <param name="attemptsLeft">Number of attempts left</param>
+            <param name="response">VG Response</param>
+        </member>
+        <member name="T:AE.EmiratesId.IdCard.ToolkitLogBinding">
+             <summary>
+             Internal binding for the native ToolkitLog export.
+            
+             The probe uses kernel32!LoadLibraryA + GetProcAddress to determine
+             whether the loaded EIDAToolkit.dll exports ToolkitLog, without
+             invoking the function. This keeps IsLogSupported() side-effect-free
+             -- no synthetic log line is written during the probe.
+            
+             The probe runs once per process on first call to Log or
+             IsLogSupported. Result is cached in a Lazy&lt;bool&gt; with
+             ExecutionAndPublication thread-safety, so the probe executes
+             exactly once even under concurrent first-call pressure.
+            
+             Log defends at three layers against NULL inputs:
+             1. The probe result gate (no call if unsupported).
+             2. Null-coalesce substitution at this boundary ("?" / "").
+             3. The native ToolkitLog body's own NULL check (landed in Stage 1).
+             </summary>
+        </member>
+    </members>
+</doc>

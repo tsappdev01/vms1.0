@@ -1,0 +1,12 @@
+ICA Toolkit Android Plugin :
+Device Plugin for Gen2Wave RP70A Bio Tablet
+
+This is a combi plugin for this device with Smarcard and Fingerprint Support.
+
+Supported Android Application Binary Interfaces (ABIs) for RP70A Bio Device:
+	1.armeabi
+	2.armeabi-v7a
+	3.arm64-v8a
+
+Dependencies:
+libBioMini_v20.aar

@@ -1,0 +1,15 @@
+ICA Toolkit Android Plugin :
+Device Plugin for Gen2Wave EID 10 Plus and RP1600 Handheld Devices
+
+Gen2Wave EID 10 Plus : This is a combi plugin for this device with Smarcard and Fingerprint Support.
+
+Gen2Wave RP1600 : This is a Smartcard Reader Plugin for this Device
+
+Supported Android Application Binary Interfaces (ABIs) for RP1600 Device:
+	1.armeabi
+	2.armeabi-v7a
+	3.arm64-v8a
+
+Supported Android Application Binary Interfaces (ABIs) for EID Plus Device:
+	1.armeabi
+	2.armeabi-v7a

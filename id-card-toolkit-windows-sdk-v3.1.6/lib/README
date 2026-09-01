@@ -1,0 +1,6 @@
+EIDAToolkit Libraries
+
+c/      - Native C library (DLL + import lib + headers)
+dotnet/ - .NET wrapper (IDCardToolkit.dll)
+java/   - Java JNI wrapper (EIDAToolkit.jar)
+web/    - Web SDK (eidatoolkit.js)

@@ -1,0 +1,340 @@
+<UserControl x:Class="EIDAToolkitModernApp.Views.ToolkitUtilitiesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
+
+        <!-- Parse MRZ -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Parse MRZ Data" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="MRZ String" Style="{StaticResource FieldLabel}"/>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             Text="{Binding MrzInput, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource ModernTextBox}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Height="60"
+                             VerticalScrollBarVisibility="Auto"
+                             Margin="0,0,12,0"/>
+
+                    <Button Grid.Column="1"
+                            Content="Parse MRZ"
+                            Command="{Binding ParseMrzCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Top"/>
+                </Grid>
+
+                <!-- Parsed Fields -->
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="Document Type" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzDocumentType}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Issued Country" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzIssuedCountry}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Grid.Row="0">
+                        <TextBlock Text="Card Number" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzCardNumber}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0" Grid.Row="1">
+                        <TextBlock Text="ID Number" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzIdNumber}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="1">
+                        <TextBlock Text="Date of Birth" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzDateOfBirth}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Grid.Row="1">
+                        <TextBlock Text="Gender" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzGender}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0" Grid.Row="2">
+                        <TextBlock Text="Expiry Date" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzExpiryDate}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="2">
+                        <TextBlock Text="Nationality" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzNationality}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Grid.Row="2">
+                        <TextBlock Text="Full Name" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MrzFullName}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Get License Expiry Date -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="License Expiry Date" Style="{StaticResource SectionHeader}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             Text="{Binding LicenseExpiryDate, Mode=OneWay}"
+                             Style="{StaticResource ModernTextBox}"
+                             IsReadOnly="True"
+                             Margin="0,0,12,0"/>
+
+                    <Button Grid.Column="1"
+                            Content="Get Expiry Date"
+                            Command="{Binding GetLicenseExpiryCommand}"
+                            Style="{StaticResource PrimaryButton}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Get Config Certificate Expiry Date -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Config Certificate Expiry Dates" Style="{StaticResource SectionHeader}"/>
+
+                <Button Content="Get Config Cert Expiry"
+                        Command="{Binding GetConfigCertExpiryCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="VG Cert Expiry" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ConfigVGCertExpiry}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="LV Cert Expiry" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ConfigLVCertExpiry}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Grid.Row="0">
+                        <TextBlock Text="Server TLS Cert Expiry" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ServerTLSCertExpiry}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0" Grid.Row="1">
+                        <TextBlock Text="AG Cert Expiry" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ConfigAGCertExpiry}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="1">
+                        <TextBlock Text="License Expiry" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ConfigLicenseExpiry}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Validate Toolkit Response -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Validate Toolkit Response" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Validate a Toolkit XML response using a signer certificate and optional certificate chain."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <TextBlock Text="Toolkit XML Response" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding ValidateXmlResponse, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource ModernTextBox}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Height="100"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,12"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Signer Certificate File" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding ValidateCertFilePath, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Browse"
+                            Command="{Binding BrowseCertFileCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            VerticalAlignment="Bottom"/>
+
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Text="Certificate Chain File (optional)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding ValidateChainFilePath, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="6"
+                            Content="Browse"
+                            Command="{Binding BrowseChainFileCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <Button Content="Validate Response"
+                        Command="{Binding ValidateResponseCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"/>
+
+                <!-- Validation Result Fields -->
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="Service" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateService}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Action" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateAction}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Grid.Row="0">
+                        <TextBlock Text="Request ID" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateRequestId}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0" Grid.Row="1">
+                        <TextBlock Text="Nonce" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateNonce}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="1">
+                        <TextBlock Text="Correlation ID" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateCorrelationId}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Grid.Row="1">
+                        <TextBlock Text="CSN" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateCsn}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0" Grid.Row="2">
+                        <TextBlock Text="Card Number" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateCardNumber}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="2">
+                        <TextBlock Text="ID Number" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateIdNumber}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Grid.Row="2">
+                        <TextBlock Text="Time Stamp" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateTimeStamp}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0" Grid.Row="3">
+                        <TextBlock Text="Validity Interval" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding ValidateValidityInterval}" Style="{StaticResource FieldValue}"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <GroupBox Header="Unified Toolkit Log" Margin="0,12,0,0" Padding="8">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,6">
+                    Appends a message to the toolkit's unified log file
+                    through Toolkit.Log. Safe to call before Initialize
+                    and after Cleanup. No-op against older EIDAToolkit.dll
+                    versions that don't export this entry point.
+                </TextBlock>
+
+                <TextBlock Text="Module name:" Margin="0,4,0,2" />
+                <TextBox x:Name="LogModuleTextBox" Text="ModernApp"
+                         Margin="0,0,0,6" />
+
+                <TextBlock Text="Message:" Margin="0,0,0,2" />
+                <TextBox x:Name="LogMessageTextBox"
+                         Text="Hello from the Modern sample app"
+                         Margin="0,0,0,6" />
+
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Write Info"
+                            Click="WriteLogInfo_Click"
+                            Margin="0,0,8,0" Padding="12,4" />
+                    <Button Content="Write Warn"
+                            Click="WriteLogWarn_Click"
+                            Margin="0,0,8,0" Padding="12,4" />
+                    <Button Content="Write Error"
+                            Click="WriteLogError_Click"
+                            Margin="0,0,8,0" Padding="12,4" />
+                    <TextBlock x:Name="LogStatusTextBlock"
+                               VerticalAlignment="Center"
+                               Foreground="Gray" />
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+    </StackPanel></ScrollViewer>
+</UserControl>

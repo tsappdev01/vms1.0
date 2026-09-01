@@ -1,0 +1,949 @@
+﻿<Window x:Class="EIDAToolkitApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:EIDAToolkitApp.Views"
+        xmlns:usrCntrls="clr-namespace:EIDAToolkitApp.UserControls"
+        mc:Ignorable="d"
+        Title="EIDAToolkit" Height="650" Width="850" 
+        BorderBrush="#2A5799" BorderThickness="1.5"
+        ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+        AllowsTransparency="True" WindowStyle="None" Background="#808080"
+        MouseLeftButtonDown="PART_TITLEBAR_MouseLeftButtonDown" Loaded="Window_Loaded">
+
+    <Grid>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.14*"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <!--Header-->
+            <Grid Grid.Row="0" Background="#FFAAAAAA">
+                <Image Source="Images/ica_logo.png" HorizontalAlignment="Left"/>
+                <Rectangle Height="75" HorizontalAlignment="Center" Width="1" Fill="#2A5799" Margin="0,0,130,0"/>
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="320,0,0,0">
+                            <Run Text="Emirates ID Toolkit " Foreground="WhiteSmoke" FontSize="22" FontWeight="Light"/>
+                            <Run Text="DotNet Sample Application" Foreground="WhiteSmoke" FontSize="22" FontWeight="Light"/>
+                </TextBlock>
+                <DockPanel LastChildFill="False" VerticalAlignment="Top" HorizontalAlignment="Right">
+                    <Button x:Name="PART_CLOSE" DockPanel.Dock="Right" 
+                                                    VerticalAlignment="Center" Margin="0"
+                                                    Height="30" Width="30" 
+                                                    Style="{DynamicResource MetroWindowButtonStyle}"
+                                                    Click="PART_CLOSE_Click">
+                        <Path Data="F1M54.0573,47.8776L38.1771,31.9974 54.0547,16.1198C55.7604,14.4141 55.7604,11.6511 54.0573,9.94531 52.3516,8.23962 49.5859,8.23962 47.8802,9.94531L32.0026,25.8229 16.1224,9.94531C14.4167,8.23962 11.6511,8.23962 9.94794,9.94531 8.24219,11.6511 8.24219,14.4141 9.94794,16.1198L25.8255,32 9.94794,47.8776C8.24219,49.5834 8.24219,52.3477 9.94794,54.0534 11.6511,55.7572 14.4167,55.7585 16.1224,54.0534L32.0026,38.1745 47.8802,54.0534C49.5859,55.7585 52.3516,55.7572 54.0573,54.0534 55.7604,52.3477 55.763,49.5834 54.0573,47.8776z" 
+                                                      Stretch="Uniform" Fill="WhiteSmoke" Width="10" Margin="0,0,0,0" />
+                    </Button>
+                    <Button x:Name="PART_MINIMIZE" 
+                                                    HorizontalAlignment="Center" 
+                                                    VerticalAlignment="Center" Margin="0"
+                                                    DockPanel.Dock="Right"
+                                                    Height="30" Width="30" Style="{DynamicResource MetroWindowButtonStyle}"
+                                                    Click="PART_MINIMIZE_Click" VerticalContentAlignment="Bottom">
+                        <Path Data="M0,20L53.333,20 53.333,8.888 0,8.888z" 
+                                                          Stretch="Uniform" Fill="WhiteSmoke" Width="10" Margin="0,0,0,10"/>
+                    </Button>
+                </DockPanel>
+                <Rectangle Width="850" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="1.5"
+                       Fill="#2A5799 " Margin="0,2,0,0"/>
+            </Grid>
+
+            <!--Body-->
+            <Grid Grid.Row="1">
+
+                <!--TabControl-->
+                <TabControl x:Name="tabControl" TabStripPlacement="Left" Style="{StaticResource MetroTabControl}"
+                        Background="White" SelectionChanged="TabControl_SelectionChanged">
+
+                    <!--Initialize-->
+                    <TabItem x:Name="InitializeTabItem" Header="Initialize" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:InitializeUserControl x:Name="InitializeUsrCntrl"/>
+                            </Border>
+
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="InitializeToolkitError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Initialize" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="InitializeToolkitButton" 
+                                                VerticalAlignment="Center" Width="Auto" MinWidth="115" Click="InitializeToolkitButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Tookit version-->
+                    <TabItem x:Name="ToolkitVersionTabItem" Header="Toolkit Version" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ToolkitVersionUserControl x:Name="ToolkitVersionUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ToolkitVersionError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get Toolkit Version" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetToolkitVersionButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="GetToolkitVersionButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Register Device-->
+                    <TabItem x:Name="RegisterDeviceTabItem" Header="Register Device" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:RegisterDeviceUserControl x:Name="RegisterDeviceUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="RegisterDeviceError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Register Device" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="RegisterDeviceButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="RegisterDeviceButton_Click" 
+                                                FontWeight="SemiBold"
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Device ID-->
+                    <TabItem x:Name="DeviceIdTabItem" Header="Device ID" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:DeviceIdUserControl x:Name="DeviceIdUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="DeviceIdError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get Device ID" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetDeviceIdButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="GetDeviceIDButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--License Expiry Date-->
+                    <TabItem x:Name="LicenseExpiryDateTabItem" Header="License Expiry Date" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:LicenseExpiryDateUserControl x:Name="LicenseExpiryDateUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="LicenseExpiryDateError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get License Expiry Date" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetLicenseExpiryDateButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="GetLicenseExpiryDateButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Parse MRZ Data-->
+                    <TabItem x:Name="ParseMRZDataTabItem" Header="Parse MRZ Data" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ParseMRZDataUserControl x:Name="ParseMRZDataUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="PraseMRZDataError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Parse" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ParseMRZDataButton" 
+                                                VerticalAlignment="Center" Width="115" Click="ParseMRZDataButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Config Certificate Expiry Date-->
+                    <TabItem x:Name="CofingCertExpiryDateTabItem" Header="Config Cert Expiry Date" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ConfigCertExpiryDateUserControl x:Name="ConfiCertExpiryDateUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ConfigCertExpiryDateError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get Expiry Date" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetConfigCertExpiryDateButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="GetConfigCertExpiryDateButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--List Readers-->
+                    <TabItem x:Name="ListReadersTabItem" Header="List Readers" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ListReadersUserControl x:Name="ListReadersUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ListReadersError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get Readers" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ListReadersButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="ListReadersButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Get Reader With Emirates ID-->
+                    <TabItem x:Name="ReaderWithEmiratesIdTabItem" Header="Reader with Emirates ID" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:GetReaderWithEmiratesIdUserControl x:Name="GetReaderWithEmiratesIdUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ReaderWithEmiratesIdCardError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get Reader" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetReaderWithEmiratesIdCardButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="GetReaderWithEmiratesIdCardButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Connect-->
+                    <TabItem x:Name="ConnectTabItem" Header="Connect" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ConnectUserControl/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ConnectError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Connect" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ConnectButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="ConnectButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Get Interface Type-->
+                    <TabItem x:Name="InterfaceTypeTabItem" Header="Interface Type" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:GetInterfaceTypeUserControl x:Name="GetInterfaceTypeUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="InterfaceTypeError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get Interface Type" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetInterfaceTypeButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="GetInterfaceTypeButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Get CSN-->
+                    <TabItem x:Name="GetCSNTabItem" Header="Get CSN" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:GetCSNUserControl x:Name="GetCSNUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="GetCSNError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get CSN" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetCSNButton" 
+                                                VerticalAlignment="Center" MinWidth="115" Width="Auto" Click="GetCSN_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Card public Data-->
+                    <TabItem x:Name="CardDataTabItem" Header="Public Data" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5">
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:PublicDataUserControl x:Name="PublicDataUsrCntrl"/>
+                            </Border>
+                            <!--TabItem Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ReadPublicDataError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Read Public Data" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ReadCardPublicDataButton" 
+                                                VerticalAlignment="Center" Width="115" Click="ReadCardPublicDataButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Card Public Data EF-->
+                    <TabItem x:Name="CardPublicDataEFTabItem" Header="Card Public Data EF" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:CardPublicDataEFUserControl x:Name="CardPublicDataEFUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="CardPublicDataEFError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Read Public Data EF" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ReadCardPublicDataEFButton" 
+                                                VerticalAlignment="Center" Width="Auto" Click="ReadPublicDataEF_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Card public Data using NFC-->
+                    <TabItem x:Name="CardDataUsingNfcTabItem" Header="Public Data Using NFC" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <StackPanel>
+                                <Grid>
+                                    <!--NFC Authentication Fields-->
+                                    <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,2">
+                                        <usrCntrls:NFCAuthFieldsUserControl x:Name="NFCAuthFieldsUsrCntrl"/>
+                                    </Border>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,70,0">
+                                    <Button Content="Set" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                    Margin="0,0,0,0" Name="SetNfcAuthenticationParametersButton" 
+                                                   Click="SetNfcAuthenticationParametersButton_Click" HorizontalAlignment="Left"
+                                                    FontWeight="SemiBold" Width="Auto"
+                                                    Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                                    <Button Content="Clear" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                    Margin="10,0,0,0"  
+                                                   Click="ClearNfcAuthenticationParametersButton_Click" HorizontalAlignment="Left"
+                                                    FontWeight="SemiBold" Width="Auto"
+                                                    Background="#7D7D7D" Foreground="White" FontSize="11"/>
+                                </StackPanel>
+                                <Grid Margin="0,10,0,0" Height="360">
+                                    <!--Public Data Fields-->
+                                    <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                        <usrCntrls:PublicDataUsingNFCUserControl x:Name="PublicDataUsingNFCUsrCntrl"/>
+                                    </Border>
+                                    <!--Title-->
+                                    <Grid Height="35" VerticalAlignment="Bottom">
+                                        <TextBlock Margin="0,0,0,0" Name="ReadPublicDataUsingNfcError" Text="" 
+                                                               FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                               TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        <Button Content="Read Public Data" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                        HorizontalAlignment="Right" Margin="0" Name="ReadCardPublicDataUsingNfcButton" 
+                                                        VerticalAlignment="Center" Width="Auto" Click="ReadCardPublicaDataUsingNfcButton_Click" 
+                                                        FontWeight="SemiBold" 
+                                                        Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="False"/>
+                                    </Grid>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Family Book Data-->
+                    <TabItem x:Name="FamilyBookDataTabItem" Header="Family Book Data" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:FamilyBookDataUserControl x:Name="FamilyBookDataUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ReadFamilyBookDataError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Read Family Book Data" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ReadFamilyBookDataButton" 
+                                                VerticalAlignment="Center" Width="155" Click="ReadFamilyBookDataButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Check Card Status-->
+                    <TabItem x:Name="CardStatusTabItem" Header="Check Card Status" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:CheckCardStatusUserControl x:Name="CheckCardStatusUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="CardStatusError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Check Card Status" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="CheckCardStatusButton" 
+                                                VerticalAlignment="Center" Width="115" Click="CheckCardStatusButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Get Finger Data-->
+                    <TabItem x:Name="FingerDataTabItem" Header="Finger Data" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:GetFingerDataUserControl x:Name="GetFingerDataUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="FingerDataError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get Finger Data" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetFingerDataButton" 
+                                                VerticalAlignment="Center" Width="115" Click="GetFingerDataButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Authenticate Bio On Server-->
+                    <TabItem x:Name="AuthenticateBioOnServerTabItem" Header="Biometric On Server" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:AuthBioOnServerUserControl x:Name="AuthBioOnServerUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="AuthenticationBioOnServerError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Authenticate" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="AuthenticationBioOnServerButton" 
+                                                VerticalAlignment="Center" Width="Auto" Click="AuthenticationBioOnServerButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Authenticate Card and Biometric On Server-->
+                    <TabItem x:Name="AuthCardAndBioTabItem" Header="Card Status And Biometric On Server" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:AuthCardAndBioOnServerUserControl x:Name="AuthCardAndBioOnServerUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="AuthCardAndBioError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Check and Authenticate" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="AuthCardAndBioButton" 
+                                                VerticalAlignment="Center" Width="Auto" Click="AuthCardAndBioButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Unblock PIN-->
+                    <TabItem x:Name="UnblockPinTabItem" Header="Unblock PIN" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5">
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:UnblockPinUserControl x:Name="UnblockPinUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="UnblockPinError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Unblock PIN" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="UnblockPinButton" 
+                                                VerticalAlignment="Center" Width="115" Click="UnblockPinButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Reset PIN-->
+                    <TabItem x:Name="ResetPinTabItem" Header="Reset PIN" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ResetPinUserControl x:Name="ResetPinUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ResetPinError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Reset PIN" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0,0,0,3" Name="ResetPinButton" 
+                                                VerticalAlignment="Bottom" Width="115" Click="ResetPinButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Get PKI Certificates-->
+                    <TabItem x:Name="GetCertificatesTabItem" Header="Get PKI Certificates" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:GetCertificatesUserControl x:Name="GetCertificatesUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="GetPkiCertificatesError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Get Certificates" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="GetPkiCertificatesButton" 
+                                                VerticalAlignment="Center" Width="115" Click="GetPkiCertificatesButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Sign/Verify Data-->
+                    <TabItem x:Name="SignOrVerifyTabItem" Header="Sign / Verify" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5">
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:SignOrVerifyUserControl x:Name="SignOrVerifyUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="SignDataError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Authenticate PKI-->
+                    <TabItem x:Name="AuthenticatePki" Header="PKI Authentication" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5">
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:AuthenticatePkiUserControl x:Name="AuthenticatePkiUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="PkiAuthenticationError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Authenticate" Template="{StaticResource ButtonControlTemplate}" FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="PkiAuthenticationButton" 
+                                                VerticalAlignment="Center" Width="115" Click="AutheticatePkiButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Read Data-->
+                    <TabItem x:Name="ReadDataTabItem" Header="Read Data" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ReadDataUserControl x:Name="readDataUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ReadDataError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Read Data" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ReadDataButton" 
+                                                VerticalAlignment="Center" Width="Auto" Click="ReadDataButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Update Data-->
+                    <TabItem x:Name="UpdateDataTabItem" Header="Update Data" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:UpdateDataUserControl x:Name="UpdateDataUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="UpdateDataError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Update Data" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="UpdateDataButton" 
+                                                VerticalAlignment="Center" Width="Auto" Click="UpdateDataButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Digital Signature-->
+                    <TabItem x:Name="DigitalSignatureTabItem" Header="DSS" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <RadioButton x:Name="PadesRadioButton" Content="PADES" Margin="15,5,10,5" GroupName="digitalSignatureRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="PadesRadioButton_Checked"/>
+                                    <RadioButton x:Name="xades_RadioBtn" Content="XADES" Margin="15,5,10,5" GroupName="digitalSignatureRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="XadesRadioButton_Checked"/>
+                                    <RadioButton x:Name="cades_RadioBtn" Content="CADES" Margin="15,5,10,5" GroupName="digitalSignatureRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="CadesRadioButton_Checked"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Grid.Row="1">
+
+                                <!--padesGrid-->
+                                <Grid Margin="0" x:Name="PadesGrid" Visibility="Visible">
+                                    <StackPanel Orientation="Vertical" Grid.ColumnSpan="2" Margin="0,15,0,0">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Label HorizontalAlignment="Center" Width="200" Height="2">
+                                                <Label.Background>
+                                                    <LinearGradientBrush EndPoint="0,0.5" StartPoint="1,0.5">
+                                                        <GradientStop Color="#FFE07C3A"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.25"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.35"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="0.85"/>
+                                                        <GradientStop Color="#FFF9E7DB" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Label.Background>
+                                            </Label>
+                                            <TextBlock Height="27" HorizontalAlignment="Center" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text="Select Option" 
+                                                       VerticalAlignment="Top" FontSize="16" FontFamily="Segoe UI" 
+                                                       Foreground="#2A5799" FontWeight="SemiBold"/>
+                                            <Label HorizontalAlignment="Center" Width="200" Height="2">
+                                                <Label.Background>
+                                                    <LinearGradientBrush EndPoint="0,0.5" StartPoint="1,0.5">
+                                                        <GradientStop Color="#FFF9E7DB"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="0.25"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.35"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.85"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Label.Background>
+                                            </Label>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
+                                            <RadioButton x:Name="PadesSignRadioButton" Content="Sign a Document" Margin="5" GroupName="padesRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="PadesSignRadioButton_Checked"/>
+                                            <RadioButton x:Name="padesVerify_RadioBtn" Content="Verify a Document" Margin="50,5,5,5" GroupName="padesRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="PadesVerifyRadioButton_Checked"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,80,2,35">
+                                        <Grid>
+                                            <usrCntrls:PadesSignUserControl x:Name="PadesSignUsrCntrl"/>
+                                            <usrCntrls:PadesVerifyUserControl x:Name="PadesVerifyUsrCntrl" Visibility="Hidden"/>
+                                        </Grid>
+                                    </Border>
+                                    <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent" Grid.ColumnSpan="2">
+                                        <TextBlock Margin="0,0,0,0" Name="PadesError" Text=""
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        <Grid HorizontalAlignment="Right">
+                                            <Button Content="Sign" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                Margin="0,0,0,0" Name="PadesSignButton" 
+                                                VerticalAlignment="Center" Width="115" Click="PadesSignButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11"/>
+                                            <Button Content="Verify" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                Margin="10,0,0,0" Name="PadesVerifyButton" 
+                                                VerticalAlignment="Center" Width="115" Click="PadesVerifyButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" Visibility="Hidden"/>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+
+                                <!--xadesGrid-->
+                                <Grid Margin="0" x:Name="XadesGrid" Visibility="Hidden">
+                                    <StackPanel Orientation="Vertical" Grid.ColumnSpan="2" Margin="0,15,0,0">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Label HorizontalAlignment="Center" Width="200" Height="2">
+                                                <Label.Background>
+                                                    <LinearGradientBrush EndPoint="0,0.5" StartPoint="1,0.5">
+                                                        <GradientStop Color="#FFE07C3A"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.25"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.35"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="0.85"/>
+                                                        <GradientStop Color="#FFF9E7DB" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Label.Background>
+                                            </Label>
+                                            <TextBlock Height="27" HorizontalAlignment="Center" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text="Select Option" 
+                                                       VerticalAlignment="Top" FontSize="16" FontFamily="Segoe UI" 
+                                                       Foreground="#2A5799" FontWeight="SemiBold"/>
+                                            <Label HorizontalAlignment="Center" Width="200" Height="2">
+                                                <Label.Background>
+                                                    <LinearGradientBrush EndPoint="0,0.5" StartPoint="1,0.5">
+                                                        <GradientStop Color="#FFF9E7DB"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="0.25"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.35"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.85"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Label.Background>
+                                            </Label>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
+                                            <RadioButton x:Name="XadesSignRadioButton" Content="Sign a Document" Margin="5" GroupName="xadesRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="XadesSignRadioButton_Checked"/>
+                                            <RadioButton x:Name="xadesVerify_RadioBtn" Content="Verify a Document" Margin="50,5,5,5" GroupName="xadesRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="XadesVerifyRadioButton_Checked"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,80,2,35">
+                                        <Grid>
+                                            <usrCntrls:XadesSignUserControl x:Name="XadesSignUsrCntrl"/>
+                                            <usrCntrls:XadesVerifyUserControl x:Name="XadesVerifyUsrCntrl" Visibility="Hidden"/>
+                                        </Grid>
+                                    </Border>
+                                    <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                        <TextBlock Margin="0,0,0,0" Name="XadesError" Text=""
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        <Grid HorizontalAlignment="Right">
+                                            <Button Content="Sign" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                Margin="0,0,0,0" Name="XadesSignButton" 
+                                                VerticalAlignment="Center" Width="115" Click="XadesSignButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11"/>
+                                            <Button Content="Verify" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                Margin="10,0,0,0" Name="XadesVerifyButton" 
+                                                VerticalAlignment="Center" Width="115" Click="XadesVerifyButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" Visibility="Hidden"/>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+
+                                <!--cadesGrid-->
+                                <Grid Margin="0" x:Name="CadesGrid" Visibility="Hidden">
+                                    <StackPanel Orientation="Vertical" Grid.ColumnSpan="2" Margin="0,15,0,0">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Label HorizontalAlignment="Center" Width="200" Height="2">
+                                                <Label.Background>
+                                                    <LinearGradientBrush EndPoint="0,0.5" StartPoint="1,0.5">
+                                                        <GradientStop Color="#FFE07C3A"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.25"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.35"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="0.85"/>
+                                                        <GradientStop Color="#FFF9E7DB" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Label.Background>
+                                            </Label>
+                                            <TextBlock Height="27" HorizontalAlignment="Center" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text="Select Option" 
+                                                       VerticalAlignment="Top" FontSize="16" FontFamily="Segoe UI" 
+                                                       Foreground="#2A5799" FontWeight="SemiBold"/>
+                                            <Label HorizontalAlignment="Center" Width="200" Height="2">
+                                                <Label.Background>
+                                                    <LinearGradientBrush EndPoint="0,0.5" StartPoint="1,0.5">
+                                                        <GradientStop Color="#FFF9E7DB"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="0.25"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.35"/>
+                                                        <GradientStop Color="#FFE07C3A" Offset="0.85"/>
+                                                        <GradientStop Color="#FFF99F63" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Label.Background>
+                                            </Label>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
+                                            <RadioButton x:Name="CadesSignRadioButton" Content="Sign a Document" Margin="5" GroupName="cadesRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="CadesSignRadioButton_Checked"/>
+                                            <RadioButton x:Name="cadesVerify_RadioBtn" Content="Verify a Document" Margin="50,5,5,5" GroupName="cadesRadioBtn"
+                                                     FontSize="15" FontFamily="Segoe UI" FontWeight="SemiBold" Checked="CadesVerifyRadioButton_Checked"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,80,2,35">
+                                        <Grid>
+                                            <usrCntrls:CadesSignUserControl x:Name="CadesSignUserCntrl"/>
+                                            <usrCntrls:CadesVerifyUserControl x:Name="CadesVerifyUserCntrl" Visibility="Hidden"/>
+                                        </Grid>
+                                    </Border>
+                                    <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                        <TextBlock Margin="0,0,0,0" Name="CadesError" Text=""
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        <Grid HorizontalAlignment="Right">
+                                            <Button Content="Sign" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                Margin="0,0,0,0" Name="CadesSignButton" 
+                                                VerticalAlignment="Center" Width="115" Click="CadesSignButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11"/>
+                                            <Button Content="Verify" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                Margin="10,0,0,0" Name="CadesVerifyButton" 
+                                                VerticalAlignment="Center" Width="115" Click="CadesVerifyButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" Visibility="Hidden"/>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Disconnect-->
+                    <TabItem x:Name="DisconnectTabItem" Header="Disconnect" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:DisconnectUserControl/>
+                            </Border>
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="DisconnectError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Disconnect" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="DisconnectButton" 
+                                                VerticalAlignment="Center" Width="115" Click="DisconnectButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Cleanup-->
+                    <TabItem x:Name="CleanupTabItem" Header="Cleanup" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:CleanupUserControl/>
+                            </Border>
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="CleanupToolkitError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Cleanup" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="CleanupToolkitButton" 
+                                                VerticalAlignment="Center" Width="Auto" MinWidth="115" Click="CleanupToolkitButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Parse EF Data-->
+                    <TabItem x:Name="ParseEFDataTabItem" Header="Parse EF Data" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ParseEFDataUserControl x:Name="ParseEFDataUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ParseEFDataError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Parse" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ParseEFDataButton" 
+                                                VerticalAlignment="Center" Width="Auto" Click="ParseEFDataButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11" IsEnabled="True" IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <!--Toolkit Response Validation-->
+                    <TabItem x:Name="ResponseValidationTabItem" Header="Response Validation" Style="{StaticResource MetroTabItem}">
+                        <Grid Margin="5" >
+                            <Border BorderBrush="#FF12659E" BorderThickness="1" Margin="2,2,2,35">
+                                <usrCntrls:ResponseValidationUserControl x:Name="ResponseValidationUsrCntrl"/>
+                            </Border>
+                            <!--Footer-->
+                            <Grid Height="35" VerticalAlignment="Bottom" Background="Transparent">
+                                <TextBlock Margin="0,0,0,0" Name="ValidateToolkitResponseError" Text="" 
+                                                       FontFamily="Segoe UI" FontWeight ="Medium" FontSize="12" 
+                                                       TextWrapping="Wrap" Foreground="RoyalBlue" Width="500" Height="33"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Button Content="Validate" Template="{StaticResource ButtonControlTemplate}"  FontFamily="Segoe UI" Height="30" 
+                                                HorizontalAlignment="Right" Margin="0" Name="ValidateToolkitResponseButton" 
+                                                VerticalAlignment="Center" Width="Auto" MinWidth="115" Click="ValidateToolkitResponseButton_Click" 
+                                                FontWeight="SemiBold" 
+                                                Background="#7D7D7D" Foreground="White" FontSize="11"  IsDefault="True"/>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Grid>
+
+        <views:VerifyPinDialog x:Name="VerifyPinDialogBox" Visibility="Hidden"/>
+        <views:ErrorDialog x:Name="ErrorDialogBox" Visibility="Hidden"/>
+    </Grid>
+</Window>

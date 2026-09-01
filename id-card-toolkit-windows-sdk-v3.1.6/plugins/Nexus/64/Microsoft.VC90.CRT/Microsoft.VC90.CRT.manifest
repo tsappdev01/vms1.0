@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Private side-by-side manifest for the Microsoft Visual C++ 2008 runtime
+  bundled with the Richmond Nexus reader plugin.
+
+  Why this is here:
+  Richmond's 64-bit ID_FprCap.dll has an embedded SxS manifest declaring a
+  dependency on assembly Microsoft.VC90.CRT version 9.0.21022.8 amd64
+  publicKeyToken 1fc8b3b9a1e18e3b. Vanilla Windows 10/11 does not ship VC9
+  runtime in-box; the publicKeyToken pin forces SxS-assembly resolution
+  rather than loose-DLL fallback. Without this private assembly, ID_FprCap.dll
+  fails to load with SXS_ASSEMBLY_NOT_FOUND on any customer machine that
+  hasn't separately installed the VC++ 2008 Redistributable.
+
+  How this manifest works:
+  We declare the assembly identity exactly as ID_FprCap.dll's import expects
+  (version 9.0.21022.8). The bundled DLLs are the VC++ 2008 SP1 binaries
+  (9.0.30729.x) — the SP1 ABI is forward-compatible with RTM consumers for
+  the symbols ID_FprCap.dll actually imports (basic CRT: malloc/free,
+  memcpy/memset, sprintf, math, threads). File hashes are intentionally
+  omitted so the manifest accepts the SP1 binaries without a mismatch
+  check; private SxS treats hash-less file entries as advisory rather than
+  load-time enforced.
+
+  Reference: Microsoft SQL Server Compact Edition v4.0 ships VC9 runtime
+  using this exact app-local private-SxS pattern (see
+  C:\Program Files\Microsoft SQL Server Compact Edition\v4.0\Private\
+  amd64\Microsoft.VC90.CRT\).
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+    <noInheritable/>
+    <assemblyIdentity
+        type="win32"
+        name="Microsoft.VC90.CRT"
+        version="9.0.21022.8"
+        processorArchitecture="amd64"
+        publicKeyToken="1fc8b3b9a1e18e3b"/>
+    <file name="msvcr90.dll"/>
+    <file name="msvcp90.dll"/>
+    <file name="msvcm90.dll"/>
+</assembly>

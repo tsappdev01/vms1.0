@@ -1,0 +1,1594 @@
+﻿<UserControl x:Class="EIDAToolkitApp.UserControls.PublicDataUsingNFCUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EIDAToolkitApp.UserControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Background="{StaticResource linearGradientStyle}" Height="30">
+            <TextBlock FontSize="20" 
+                                                       FontFamily="Times New Roman" 
+                                                       FontWeight="Normal"  
+                                                       FontStyle="Normal"  
+                                                       KeyboardNavigation.TabNavigation="None" 
+                                                       Text="Card Holder's Public Data using NFC" 
+                                                       Foreground="White" 
+                                                       Width="Auto"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center">
+            </TextBlock>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer x:Name="ScrollViewerNfcPublicData" Padding="5" Grid.Row="2">
+                <!--Public Data Fields-->
+                <StackPanel>
+                    <StackPanel>
+                        <TextBlock Margin="10" Text="Public Data:" TextAlignment="Left" FontSize="16" FontFamily="Segoe UI" 
+                                                   Foreground="Blue" />
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_IDNumber_Label" 
+                                                       Text="ID Number" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock Margin="0,0,0,0" Text=""
+                                                       TextAlignment="Left" Name="NFC_IdNumberText" 
+                                                       VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_CardNumber_Label" Text="Card Number" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_CardNumberText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!--Non Modifiable Data-->
+                        <GroupBox x:Name="NFC_NonModifiableDataGroupBox" Header="Non-Modifiable Data"
+                                  Visibility="{Binding Path=IsChecked, ElementName=Nfc_ReadNonModifiableDataCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_IDType_Label" 
+                                                       Text="ID Type" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_IdTypeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_IssueDate_Label" Text="Issue Date" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_IssueDateText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_ExpiryDate_Label" 
+                                                       Text="Expiry Date" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_ExpiryDateText" 
+                                                       Text="" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_TitleArabic_Label" 
+                                                       Text="Title Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_TitleArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_TitleEnglish_Label" Text="Title English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" />
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_TitleEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_FullNameArabic_Label" Text="Full Name Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_FullNameArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_FullNameEnglish_Label" Text="Full Name English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_FullNameEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_Gender_Label" Text="Gender" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_GenderText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_NationalityArabic_Label" Text="Nationality Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_NationalityArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_NationalityEnglish_Label" 
+                                                       Text="Nationality English" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_NationalityEnglishText" 
+                                                       Text="" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_NationalityCode_Label" Text="Nationality Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_NationalityCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_DateOfBirth_Label" Text="Date Of Birth" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_DateOfBirthText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_PlaceOfBirthArabic_Label" Text="Place Of Birth Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_PlaceOfBirthArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_PlaceOfBirthEnglish_Label" Text="Place Of Birth English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_PlaceOfBirthEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Modifiable Data-->
+                        <GroupBox x:Name="NFC_ModifiableData" Header="Modifiable Data"
+                                  Visibility="{Binding Path=IsChecked, ElementName=Nfc_ReadModifiableDataCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_Occupation_Label" Text="Occupation Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationArabic_Label" Text="Occupation Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationEnglish_Label" Text="Occupation English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_FamilyID_Label" Text="Family ID" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_FamilyIdText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationTypeArabic_Label" Text="Occupation Type Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationTypeArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationTypeEnglish_Label" Text="Occupation Type English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationTypeEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationFieldCode_Label" Text="Occupation Field Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_OccupationFieldCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_CompanyNameArabic_Label" Text="Company Name Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_CompanyNameArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_CompanyNameEnglish_Label" Text="Company Name English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_CompanyNameEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_MaritalStatus_Label" Text="Marital Status Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_MaritalStatusCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_HusbandIDN_Label" Text="Husband Id Number" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_HusbandIdNumberText" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_SponsorType_Label" 
+                                                       Text="Sponsor Type Code" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_SponsorTypeCodeText" 
+                                                       Text="" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_SponserNumber_Label" Text="Sponser Unified Number" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_SponserUnifiedNumberText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_SponsorName_Label" 
+                                                       Text="Sponsor Name" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_SponsorNameText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_ResidencyType_Label" Text="Residency Type Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_ResidencyTypeCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_ResidencyNumber_Label" Text="Residency Number" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NFC_ResidencyNumberText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_ResidencyExpiryDate_Label" 
+                                                       Text="Residency Expiry Date" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_ResidencyExpiryDateText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PassportNumber_Label" 
+                                                       Text="Passport Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PassportNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PassportTypeCode_Label" 
+                                                       Text="Passport Type Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PassportTypeCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PassportCountryCode_Label" 
+                                                       Text="Passport Country Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PassportCountryCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PassportCountryArabic_Label" 
+                                                       Text="Passport Country Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PassportCountryArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PassportCountryEnglish_Label" 
+                                                       Text="Passport Country English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PassportCountryEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PassportIssueDate_Label" 
+                                                       Text="Passport Issue Date" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PassportIssueDateText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PassportExpiryDate_Label" 
+                                                       Text="Passport Expiry Date" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PassportExpiryDateText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_QualificationLevelCode_Label" 
+                                                       Text="Qualification Level Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_QualificationLevelCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_QualificationLevelArabic_Label" 
+                                                       Text="Qualification Level Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_QualificationLevelArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_QualificationLevelEnglish_Label" 
+                                                       Text="Qualification Level English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_QualificationLevelEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_DegreeDescArabic_Label" 
+                                                       Text="Degree Description Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_DegreeDescriptionArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_DegreeDescEnglish_Label" 
+                                                       Text="Degree Description English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_DegreeDescriptionEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_FieldOfStudyCode_Label" 
+                                                       Text="Field Of Study Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_FieldOfStudyCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_FieldOfStudyArabic_Label" 
+                                                       Text="Field Of Study Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_FieldOfStudyArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_FieldOfStudyEnglish_Label" 
+                                                       Text="Field Of Study English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_FieldOfStudyEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PlaceOfStudyArabic_Label" 
+                                                       Text="Place Of Study Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PlaceOfStudyArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PlaceOfStudyEnglish_Label" 
+                                                       Text="Place Of Study English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_PlaceOfStudyEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_DateOfGraduation_Label" 
+                                                       Text="Date Of Graduation" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_DateOfGraduationText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_MotherFullNameArabic_Label" 
+                                                       Text="Mother Full Name Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_MotherFullNameArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_MotherFullNameEnglish_Label" 
+                                                       Text="Mother Full Name English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_MotherFullNameEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Home Address-->
+                        <GroupBox x:Name="NFC_HomeAddress" Header="Home Address"
+                                  Visibility="{Binding Path=IsChecked, ElementName=Nfc_ReadAddressCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_AddressTypeCode_Label" 
+                                                       Text="Address Type Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_AddressTypeCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_LocationCode_Label" 
+                                                       Text="Location Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_LocationCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_EmirateCode_Label" 
+                                                       Text="Emirate Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_EmirateCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_EmirateArabic_Label" 
+                                                       Text="Emirate Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_EmirateArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_EmirateEnglish_Label" 
+                                                       Text="Emirate English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_EmirateEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_CityCode_Label" 
+                                                       Text="City Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_CityCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_CityArabic_Label" 
+                                                       Text="City Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_CityArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_CityEnglish_Label" 
+                                                       Text="City English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_CityEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_StreetArabic_Label" 
+                                                       Text="Street Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_StreetArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_StreetEnglish_Label" 
+                                                       Text="Street English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_StreetEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_PoBox_Label" 
+                                                       Text="PoBox" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_PoBoxText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_AreaCode_Label" 
+                                                       Text="Area Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_AreaCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_AreaArabic_Label" 
+                                                       Text="Area Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_AreaArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_AreaEnglish_Label" 
+                                                       Text="Area English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_AreaEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_BuildingNameArabic_Label" 
+                                                       Text="Building Name Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_BuildingNameArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_BuildingNameEnglish_Label" 
+                                                       Text="Building Name English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_BuildingNameEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_LandPhoneNumber_Label" 
+                                                       Text="Land Phone Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_LandPhoneNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_MobilePhoneNumber_Label" 
+                                                       Text="Mobile Phone Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_MobilePhoneNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Email_Label" 
+                                                       Text="Email" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_EmailText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_FlatNumber_Label" 
+                                                       Text="Flat Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Home_FlatNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Work Address-->
+                        <GroupBox x:Name="NFC_WorkAddress" Header="Work Address"
+                                  Visibility="{Binding Path=IsChecked, ElementName=Nfc_ReadAddressCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_AddressTypeCode_Label" 
+                                                       Text="Address Type Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_AddressTypeCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_LocationCode_Label" 
+                                                       Text="Location Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_LocationCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_EmirateCode_Label" 
+                                                       Text="Emirate Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_EmirateCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_EmirateArabic_Label" 
+                                                       Text="Emirate Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_EmirateArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_EmirateEnglish_Label" 
+                                                       Text="Emirate English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_EmirateEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_CityCode_Label" 
+                                                       Text="City Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_CityCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_CityArabic_Label" 
+                                                       Text="City Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_CityArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_CityEnglish_Label" 
+                                                       Text="City English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_CityEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_StreetArabic_Label" 
+                                                       Text="Street Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_StreetArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_StreetEnglish_Label" 
+                                                       Text="Street English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_StreetEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_PoBox_Label" 
+                                                       Text="PoBox" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_PoBoxText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_AreaCode_Label" 
+                                                       Text="Area Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_AreaCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_AreaArabic_Label" 
+                                                       Text="Area Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_AreaArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_AreaEnglish_Label" 
+                                                       Text="Area English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_AreaEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_BuildingNameArabic_Label" 
+                                                       Text="Building Name Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_BuildingNameArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_BuildingNameEnglish_Label" 
+                                                       Text="Building Name English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_BuildingNameEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_LandPhoneNumber_Label" 
+                                                       Text="Land Phone Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_LandPhoneNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_MobilePhoneNumber_Label" 
+                                                       Text="Mobile Phone Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_MobilePhoneNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_Email_Label" 
+                                                       Text="Email" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_EmailText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_CompanyNameArabic_Label" 
+                                                       Text="Company Name Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_CompanyNameArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Work_CompanyNameEnglish_Label" 
+                                                       Text="Company Name English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NFC_Work_CompanyNameEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Photo Data Fields-->
+                        <GroupBox x:Name="NFC_PhotoGroupBox" Header="Photo"
+                                Visibility="{Binding Path=IsChecked, ElementName=Nfc_ReadPhotographyCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">  
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_Photo_Label" Text="Photo" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <Border  Height="140" Width="120" BorderThickness="1" BorderBrush="Black" 
+                                                     VerticalAlignment="Center" Margin="0,0,0,0" Background="#ECEEEB">
+                                        <Image Name="NFC_PublicDataImage" Stretch="Fill"/>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Signature Data Fields-->
+                        <GroupBox x:Name="NFC_SignatureCheckBox" Header="Signature"
+                                Visibility="{Binding Path=IsChecked, ElementName=Nfc_ReadSignatureCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NFC_SignatureImage_Label" Text="Signature" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <Border BorderBrush="Gray" BorderThickness="1" Height="100" Width="200" Margin="5,0,0,0">
+                                        <Image Name="NFC_SignatureDataImage" />
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+
+                    <!--Xml Response Fields-->
+                    <StackPanel Margin="0,10,0,0" VerticalAlignment="Bottom">
+                        <TextBlock Margin="10" Text="Xml Response:" TextAlignment="Left" FontSize="16" FontFamily="Segoe UI" 
+                                                   Foreground="Blue" />
+                        <TextBox x:Name="CardDataUsingNfcXmlResponse" Height="300" Width="420"
+                                                                 HorizontalAlignment="Left" VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" IsReadOnly="True"
+                                                                 IsTabStop="False"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0">
+                <CheckBox x:Name="Nfc_ReadNonModifiableDataCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Non-Modifiable Data" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+                <CheckBox x:Name="Nfc_ReadModifiableDataCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Modifiable Data" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+                <CheckBox x:Name="Nfc_ReadPhotographyCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Photography" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+                <CheckBox x:Name="Nfc_ReadSignatureCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Signature" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+                <CheckBox x:Name="Nfc_ReadAddressCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Address" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

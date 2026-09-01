@@ -1,0 +1,10 @@
+ICA Toolkit Android Plugin :
+Device Plugin for Paysky Smartbox v7 POS Handheld Device
+
+This is a combi plugin for this device with Smarcard and Fingerprint Support.
+
+Supported Android Application Binary Interfaces (ABIs) for Paysky Device:
+	1.armeabi-v7a
+	
+Dependencies:
+FingerPrintLib_v1.0.9.aar

@@ -1,0 +1,313 @@
+ICA Toolkit Android Plugin :
+Device Smartcard and Fingerprint Plugins for Grabba S Series Jacket and Usb interface device
+
+Supported Android Application Binary Interfaces (ABIs):
+	1.armeabi-v7a
+	2.arm64-v8a
+
+Dependencies:
+grabba-interfaces-release.aar
+grabba-sdk-release.aar
+
+Integration Instructions from Grabba:
+
+# Overview
+
+#### Last Updated: 13/02/2024
+
+**Demo App Version**: 1.8
+
+**ICA Plugin Version:** 2.0.5
+
+**Build Gradle Version:** 3.5.4
+
+# README Content:
+
+1. Overview of Grabba and ICA Plugins Solution
+
+2. Integrating with Grabba SDK and ICA Toolkit to Sample Application:
+
+3. SDK Dependencies Configuration:
+
+4. Interacting with ICAToolkit
+   
+   1. Designing the Connection Listener
+   
+   2. Designing the ID card Listener
+   
+   3. Connecting to Grabba
+   
+   4. Releasing Resources
+
+5. Emirates ID Online Authentication:
+
+6. Release and Proguard Rules
+
+7. Reach out to Grabba
+
+
+
+## 1. Overview of Grabba and ICA Plugins Solution:
+
+grabba-plugin-release is sitting in user's application as a module. It contains few aar libraries depending on release. The below diagram shows how the dependencies is structure in user's application. Our sample application is a good illustration of how the user can integrate the plugins to their own application.
+
+```Plugin
++--- User's Android Project Root
+     \--- app
+     |     \--- libs
+     |          \--- your_dependencies
+     \--- EIDAToolkit
+     |
+     \--- grabba-plugin-release
+           \--- Grabba ICA Interface (GrabbaPluginInterfaces-release.aar)
+           \--- Grabba ICA Plugin (grabba-plugin-release.aar)
+           \--- Grabba SDK (Grabba-SDK-Android-release-XX.aar)
+```
+
+### 1.1 Requirements:
+
+The grabba-plugin-release should be imported to the project as an **android module** just like how EIDAToolkit is integrated. Besides SDK integration, please noted an additional **Grabba Driver application** has to be installed on the hosting device.
+
+**User's Application:**
+
+- Import EIDAToolkit according to its requirements
+
+- Import module grabba-plugin-release (GrabbaPlugin, GrabbaInterface & GrabbaSDK)
+
+**Grabba Driver Application:**
+
+- Install Grabba Driver as a separate Android application
+
+### 1.2 Getting the Plugin Packages
+
+**grabba-plugin-release Packages**
+
+Grabba ICA Interface and Grabba ICA Plugin are already included in the official ICA package. The **latest SDK package** can be download through: https://install.appcenter.ms/orgs/grabba/apps/grabba-eid-reader-sample/distribution_groups/public
+
+**Grabba Driver Application**
+
+You can download the **latest driver APK** from the URL: https://install.appcenter.ms/orgs/grabba/apps/grabba-driver-demo/distribution_groups/public%20distribution
+
+## 2. Integrating with Grabba SDK and ICA Toolkit to Sample Application:
+
+In this section we will illustrate how we configure the ICA toolkit and integrate the Grabba Plugin to our sample application. Same can be done to any other applications.
+
+### 2.1 ICA Config Files Installation:
+
+**For Android 12 or below:**
+
+1. Please make sure you obtained the latest official ICA Config files from ICA portal
+
+2. Make sure the sample app has **MANAGE_EXTERNAL_STORAGE** permission. The app needs to access to local ICA config files. This can be granted manually through:
+   
+   1. App info 
+   
+   2. then selecting "Allow management of all files".
+
+3. Store the ICA config files under Android device's local directory *sdcard/EIDAToolkit/*
+
+**For Android 13+:**
+
+You have to obtain "All File Access"" permission for the Application in order for ICA Toolkit to access to storage. Please find the below code snippet.
+
+```
+// Direct User to Settings and enable permission
+Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+Uri uri = Uri.fromParts("package", getPackageName(), null);
+intent.setData(uri);
+startActivity(intent);
+```
+
+### 2.2 Accessing to Grabba Driver
+
+**For Android API 30 or above:**
+
+You have to include the following code snippet in your AndroidManifest. This query element is needed because your application that integrates EIDAToolkit will instruct Grabba driver (external Android application) to perform operations like fingerprint scan or smartcard read.
+
+Reference: https://developer.android.com/training/package-visibility/declaring
+
+```
+<manifest package="com.your_application">
+    <queries>
+        <package android:name="com.grabba" />
+    </queries>
+    ...
+</manifest>
+```
+
+### 3. SDK Dependencies Configuration:
+
+1. Importing ICA Toolkit and Grabba SDK package as app module:
+   
+   - Import grabba-plugin-release and EIDAToolkit as modules to the project
+   
+   - Register the following in project's ***setting.gradle***:
+     
+     ```
+     ':grabba-plugin-release'
+     ':EIDAToolkit' 
+     ```
+   
+   - Include following in ***app/build.gradle***:
+   
+   ```
+   implementation project(':grabba-plugin-release')
+   implementation project(':EIDAToolkit')
+   ```
+
+2. Includes all other Grabba aar libraries to grabba-plugin-release module. Place these aar as siblings to grabba-plugin-release.aar :
+   
+   - Grabba-SDK-Android-release-XX.aar
+   
+   - grabba-interfaces-release.aar
+
+3. Specify these libraries in **grabba-plugin-release/build.gradle**:
+   
+   ```
+   artifacts.add("default", file('grabba-fourf-ui-release.aar'))
+   artifacts.add("default", file('GrabbaPluginInterfaces-release.aar'))
+   artifacts.add("default", file('Grabba-SDK-Android-release-v2.17.0.aar'))
+   ```
+
+4- Make sure the following getInstance methods for both GrabbaSmartcardPlugin and   GrabbaFingerprintPlugin are called before initializing Toolkit. These codes are used for activating the plugin connection to the EIDAToolkit. They can be called before EIDAToolkit is instantiated.
+
+```
+// Make sure the following lines are called
+GrabbaSmartcardPlugin.getInstance(); 
+GrabbaFingerprintPlugin.getInstance();
+...
+
+// EIDAToolkit Instanciation
+eidaToolkit = new Toolkit(true, config.toString(), mActivity);
+```
+
+
+
+## 4. Interacting with ICAToolkit
+
+To use Grabba through ICAToolkit, there are some minimal operations to perform. Developer has to include the following steps into their code.
+
+### 4.1 Designing the Connection Listener
+
+Before using Grabba through ICAToolkit, developer has to register 2 listeners to Grabba. Connection listener is a callback that tells the user when the Grabba is "Awake" or "Sleeping". This is to prevent Grabba from draining battery when it is not in used.
+
+```java
+grabbaConnectionListener = new GrabbaConnectionListener() {
+    @Override
+    public void grabbaConnectedEvent() {
+        // Grabba is powered up and ready, user can now insert 
+        // Emirates ID into the card slot to proceed to next step
+    }
+
+    @Override
+    public void grabbaDisconnectedEvent() {
+        // Grabba is sleeping or offline, card insertion 
+        // will not be detected
+    }
+};
+```
+
+### 4.2 Designing the ID card Listener
+
+Smartcard listener is a calllback that tells the user when an Emirates ID is inserted to the slot. This is used for performing next step in ICAToolkit - GetEmiratesIDReader and Connecting Card before the verification process begins.
+
+```java
+grabbaSmartcardListener = new GrabbaSmartcardListener() {
+    @Override
+    public void smartcardInsertedEvent() {
+        // Received upon Emirates ID inserted to the card slot. User 
+        // can start the Card connection operation
+    }
+
+    @Override
+    public void smartcardRemovedEvent() {
+        // Received upon Emirates ID detached from the card slot. User 
+        // can perform the Card disconnection operation
+    }
+
+    @Override
+    public void smartcardSecondaryInsertedEvent() {
+        // Secondary slot, depends on Grabba product
+    }
+
+    @Override
+    public void smartcardSecondaryRemovedEvent() {
+        // Secondary slot, depends on Grabba product
+    }
+};
+```
+
+### 4.3 Connecting to Grabba
+
+Once the two listeners are designed. They will be feed into Grabba and developer has to instruct the Grabba to establish the connection. Have a glimpse into the initalizeGrabba method in the sample code.
+
+```java
+public void initalizeGrabba() {
+    try{
+        // Acquire Grabba Resources
+        Grabba.open(this, "GrabbaEIDDemo");
+        Grabba.getInstance().addConnectionListener(grabbaConnectionListener);
+        GrabbaSmartcard.getInstance().addEventListener(grabbaSmartcardListener);
+
+        // See Section 3 (SDK Dependencies Configuration)
+        GrabbaSmartcardPlugin.getInstance(); // Activates Grabba Smartcard Plugin
+        GrabbaFingerprintPlugin.getInstance(); // Activates Grabba Smartcard Plugin
+
+        // Begin Connection
+        Grabba.getInstance().acquireGrabba();
+
+    } catch (GrabbaDriverNotInstalledException e) {
+        // Grabba Driver not installed
+
+    } catch (GrabbaIOException | GrabbaNotConnectedException | GrabbaBusyException | GrabbaNoExclusiveAccessException |
+             GrabbaNotOpenException ex) {
+        // Grabba Driver not installed
+    }
+
+}
+```
+
+This helper method includes all the neccessary steps to register the listeners to Grabba, as well as connecting to Grabba. User should expect Grabba to switch on once **Grabba.getInstance().acquireGrabba()** is called.
+
+### 4.4 Releasing Resources
+
+Grabba will stay connected until developer explicitly release Grabba resources. This was performed usually when the user is quiting the application, or no longer needs to interacting with Grabba. Then releasing the session would be a prudent step to perform. Developer could re-initalize (Step 4.3) the Grabba resource whenever they need it again.
+
+```java
+public void releasingGrabba() {
+    // Releasing Grabba Resources
+    Grabba.getInstance().removeConnectionListener(grabbaConnectionListener);
+    GrabbaSmartcard.getInstance().removeEventListener(grabbaSmartcardListener);
+    Grabba.getInstance().releaseGrabba();
+}
+```
+
+
+
+## 5. Emirates ID Online Authentication:
+
+The sample code is capable of doing a simple online authentication. There are some extra information required, however, user has to fill in before using it.
+
+1. Fill in your credentials, VG gateway in ***app/build.gradle***
+
+## 6. Release and Proguard Rules:
+
+Be noted that the following rules have to be applied properly before release. 
+
+### 6.1 Proguard Rules
+
+Proguard obfuscation are optional but used by some customers. To avoid obfuscation errors, we concluded the following rules that would work for ICA Toolkits and Grabba SDK through intensive testing.
+
+```
+-keep class ae.emiratesid.idcard.toolkit.** { *; }  
+-keep class com.grabba.eida.plugin.** { *; }  
+-keepnames class com.grabba.**
+```
+
+## 7. Contact Grabba
+
+Please feel free to reach out if there is any further assistance is needed. 
+
+Website: https://www.grabba.com/
+
+Email: support@grabba.com

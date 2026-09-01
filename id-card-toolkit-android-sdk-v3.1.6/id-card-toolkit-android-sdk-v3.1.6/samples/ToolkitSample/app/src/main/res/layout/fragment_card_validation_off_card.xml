@@ -1,0 +1,117 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+<LinearLayout 
+ 
+ android:layout_width="match_parent"
+ android:layout_height="wrap_content"
+ android:background="@drawable/other_screen_bg"
+ android:orientation="vertical"
+ tools:context="ae.emiratesid.idcard.toolkit.sample.fragment.CardValidationOffCardFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/colorCheckCardStatusBG"
+        android:gravity="center"
+        android:text="Please enter card number and idn to validate card."
+        android:textColor="@color/colorCheckCardStatusAccent"
+        android:textSize="18dp"
+        android:typeface="monospace" />
+
+    <TextView
+        android:id="@+id/txt_card_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:padding="8dp"
+        android:text="Card Number"
+        android:textColor="@color/colorCheckCardStatusAccent"
+        android:textSize="18dp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/edt_card_number"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:layout_marginLeft="48dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="48dp"
+        android:background="@drawable/back_edt_txt"
+        android:hint="card number"
+        android:inputType="text"
+        android:maxLines="1"
+        android:padding="8dp"
+        android:textColor="@color/colorCheckCardStatusAccent"
+        android:textSize="16dp" />
+
+    <TextView
+        android:id="@+id/txt_idn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:padding="8dp"
+        android:text="Idn"
+        android:textColor="@color/colorCheckCardStatusAccent"
+        android:textSize="18dp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/edt_idn"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:layout_marginLeft="48dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="48dp"
+        android:background="@drawable/back_edt_txt"
+        android:hint="idn"
+        android:inputType="text"
+        android:maxLines="1"
+        android:padding="8dp"
+        android:textColor="@color/colorCheckCardStatusAccent"
+        android:textSize="16dp" />
+
+    <Button
+        android:id="@+id/btn_read_mrz_face_auth"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="42dp"
+        android:layout_alignTop="@+id/btn_cancel"
+        android:layout_gravity="center"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/btn_selector"
+        android:text="Read MRZ"
+        android:textColor="@android:color/white"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/btn_validate_card"
+        style="@style/ButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/normal_button_bg"
+        android:text="Validate Card"
+        android:textColor="@android:color/white"
+        android:textSize="20dp"
+        android:textStyle="bold" />
+
+    <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+        android:id="@+id/tv_validate_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="left"
+        android:maxLines="100"
+        android:minHeight="72dp"
+        android:padding="10dp"
+        android:scrollbars="vertical"
+        android:text=""
+        android:typeface="monospace" />
+</LinearLayout>
+</ScrollView>

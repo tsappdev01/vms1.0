@@ -1,0 +1,407 @@
+<UserControl x:Class="EIDAToolkitModernApp.Views.PkiSigningView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
+
+        <!-- PKI Authentication -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="PKI Authentication" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Perform PKI authentication on the Emirates ID card. This operation requires the card PIN."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Card PIN" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="PkiPinBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     MaxLength="16"
+                                     PasswordChanged="PkiPinBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Authenticate PKI"
+                            Command="{Binding AuthenticatePkiCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <TextBlock Text="Authentication Status" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding PkiAuthStatus, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="XML Response" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding PkiXmlResponse, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MaxHeight="300"/>
+            </StackPanel>
+        </Border>
+
+        <!-- PKI Certificates -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="PKI Certificates" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Read the authentication and signing certificates from the card. Requires card PIN."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Card PIN" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="CertPinBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     MaxLength="16"
+                                     PasswordChanged="CertPinBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Read Certificates"
+                            Command="{Binding ReadCertificatesCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <TextBlock Text="Authentication Certificate (PEM)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding AuthCertPem, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MaxHeight="200"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="Signing Certificate (PEM)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding SignCertPem, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MaxHeight="200"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Sign Data with Authentication Certificate -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Sign Data (Authentication Certificate)" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Digitally sign data using the authentication key (SignChallenge). Requires card PIN."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <TextBlock Text="Data to Sign" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding SignAuthDataInput, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource ModernTextBox}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Height="60"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,12"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Card PIN" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="SignAuthPinBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     MaxLength="16"
+                                     PasswordChanged="SignAuthPinBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Sign Data (Auth Cert)"
+                            Command="{Binding SignDataAuthCertCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <TextBlock Text="Signature (Base64)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding SignAuthSignature, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         TextWrapping="Wrap"
+                         MaxHeight="100"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,12"/>
+
+                <!-- Verify with Auth Cert -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <Button Content="Verify Signature (Auth Cert)"
+                            Command="{Binding VerifySignatureAuthCertCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="0,0,12,0"/>
+                </StackPanel>
+
+                <TextBlock Text="Verification Result" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding VerifyAuthResult, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="XML Response" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding SignAuthXmlResponse, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MaxHeight="300"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Sign Data with Signing Certificate -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Sign Data (Signing Certificate)" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Digitally sign data using the signing key (SignData). Requires card PIN."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <TextBlock Text="Data to Sign" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding SignDataInput, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource ModernTextBox}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Height="60"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,12"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Card PIN" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="SignDataPinBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     MaxLength="16"
+                                     PasswordChanged="SignDataPinBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Sign Data (Sign Cert)"
+                            Command="{Binding SignDataSignCertCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <TextBlock Text="Signature (Base64)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding SignDataSignature, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         TextWrapping="Wrap"
+                         MaxHeight="100"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,12"/>
+
+                <!-- Verify with Sign Cert -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <Button Content="Verify Signature (Sign Cert)"
+                            Command="{Binding VerifySignatureSignCertCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="0,0,12,0"/>
+                </StackPanel>
+
+                <TextBlock Text="Verification Result" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding VerifySignResult, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="XML Response" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding SignDataXmlResponse, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MaxHeight="300"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Family Book Data -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Family Book Data" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Read family book data (head of family, wives, children) from the Emirates ID card. Requires card PIN."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Card PIN" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="FamilyBookPinBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     MaxLength="16"
+                                     PasswordChanged="FamilyBookPinBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Read Family Book Data"
+                            Command="{Binding ReadFamilyBookDataCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <!-- Head Of Family -->
+                <StackPanel Visibility="{Binding HasFamilyBookHead, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Head of Family" Style="{StaticResource FieldLabel}" FontWeight="Bold" Margin="0,8,0,4"/>
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Holder ID Number" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.HolderIdNumber}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Family ID" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.FamilyId}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Emirate Name (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.EmirateNameArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Emirate Name (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.EmirateNameEnglish}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="First Name (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.FirstNameArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="First Name (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.FirstNameEnglish}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Father Name (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.FatherNameArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Father Name (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.FatherNameEnglish}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Grand Father Name (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.GrandFatherNameArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Grand Father Name (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.GrandFatherNameEnglish}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Tribe (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.TribeArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Tribe (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.TribeEnglish}" Style="{StaticResource FieldValue}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Clan (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.ClanArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Clan (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.ClanEnglish}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Nationality Code" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.NationalityCode}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Nationality (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.NationalityArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Nationality (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.NationalityEnglish}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Gender" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.Gender}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Date of Birth" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.DateOfBirth}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Place of Birth (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.PlaceOfBirthArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Place of Birth (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.PlaceOfBirthEnglish}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Mother Full Name (Arabic)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.MotherFullNameArabic}" Style="{StaticResource FieldValue}"/>
+                            <TextBlock Text="Mother Full Name (English)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding FamilyBookHead.MotherFullNameEnglish}" Style="{StaticResource FieldValue}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Wives -->
+                <StackPanel Visibility="{Binding HasFamilyBookWives, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Wives" Style="{StaticResource FieldLabel}" FontWeight="Bold" Margin="0,8,0,4"/>
+                    <ItemsControl ItemsSource="{Binding FamilyBookWives}" Margin="0,0,0,12">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Wife ID Number" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding WifeIdn}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Full Name (Arabic)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding FullNameArabic}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Full Name (English)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding FullNameEnglish}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Nationality Code" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding NationalityCode}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Nationality (Arabic)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding NationalityArabic}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Nationality (English)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding NationalityEnglish}" Style="{StaticResource FieldValue}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Children -->
+                <StackPanel Visibility="{Binding HasFamilyBookChildren, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Children" Style="{StaticResource FieldLabel}" FontWeight="Bold" Margin="0,8,0,4"/>
+                    <ItemsControl ItemsSource="{Binding FamilyBookChildren}" Margin="0,0,0,12">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Child ID Number" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding ChildIdn}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="First Name (Arabic)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding FirstNameArabic}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="First Name (English)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding FirstNameEnglish}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Gender" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding Gender}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Date of Birth" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding DateOfBirth}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Place of Birth (Arabic)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding PlaceOfBirthArabic}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Place of Birth (English)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding PlaceOfBirthEnglish}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Mother ID Number" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding MotherIdn}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Mother Full Name (Arabic)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding MotherFullNameArabic}" Style="{StaticResource FieldValue}"/>
+                                        <TextBlock Text="Mother Full Name (English)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{Binding MotherFullNameEnglish}" Style="{StaticResource FieldValue}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <TextBlock Text="XML Response" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding FamilyBookXmlResponse, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MaxHeight="300"/>
+            </StackPanel>
+        </Border>
+
+    </StackPanel></ScrollViewer>
+</UserControl>

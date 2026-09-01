@@ -1,0 +1,6 @@
+EIDAToolkit Sample Applications
+
+c/      - C console sample (source + pre-built executables)
+dotnet/ - .NET WPF sample (source + pre-built executables)
+java/   - Java desktop sample (Gradle project + pre-built JAR)
+web/    - Web sample (HTML + JavaScript)

@@ -1,0 +1,161 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/other_screen_bg"
+    tools:context=".fragment.NfcFieldsDialogFragment">
+
+
+    <TextView
+        android:id="@+id/heading"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/colorSetNFCParamsBG"
+        android:gravity="center"
+        android:text="Please Enter details to read NFC card."
+        android:textColor="@color/colorSetNFCParamsAccent"
+        android:textSize="@dimen/text_large"
+        android:typeface="monospace" />
+
+    <RelativeLayout
+        android:id="@+id/rCardNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/heading">
+
+        <ImageView
+            android:id="@+id/card_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_card_number" />
+
+        <EditText
+            android:id="@+id/edt_card_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textView"
+            android:layout_toRightOf="@+id/card_icon"
+            android:hint="Card Number"
+            android:text="000012977" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rCardExpiry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/rCardNumber">
+
+        <ImageView
+            android:id="@+id/card_exp_icon"
+
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_date" />
+
+        <EditText
+            android:id="@+id/edt_card_exp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/card_exp_icon"
+            android:hint="Card Expiry Date dd/mm/yyyy"
+            android:inputType="date"
+            android:text="20/08/2019" />
+
+        <ImageButton
+            android:id="@+id/img_date_picker_1"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+
+            android:layout_marginStart="206dp"
+            android:layout_marginLeft="206dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:src="@drawable/ic_date_picker" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rCardDob"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/rCardExpiry">
+
+        <ImageView
+            android:id="@+id/dob"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_date" />
+
+        <EditText
+            android:id="@+id/edt_dob"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/dob"
+            android:hint="Date of Birth dd/mm/yyyy"
+            android:inputType="date"
+            android:text="01/09/1980" />
+
+
+        <ImageButton
+            android:id="@+id/img_date_picker_2"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="206dp"
+            android:layout_marginLeft="206dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:src="@drawable/ic_date_picker" />
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_cancel"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_below="@+id/rCardDob"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="8dp"
+        android:layout_toStartOf="@+id/btn_done"
+        android:layout_toLeftOf="@+id/btn_done"
+        android:minWidth="64dp"
+        android:padding="16dp"
+        android:text="Cancel" />
+
+    <Button
+        android:id="@+id/btn_done"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_alignTop="@+id/btn_cancel"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="8dp"
+        android:minWidth="64dp"
+        android:padding="16dp"
+        android:text="Done" />
+
+    <Button
+        android:id="@+id/btn_read_from_mrz"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_alignTop="@+id/btn_cancel"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/btn_selector"
+        android:minWidth="64dp"
+        android:padding="16dp"
+        android:text="Read MRZ"
+        android:textColor="@android:color/white" />
+
+</RelativeLayout>

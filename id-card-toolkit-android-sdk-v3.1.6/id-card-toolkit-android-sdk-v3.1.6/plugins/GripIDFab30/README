@@ -1,0 +1,63 @@
+ICA Toolkit Android Plugin :
+Device Plugin for GripID FAP30 Devices with Smartcard and Fingerprint Support.
+
+This is a combi plugin for this device with Smartcard and Fingerprint Support.
+
+Supported Android Application Binary Interfaces (ABIs):
+	1. armeabi-v7a
+	2. arm64-v8a
+
+Contents:
+
+  gripidfab30-plugin.aar
+      Complete plugin — Java classes + all native libs bundled 
+  device_filter.xml
+      USB device filter — must be copied to res/xml/ in your app.
+
+Installation:
+
+  1. Copy gripidfab30-plugin.aar to your app module's libs/ directory.
+
+     app/build.gradle:
+
+         dependencies {
+             implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'])
+         }
+
+  2. Copy device_filter.xml to app/src/main/res/xml/device_filter.xml.
+
+     This file tells Android which USB devices to associate with your app
+     when they are connected.
+
+  3. Update AndroidManifest.xml:
+
+     a) USB permission and hardware feature:
+
+         <uses-permission android:name="android.permission.USB_HOST" />
+         <uses-feature android:name="android.hardware.usb.host" />
+
+     b) Activity that handles card operations — must be exported for
+        Android 12+ (API 31+):
+
+         <activity
+             android:name=".YourCardActivity"
+             android:exported="true">
+             <intent-filter>
+                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+             </intent-filter>
+             <meta-data
+                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                 android:resource="@xml/device_filter" />
+         </activity>
+
+        Without android:exported="true", the USB_DEVICE_ATTACHED intent
+        will not be delivered on Android 12+.
+
+
+Notes:
+
+  - Works with application context or Activity context.
+  - Fingerprint capture is USB-based — no camera permission required.
+  - Tested on arm64-v8a and armeabi-v7a devices running Android 8.0+.
+
+NEW in v3.0.4.

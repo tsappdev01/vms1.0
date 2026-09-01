@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Private side-by-side manifest for the Microsoft Visual C++ 2005 runtime
+  bundled with the NCR APTRA plugin.
+
+  Why this is here:
+  NCR.APTRA.ResMan.Private.dll has an embedded SxS manifest declaring a
+  dependency on assembly Microsoft.VC80.CRT version 8.0.50608.0 x86
+  publicKeyToken 1fc8b3b9a1e18e3b. Vanilla Windows 10/11 does not ship VC8
+  runtime in-box; the publicKeyToken pin forces SxS-assembly resolution
+  rather than loose-DLL fallback. Without this private assembly, the NCR
+  ResMan loader fails with SXS_ASSEMBLY_NOT_FOUND on any customer machine
+  that hasn't separately installed the VC++ 2005 Redistributable.
+
+  How this manifest works:
+  We declare the assembly identity exactly as ResMan.Private.dll's import
+  expects (version 8.0.50608.0). The bundled DLLs are the VC++ 2005 SP1
+  binaries (8.0.50727.9680) — SP1 is ABI-compatible with RTM for the
+  symbols the consumer imports. File hashes are intentionally omitted so
+  the manifest accepts the SP1 binaries without a mismatch check.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+    <noInheritable/>
+    <assemblyIdentity
+        type="win32"
+        name="Microsoft.VC80.CRT"
+        version="8.0.50608.0"
+        processorArchitecture="x86"
+        publicKeyToken="1fc8b3b9a1e18e3b"/>
+    <file name="msvcr80.dll"/>
+    <file name="msvcp80.dll"/>
+    <file name="msvcm80.dll"/>
+</assembly>

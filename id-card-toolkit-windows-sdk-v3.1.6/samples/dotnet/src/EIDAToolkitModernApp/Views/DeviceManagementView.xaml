@@ -1,0 +1,89 @@
+<UserControl x:Class="EIDAToolkitModernApp.Views.DeviceManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
+
+        <!-- Get Device ID -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Device ID" Style="{StaticResource SectionHeader}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             Text="{Binding DeviceId, Mode=OneWay}"
+                             Style="{StaticResource ModernTextBox}"
+                             IsReadOnly="True"
+                             Margin="0,0,12,0"/>
+
+                    <Button Grid.Column="1"
+                            Content="Get Device ID"
+                            Command="{Binding GetDeviceIdCommand}"
+                            Style="{StaticResource PrimaryButton}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Register Device -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Register Device" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Register the device with Validation Gateway (VG) against the Service Provider (SP) license."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="User ID" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding RegUserId, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Password" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="RegPasswordBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     PasswordChanged="RegPasswordBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Text="Device Reference ID" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding RegDeviceRefId, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Button Content="Register Device"
+                        Command="{Binding RegisterDeviceCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"/>
+
+                <TextBlock Text="Device Registration ID" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding RegDeviceRegistrationId, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="XML Response" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding RegXmlResponse, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"/>
+            </StackPanel>
+        </Border>
+
+    </StackPanel></ScrollViewer>
+</UserControl>

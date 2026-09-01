@@ -1,0 +1,11 @@
+ICA Toolkit Android Plugin :
+Device Plugin for IDSCreen Tablet
+
+This is a combi plugin for this device with Smarcard and Fingerprint Support.
+
+Supported Android Application Binary Interfaces (ABIs) for ID Screen Device:
+	1.armeabi-v7a
+	2.arm64-v8a
+
+Dependencies:
+libsmartcard.aar

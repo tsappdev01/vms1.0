@@ -1,0 +1,122 @@
+<UserControl x:Class="EIDAToolkitModernApp.Views.BiometricView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
+
+        <!-- Biometric Authentication on Server -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Biometric Authentication on Server" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Captures a fingerprint image using the connected sensor and sends it to the Validation Gateway for biometric verification against the card holder's stored template."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <!-- Load Finger Data -->
+                <Button Content="Load Finger Data from Card"
+                        Command="{Binding LoadFingerDataCommand}"
+                        Style="{StaticResource SecondaryButton}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Select Finger Index" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding FingerIndexList}"
+                                  SelectedIndex="{Binding SelectedFingerIndex}"
+                                  Style="{StaticResource ModernComboBox}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Sensor Timeout (seconds)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding SensorTimeout, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Button Content="Authenticate"
+                        Command="{Binding AuthenticateCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"/>
+
+                <TextBlock Text="Authentication Result" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding AuthResult, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="XML Response" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding XmlResponse, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MaxHeight="400"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Card + Biometric Authentication -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Card + Biometric Authentication" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Validates the Emirates ID card and performs biometric authentication with the Validation Gateway (VG) service against the captured finger image."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <!-- Load Finger Data -->
+                <Button Content="Load Finger Data from Card"
+                        Command="{Binding CardBioLoadFingerDataCommand}"
+                        Style="{StaticResource SecondaryButton}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Select Finger Index" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding CardBioFingerIndexList}"
+                                  SelectedIndex="{Binding CardBioSelectedFingerIndex}"
+                                  Style="{StaticResource ModernComboBox}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Sensor Timeout (seconds)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding CardBioSensorTimeout, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Button Content="Authenticate Card + Biometric"
+                        Command="{Binding CardBioAuthenticateCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"/>
+
+                <TextBlock Text="Authentication Result" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding CardBioAuthResult, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="XML Response" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding CardBioXmlResponse, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MaxHeight="400"/>
+            </StackPanel>
+        </Border>
+
+    </StackPanel></ScrollViewer>
+</UserControl>

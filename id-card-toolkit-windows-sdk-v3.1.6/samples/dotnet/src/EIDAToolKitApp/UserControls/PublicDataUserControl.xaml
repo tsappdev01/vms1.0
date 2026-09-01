@@ -1,0 +1,1596 @@
+﻿<UserControl x:Class="EIDAToolkitApp.UserControls.PublicDataUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EIDAToolkitApp.UserControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Background="{StaticResource linearGradientStyle}" Height="30">
+            <TextBlock FontSize="20" 
+                                                       FontFamily="Times New Roman" 
+                                                       FontWeight="Normal"  
+                                                       FontStyle="Normal"  
+                                                       KeyboardNavigation.TabNavigation="None" 
+                                                       Text="Card Holder's Public Data" 
+                                                       Foreground="White" 
+                                                       Width="Auto"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center">
+            </TextBlock>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer x:Name="ScrollViewerPublicData" Padding="5" Grid.Row="2">
+
+                <StackPanel>
+
+                    <!--Public Data Fields-->
+                    <StackPanel>
+
+                        <TextBlock Margin="10" Text="Public Data:" TextAlignment="Left" FontSize="16" FontFamily="Segoe UI" 
+                                                   Foreground="Blue" />
+
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="IDNumber_Label" 
+                                                       Text="ID Number" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock Margin="0,0,0,0" Text=""
+                                                       TextAlignment="Left" Name="IdNumberText" 
+                                                       VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0"
+                                                    Name="CardNumber_Label" Text="Card Number" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <TextBlock Margin="0,0,0,0"
+                                                    Name="CardNumberText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!--Non Modifiable Data-->
+                        <GroupBox x:Name="NonModifiableGroupBox" Header="Non-Modifiable Data" 
+                                  Visibility="{Binding Path=IsChecked, ElementName=ReadNonModifiableDataCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="IDType_Label" 
+                                                       Text="ID Type" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="IdTypeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="IssueDate_Label" Text="Issue Date" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="IssueDateText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="ExpiryDate_Label" 
+                                                       Text="Expiry Date" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="ExpiryDateText" 
+                                                       Text="" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="TitleArabic_Label" 
+                                                       Text="Title Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="TitleArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="TitleEnglish_Label" Text="Title English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" />
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="TitleEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="ArabicFullName_Label" Text="Full Name Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="FullNameArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="FullNameEnglish_Label" Text="Full Name English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="FullNameEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="Gender_Label" Text="Gender" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="GenderText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NationalityArabic_Label" Text="Nationality Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NationalityArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="NationalityEnglish_Label" 
+                                                       Text="Nationality English" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="NationalityEnglishText" 
+                                                       Text="" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NationalityCode_Label" Text="Nationality Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="NationalityCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="DateOfBirth_Label" Text="Date Of Birth" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="DateOfBirthText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="PlaceOfBirthArabic_Label" Text="Place Of Birth Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="PlaceOfBirthArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="PlaceOfBirthEnglish_Label" Text="Place Of Birth English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="PlaceOfBirthEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Modifiable Data-->
+                        <GroupBox x:Name="ModifiableGroupBox" Header="Modifiable Data"
+                                  Visibility="{Binding Path=IsChecked, ElementName=ReadModifiableDataCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="Occupation_Label" Text="Occupation Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationArabic_Label" Text="Occupation Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationEnglish_Label" Text="Occupation English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="FamilyID_Label" Text="Family ID" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="FamilyIdText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationTypeArabic_Label" Text="Occupation Type Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationTypeArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationTypeEnglish_Label" Text="Occupation Type English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationTypeEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationFieldCode_Label" Text="Occupation Field Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="OccupationFieldCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="CompanyNameArabic_Label" Text="Company Name Arabic" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="CompanyNameArabicText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="CompanyNameEnglish_Label" Text="Company Name English" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="CompanyNameEnglishText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="MaritalStatus_Label" Text="Marital Status Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="MaritalStatusCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="HusbandIDN_Label" Text="Husband Id Number" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="HusbandIdNumberText" Text="" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="SponsorType_Label" 
+                                                       Text="Sponsor Type Code" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="SponsorTypeCodeText" 
+                                                       Text="" VerticalAlignment="Top"
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="SponserNumber_Label" Text="Sponser Unified Number" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="SponserUnifiedNumberText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="SponsorName_Label" 
+                                                       Text="Sponsor Name" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="SponsorNameText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="ResidencyType_Label" Text="Residency Type Code" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="ResidencyTypeCodeText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="ResidencyNumber_Label" Text="Residency Number" VerticalAlignment="Top" 
+                                                       TextAlignment="Right" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0"
+                                                    Name="ResidencyNumberText" Text="" VerticalAlignment="Top" 
+                                                       TextAlignment="Left" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="ResidencyExpiryDate_Label" 
+                                                       Text="Residency Expiry Date" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="ResidencyExpiryDateText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PassportNumber_Label" 
+                                                       Text="Passport Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PassportNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PassportTypeCode_Label" 
+                                                       Text="Passport Type Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PassportTypeCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PassportCountryCode_Label" 
+                                                       Text="Passport Country Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PassportCountryCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PassportCountryArabic_Label" 
+                                                       Text="Passport Country Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PassportCountryArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PassportCountryEnglish_Label" 
+                                                       Text="Passport Country English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PassportCountryEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PassportIssueDate_Label" 
+                                                       Text="Passport Issue Date" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PassportIssueDateText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PassportExpiryDate_Label" 
+                                                       Text="Passport Expiry Date" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PassportExpiryDateText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="QualificationLevelCode_Label" 
+                                                       Text="Qualification Level Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="QualificationLevelCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="QualificationLevelArabic_Label" 
+                                                       Text="Qualification Level Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="QualificationLevelArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="QualificationLevelEnglish_Label" 
+                                                       Text="Qualification Level English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="QualificationLevelEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DegreeDescArabic_Label" 
+                                                       Text="Degree Description Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DegreeDescriptionArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DegreeDescEnglish_Label" 
+                                                       Text="Degree Description English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DegreeDescriptionEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="FieldOfStudyCode_Label" 
+                                                       Text="Field Of Study Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="FieldOfStudyCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="FieldOfStudyArabic_Label" 
+                                                       Text="Field Of Study Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="FieldOfStudyArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="FieldOfStudyEnglish_Label" 
+                                                       Text="Field Of Study English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="FieldOfStudyEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PlaceOfStudyArabic_Label" 
+                                                       Text="Place Of Study Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PlaceOfStudyArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PlaceOfStudyEnglish_Label" 
+                                                       Text="Place Of Study English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="PlaceOfStudyEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="DateOfGraduation_Label" 
+                                                       Text="Date Of Graduation" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="DateOfGraduationText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="MotherFullNameArabic_Label" 
+                                                       Text="Mother Full Name Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="MotherFullNameArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="MotherFullNameEnglish_Label" 
+                                                       Text="Mother Full Name English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="MotherFullNameEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Home Address-->
+                        <GroupBox x:Name="HomeAddressGroupBox" Header="Home Address"
+                                  Visibility="{Binding Path=IsChecked, ElementName=ReadAddressCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AddressTypeCode_Label" 
+                                                       Text="Address Type Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_AddressTypeCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="LocationCode_Label" 
+                                                       Text="Location Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_LocationCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="EmirateCode_Label" 
+                                                       Text="Emirates Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_EmirateCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="EmirateArabic_Label" 
+                                                       Text="Emirates Desc Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_EmirateArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="EmirateEnglish_Label" 
+                                                       Text="Emirates Desc English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_EmirateEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="CityCode_Label" 
+                                                       Text="City Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_CityCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="CityArabic_Label" 
+                                                       Text="City Desc Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_CityArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="CityEnglish_Label" 
+                                                       Text="City Desc English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_CityEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="StreetArabic_Label" 
+                                                       Text="Street Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_StreetArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="StreetEnglish_Label" 
+                                                       Text="Street English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_StreetEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="PoBox_Label" 
+                                                       Text="POBOX" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_PoBoxText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AreaCode_Label" 
+                                                       Text="Area Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_AreaCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AreaArabic_Label" 
+                                                       Text="Area Desc Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_AreaArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="AreaEnglish_Label" 
+                                                       Text="Area Desc English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_AreaEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="BuildingNameArabic_Label" 
+                                                       Text="Building Name Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_BuildingNameArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="BuildingNameEnglish_Label" 
+                                                       Text="Building Name English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_BuildingNameEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="LandPhoneNumber_Label" 
+                                                       Text="Resident Phone Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_LandPhoneNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="MobilePhoneNumber_Label" 
+                                                       Text="Mobile Phone Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_MobilePhoneNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Email_Label" 
+                                                       Text="Email" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_EmailText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="FlatNo_Label" 
+                                                       Text="Flat No" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Home_FlatNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Work Address-->
+                        <GroupBox x:Name="WorkAddressGroupBox" Header="Work Address"
+                                  Visibility="{Binding Path=IsChecked, ElementName=ReadAddressCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_AddressTypeCode_Label" 
+                                                       Text="Address Type Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_AddressTypeCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_LocationCode_Label" 
+                                                       Text="Location Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_LocationCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_EmirateCode_Label" 
+                                                       Text="Emirates Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_EmirateCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_EmirateArabic_Label" 
+                                                       Text="Emirates Desc Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_EmirateArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_EmirateEnglish_Label" 
+                                                       Text="Emirates Desc English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_EmirateEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_CityCode_Label" 
+                                                       Text="City Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_CityCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_CityArabic_Label" 
+                                                       Text="City Desc Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_CityArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_CityEnglish_Label" 
+                                                       Text="City Desc English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_CityEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_StreetArabic_Label" 
+                                                       Text="Street Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_StreetArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_StreetEnglish_Label" 
+                                                       Text="Street English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_StreetEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_PoBox_Label" 
+                                                       Text="POBOX" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_PoBoxText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_AreaCode_Label" 
+                                                       Text="Area Code" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_AreaCodeText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_AreaArabic_Label" 
+                                                       Text="Area Desc Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_AreaArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_AreaEnglish_Label" 
+                                                       Text="Area Desc English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_AreaEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_BuildingNameArabic_Label" 
+                                                       Text="Building Name Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_BuildingNameArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_BuildingNameEnglish_Label" 
+                                                       Text="Building Name English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_BuildingNameEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_LandPhoneNumber_Label" 
+                                                       Text="Land Phone Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_LandPhoneNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_MobilePhoneNumber_Label" 
+                                                       Text="Mobile Phone Number" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_MobilePhoneNumberText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_Email_Label" 
+                                                       Text="Email" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_EmailText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_CompanyNameArabic_Label" 
+                                                       Text="Company Name Arabic" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_CompanyNameArabicText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Work_CompanyNameEnglish_Label" 
+                                                       Text="Company Name English" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                    <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                    <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Left" Name="Work_CompanyNameEnglishText" 
+                                                       Text="" VerticalAlignment="Top" 
+                                                       FontSize="13" FontFamily="Segoe UI" Foreground="Black" 
+                                                       FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Photo Data Fields-->
+                        <GroupBox x:Name="PhotoGroupbox" Header="Photo"
+                                  Visibility="{Binding Path=IsChecked, ElementName=ReadPhotographyCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="Photo_Label" Text="Photo" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <Border  Height="140" Width="120" BorderThickness="1" BorderBrush="Black" 
+                                                     VerticalAlignment="Center" Margin="0,0,0,0" Background="#ECEEEB">
+                                    <Image Name="PublicDataImage" Stretch="Fill"/>
+                                </Border>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--Signature Data Fields-->
+                        <GroupBox x:Name="SignatureGroupbox" Header="Signature"
+                                  Visibility="{Binding Path=IsChecked, ElementName=ReadSignatureCheckbox, Converter={StaticResource VisibleIfTrueConverter}}">
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <TextBlock Margin="0,0,0,0" 
+                                                       TextAlignment="Right" Name="SignatureImage_Label" Text="Signature Image" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold" Width="150" TextWrapping="Wrap"/>
+                                <TextBlock Height="27" Margin="5,0,5,0" 
+                                                       TextAlignment="Right" Text=":" 
+                                                       VerticalAlignment="Top" FontSize="13" FontFamily="Segoe UI" 
+                                                       Foreground="Black" FontWeight="SemiBold"/>
+                                <Border BorderBrush="Gray" BorderThickness="1" Height="100" Width="200" Margin="5,0,0,0">
+                                    <Image Name="SignatureDataImage" />
+                                </Border>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+
+                    <!--Xml Response Fields-->
+                    <StackPanel Margin="0,20,0,0">
+                        <TextBlock Margin="10" Text="Xml Response:" TextAlignment="Left" FontSize="16" FontFamily="Segoe UI" 
+                                                   Foreground="Blue" />
+                        <TextBox x:Name="CardDataXmlResponse" Margin="0,0,0,0" Height="300" Width="420"
+                                                                 HorizontalAlignment="Left" VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" IsReadOnly="True"
+                                                                 IsTabStop="False"/>
+                    </StackPanel>
+
+                </StackPanel>
+
+            </ScrollViewer>
+
+
+            <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0">
+                <CheckBox x:Name="ReadNonModifiableDataCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Non-Modifiable Data" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+                <CheckBox x:Name="ReadModifiableDataCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Modifiable Data" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+                <CheckBox x:Name="ReadAddressCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Address" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+                <CheckBox x:Name="ReadPhotographyCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Photography" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+                <CheckBox x:Name="ReadSignatureCheckbox" Style="{StaticResource CheckBoxStyle}" Content="Read Signature" 
+                                              Margin="0,0,0,0" IsChecked="True"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

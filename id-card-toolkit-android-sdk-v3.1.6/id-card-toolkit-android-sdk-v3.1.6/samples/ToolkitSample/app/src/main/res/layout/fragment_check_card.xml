@@ -1,0 +1,50 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+<LinearLayout 
+ 
+ android:layout_width="match_parent"
+ android:layout_height="wrap_content"
+ android:orientation="vertical"
+ android:background="@drawable/other_screen_bg"
+ tools:context="ae.emiratesid.idcard.toolkit.sample.fragment.CheckCardFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:typeface="monospace"
+        android:gravity="center"
+        android:background="@color/colorCheckCardStatusBG"
+        android:text="Please insert your card to check card Status."
+        android:id="@+id/textView"
+        android:textSize="18dp"
+        android:textColor="@color/colorCheckCardStatusAccent"
+        android:layout_gravity="center_horizontal" />
+
+    <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="72dp"
+        android:typeface="monospace"
+        android:gravity="left"
+        android:padding="10dp"
+        android:maxLines = "100"
+        android:scrollbars = "vertical"
+        android:id="@+id/txtReadData"
+        android:text=""/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Check Card Status"
+        android:id="@+id/btn_refresh"
+        style="@style/ButtonStyle"
+        android:background="@drawable/normal_button_bg"
+        android:textColor="@android:color/white"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal" />
+</LinearLayout>
+</ScrollView>

@@ -1,0 +1,24 @@
+// AAR-shim wrapper for EIDAToolkit.aar. Customer apps consume this via
+// `implementation project(':EIDAToolkit')` in their app/build.gradle.
+//
+// The AAR's classes.jar references com.google.gson.* in its digital
+// signature data models (PadesSigningContext, VerificationContext, etc.)
+// but the AAR doesn't bundle Gson. Declaring it on the "default"
+// configuration here propagates Gson transitively through project deps,
+// so consumer apps don't need an explicit
+// `implementation 'com.google.code.gson:gson:X'` line. Without this,
+// AGP fails with "DexingNoClasspathTransform" on first build for any
+// consumer that doesn't already have Gson on the classpath via some
+// other transitive route.
+//
+// Customers consuming the raw AAR file
+// (`implementation files('libs/EIDAToolkit.aar')`) bypass Gradle's
+// transitive resolution and must still declare Gson manually — file-based
+// deps have no metadata to propagate.
+
+configurations.maybeCreate("default")
+artifacts.add("default", file('EIDAToolkit.aar'))
+
+dependencies {
+    "default" 'com.google.code.gson:gson:2.10.1'
+}

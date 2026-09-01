@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    USB device filter for EIDAToolkit sample app.
+    Lists all USB readers supported by included plugins so Android
+    auto-prompts for permission and can launch the app on device attach.
+
+    ACS (Advanced Card Systems) - VID 0x072F (1839)
+      ACR38U  PID 0x911C (37148)
+      ACR39U  PID 0xB120 (45344)
+
+    Alcor Micro Corp - VID 0x058F (1423)
+      Covers all GripID Fab30 smartcard reader variants.
+
+    GripID / Integrated Biometrics - VID 0x2CE3 (11491)
+      Covers GripID Fab30 and IBScan-based fingerprint readers.
+-->
+<resources>
+    <!-- ACS smartcard readers -->
+    <usb-device vendor-id="1839" product-id="37148" />
+    <usb-device vendor-id="1839" product-id="45344" />
+
+    <!-- Alcor Micro / GripID Fab30 smartcard reader -->
+    <usb-device vendor-id="1423" />
+
+    <!-- GripID / Integrated Biometrics fingerprint reader -->
+    <usb-device vendor-id="11491" />
+</resources>

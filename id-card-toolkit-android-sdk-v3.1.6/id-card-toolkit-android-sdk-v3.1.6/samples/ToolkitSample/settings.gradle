@@ -1,0 +1,12 @@
+include ':app',  ':xmlsec2-release', ':EIDAToolkit', ':nfcreader-plugin-release', ':ocr-reader-release',':acs-plugin-release' /*':idscreen-plugin-release', ':libsmartcard',*//*':gripid-fingerprint-sensor-plugin-release',':libBioMini_v20' */ //,':grabba-interfaces-release', ':grabba-sdk-release',':grabba-plugin-release'
+        /*':acs-plugin-release',':idscreen-plugin-release', ':libsmartcard',*//*':idt-plugin-identos',':idt-tactivo-driver-release',':idt-pcsc-driver-release',':dttface-release'':paysky-plugin-release', ':FingerPrintLib_v1.0.9',':dttface-release',':omapossc-plugin-release',':dttface-release' ':omapossc-plugin-release',':nfcreader-plugin-release',':gen2waverp70a-plugin-release',':libBioMini_v20' ':dttface-release'':nfcreader-plugin-release',':dttface-release',':acs-plugin-release'/*':idt-plugin-identos',':idt-tactivo-driver-release',':idt-pcsc-driver-release',':dttface-release'':paysky-plugin-release', ':FingerPrintLib_v1.0.9',':dttface-release',':nfcreader-plugin-release',':acs-plugin-release',':acs-plugin-release',':libBioMini_v20', ':tps360-plugin-release',':nfcreader-plugin-release'':dttface-release',':paysky-plugin-release', ':FingerPrintLib_v1.0.9',':dttface-release', ':morpho-plugin-release',  ':grabba-interfaces-release', ':grabba-sdk-release',':grabba-plugin-release' /*,':feitian-plugin-release', ':nfcreader-plugin-release',  ':idscreen-plugin-release', ':libsmartcard',':morpho-plugin-release',':libBioMini_v20', ':tps360-plugin-release' ,':gen2waverp70a-plugin-release', ':gen2wave-plugin-release',':dsap-biopos-plugin-release', ':idt-plugin-identos',':idt-tactivo-driver-release',':idt-pcsc-driver-release',  ':artisecure-plugin-smartcard', ':artisecure-suprema-plugin-fingerprint' , ':wcts8-plugin-release', ':ptapi-release'*/
+
+
+include ':tech5-airsnap-finger-plugin'
+include ':tech5-airsnapFinger'
+include ':tech5-AirsnapFingerSDK'
+include ':tech5-Ncnn_CPP_20230816'
+include ':tech5-OpenCV_CPP_460'
+include ':gripidfab30-plugin'
+include ':idscreen-plugin-release'
+include ':libsmartcard'

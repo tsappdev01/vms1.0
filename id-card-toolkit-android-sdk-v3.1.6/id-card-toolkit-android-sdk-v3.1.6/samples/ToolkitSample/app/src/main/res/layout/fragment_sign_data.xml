@@ -1,0 +1,122 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+<LinearLayout 
+ 
+ android:layout_width="match_parent"
+ android:layout_height="wrap_content"
+ android:orientation="vertical"
+ android:background="@drawable/other_screen_bg"
+ tools:context="ae.emiratesid.idcard.toolkit.sample.fragment.SignDataFragment">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="72dp"
+        android:typeface="monospace"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:background="@color/colorSignDataBG"
+        android:textSize="20dp"
+        android:text="Please insert your card to Sign data.\nSelect he certifiacte type you want to use to sign."
+        android:id="@+id/textView"
+        android:textColor="@color/colorSignDataAccent"
+        android:layout_gravity="center_horizontal" />
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:gravity="center"
+        android:minHeight="48dp"
+        android:id="@+id/radioGroupCertType"
+        android:orientation="horizontal">
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign Cert"
+            android:checked="true"
+            android:textColor="@color/colorSignDataAccent"
+            android:layout_margin="8dp"
+            android:id="@+id/radioButton" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Auth Cert"
+            android:layout_margin="8dp"
+            android:textColor="@color/colorSignDataAccent"
+            android:id="@+id/radioButton2" />
+
+    </RadioGroup>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:inputType="textMultiLine"
+        android:minLines="5"
+        android:textColor="@color/colorSignDataAccent"
+        android:hint="Enter data to sign"
+        android:ems="10"
+        android:background="#f9f5f5"
+        android:id="@+id/editText"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="numberPassword"
+        android:ems="10"
+        android:hint="Enter your pin."
+        android:id="@+id/editPin"
+        android:textColor="@color/colorSignDataAccent"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_gravity="center_horizontal" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:layout_height="wrap_content"
+            android:text="Sign"
+            style="@style/ButtonStyle"
+            android:id="@+id/btnSign"
+            android:background="@drawable/normal_button_bg"
+            android:textColor="@color/colorSignDataAccent"
+            android:textSize="20dp"
+            android:layout_gravity="center_horizontal" />
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:enabled="false"
+            android:layout_height="wrap_content"
+            android:text="Verify"
+            style="@style/ButtonStyle"
+            android:id="@+id/btnVerify"
+            android:background="@drawable/normal_button_bg"
+            android:textColor="@color/colorSignDataAccent"
+            android:textSize="20dp"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
+
+
+    <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+        android:layout_width="match_parent"
+        android:layout_margin="16dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:padding="4dp"
+        android:minLines="10"
+        android:id="@+id/txtResult"
+        android:layout_gravity="center_horizontal" />
+
+
+</LinearLayout>
+</ScrollView>

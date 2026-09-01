@@ -1,0 +1,67 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+<LinearLayout 
+ 
+ android:layout_width="match_parent"
+ android:layout_height="wrap_content"
+ android:orientation="vertical"
+ android:background="@drawable/other_screen_bg"
+ tools:context="ae.emiratesid.idcard.toolkit.sample.fragment.CertificateFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/colorReadCertificateBG"
+        android:gravity="center"
+        android:textSize="@dimen/text_large"
+        android:textColor="@color/colorReadCertificateAccent"
+        android:text="Please insert your card in the reader to  read your certificates from the card."
+        android:typeface="monospace" />
+
+
+    <EditText
+        android:id="@+id/edtPin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="16dp"
+        android:ems="10"
+        android:hint="Enter your pin"
+        android:textColor="@color/colorReadCertificateAccent"
+        android:inputType="numberPassword" />
+
+    <Button
+        android:id="@+id/btn_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="8dp"
+        android:text="Read Data"
+        android:background="@drawable/normal_button_bg"
+        android:textSize="20dp"
+        android:textColor="@color/colorReadCertificateAccent" />
+
+    <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+        android:id="@+id/txtReadData"
+        android:layout_width="match_parent"
+
+        android:layout_height="wrap_content"
+        android:gravity="left"
+        android:maxLines="100"
+        android:padding="10dp"
+        android:paddingLeft="16dp"
+        android:scrollbars="vertical"
+        android:text=""
+        android:textSize="14sp"
+        android:typeface="monospace" />
+
+
+</LinearLayout>
+</ScrollView>

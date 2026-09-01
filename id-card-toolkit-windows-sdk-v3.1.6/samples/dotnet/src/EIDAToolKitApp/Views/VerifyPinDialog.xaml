@@ -1,0 +1,64 @@
+﻿<UserControl x:Class="EIDAToolkitApp.Views.VerifyPinDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EIDAToolkitApp.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+
+    <UserControl.Resources>
+        <ControlTemplate x:Key="ButtonControlTemplate" TargetType="{x:Type Button}">
+            <Border x:Name="bdr_main" CornerRadius="2" BorderThickness="1" BorderBrush="#000000" Background="#FF64B4C5">
+                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0" 
+                                          ContentSource="Content" TextBlock.Foreground="WhiteSmoke"
+                                            TextBlock.FontSize="14"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="bdr_main" Property="Background" Value="#FF41A0B4"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="bdr_main" Property="Background" Value="#C4C4C4"/>
+                </Trigger>
+                <Trigger Property="IsDefaulted" Value="True">
+                    <Setter TargetName="bdr_main" Property="Background" Value="#096FA0" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+    </UserControl.Resources>
+
+    <Grid x:Name="verifyPinDialogBox" >
+        <Grid Background="Gray" Opacity="0.4">
+        </Grid>
+        <Border Grid.Row="1" Grid.ColumnSpan="3" Background="#FF3878A4" VerticalAlignment="Center" Padding="15">
+            <Grid VerticalAlignment="Center" HorizontalAlignment="Center" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Verify PIN:" FontSize="18" FontWeight="DemiBold" 
+                                    Margin="0,0,0,0" Foreground="WhiteSmoke" FontFamily="Segoe UI"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="password_Label" Text="Enter PIN:" FontSize="16" FontFamily="Segoe UI"
+                           Foreground="WhiteSmoke" Margin="0,0,0,0" FontWeight="Normal" VerticalAlignment="Center"/>
+                <PasswordBox Grid.Row="1" Grid.Column="1" Width="150" x:Name="PasswordText" Height="25" FontSize="14" FontFamily="Segoe UI"
+                           Foreground="Black" Margin="10,0,0,0" FontWeight="Normal" VerticalAlignment="Center" PasswordChanged="password_Text_PasswordChanged"
+                             Focusable="True" KeyDown="PasswordText_KeyDown" PreviewTextInput="NumberValidationTextBox"/>
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
+                    <Button x:Name="verifyPINBtn" Template="{StaticResource ButtonControlTemplate}" Width="110" Height="30" Margin="0,0,0,0" Content="Ok"
+                                    Click="VerifyPINBtn_Click" HorizontalAlignment="Right" IsEnabled="False" IsDefault="True"/>
+                    <Button x:Name="cancelBtn" Template="{StaticResource ButtonControlTemplate}" Width="110" Height="30" Margin="10,0,0,0" Content="Cancel"
+                                    Click="cancelBtn_Click"/>
+
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
+
+    

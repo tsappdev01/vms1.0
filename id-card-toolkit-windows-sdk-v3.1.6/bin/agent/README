@@ -1,0 +1,4 @@
+EIDAToolkit Agent Service
+
+EIDAToolkitService.exe is the Windows Service component.
+Install using the MSI installer in the installer/ directory.

@@ -1,0 +1,7 @@
+ICA Toolkit Android Plugin :
+Device Plugin for ACS Smartcard Reader
+
+Supported Android Application Binary Interfaces (ABIs):
+	1.armeabi
+	2.armeabi-v7a
+	3.arm64-v8a

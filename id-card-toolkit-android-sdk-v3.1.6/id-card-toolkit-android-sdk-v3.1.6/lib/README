@@ -1,0 +1,38 @@
+EIDAToolkit Android Libraries
+=============================
+
+EIDAToolkit.aar  - Main toolkit AAR (arm64-v8a + armeabi-v7a)
+toolkit_face/    - Face verification source (Kotlin/Java)
+
+Runtime dependency: Gson (handled transitively for project-style deps)
+-----------------------------------------------------------------------
+EIDAToolkit.aar references com.google.gson.* in its digital-signature
+data models (PadesSigningContext, VerificationContext,
+PDFSigningParameters, SigningContext, etc.). The AAR does NOT bundle
+Gson.
+
+If you consume the toolkit via the AAR-shim Gradle module (the
+recommended path used by samples/ToolkitSample):
+
+    implementation project(':EIDAToolkit')
+
+then Gson is pulled in transitively from EIDAToolkit/build.gradle's
+"default" configuration — no explicit declaration needed.
+
+If you consume the raw AAR file directly:
+
+    implementation files('libs/EIDAToolkit.aar')
+
+file-based deps bypass Gradle's transitive resolution, and you must
+declare Gson manually in your app/build.gradle:
+
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+Without Gson available on the classpath either way, Android Gradle
+Plugin fails the build with:
+    Failed to transform EIDAToolkit.aar to match attributes
+    {artifactType=android-dex, ...}
+    Execution failed for DexingNoClasspathTransform
+
+This dependency is new in 3.1.x; releases earlier than 3.1.0 did
+not require Gson.

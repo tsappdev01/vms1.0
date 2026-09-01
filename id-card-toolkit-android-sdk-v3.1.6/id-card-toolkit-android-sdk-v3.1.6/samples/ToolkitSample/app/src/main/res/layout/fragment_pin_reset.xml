@@ -1,0 +1,119 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+<LinearLayout 
+ 
+ android:layout_width="match_parent"
+ android:layout_height="wrap_content"
+ android:orientation="vertical"
+ android:background="@drawable/other_screen_bg"
+ tools:context="ae.emiratesid.idcard.toolkit.sample.fragment.PinResetFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/colorPinResetBG"
+        android:gravity="center"
+        android:textSize="18dp"
+        android:text="Please insert your card and enter the pin."
+        android:textColor="@color/colorPinResetAccent"
+        android:typeface="monospace" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="64dp" />
+
+    <Button
+        android:id="@+id/btn_list_finger"
+        style="@style/ButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/normal_button_bg"
+        android:text="List Finger"
+        android:textColor="@color/colorPinResetAccent"
+        android:textSize="20dp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout_pin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/edtPin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="8dp"
+            android:ems="10"
+            android:hint="Enter your pin"
+            android:inputType="numberPassword"
+            android:textColor="@color/colorPinResetAccent" />
+
+        <EditText
+            android:id="@+id/edtConfirmPin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="8dp"
+            android:ems="10"
+            android:hint="Confirm pin"
+            android:inputType="numberPassword"
+            android:textColor="@color/colorPinResetAccent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_refresh"
+                style="@style/ButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/normal_button_bg"
+                android:text="Reset"
+                android:textColor="@color/colorPinResetAccent"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_unblock_pin"
+                style="@style/ButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/normal_button_bg"
+                android:text="Unblock Pin"
+                android:textColor="@color/colorPinResetAccent"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+
+        <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+            android:id="@+id/txtReadData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:maxLines="100"
+            android:minHeight="72dp"
+            android:padding="10dp"
+            android:scrollbars="vertical"
+            android:typeface="monospace" />
+    </LinearLayout>
+</LinearLayout>
+</ScrollView>

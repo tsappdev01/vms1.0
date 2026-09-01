@@ -1,0 +1,8 @@
+EIDAToolkit Plugins
+
+PCSC/             - PC/SC smart card reader plugin
+Sagem MSO 1350/   - Morpho fingerprint scanner plugin
+NCR/              - NCR APTRA smart card plugin
+Secugen/          - SecuGen fingerprint plugin
+Dermalog/         - Dermalog fingerprint plugin
+DsapBioPos/       - DSAP BioPOS plugin

@@ -1,0 +1,62 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+<LinearLayout
+  android:orientation="vertical"
+  
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:background="@drawable/other_screen_bg">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:typeface="monospace"
+        android:gravity="center"
+        android:textColor="@color/colorCardSerialNumberAccent"
+        android:background="@color/colorCardSerialNumberBG"
+        android:text="Please insert your card in the reader to read the public data"
+        android:id="@+id/textView"
+        android:textSize="@dimen/text_large"
+        android:layout_gravity="center_horizontal" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_medium"
+        android:text="Read Data"
+        android:background="@drawable/normal_button_bg"
+        android:textColor="@color/colorCardSerialNumberAccent"
+        android:textSize="@dimen/text_large"
+        android:textStyle="bold"
+        android:id="@+id/btn_refresh"
+        android:layout_gravity="center_horizontal" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="@dimen/photo_dimen"
+        android:layout_height="@dimen/photo_dimen"
+        android:layout_gravity="center"
+        android:contentDescription="Photo Read from card."
+        android:src="@drawable/ic_action_name" />
+
+
+    <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:typeface="monospace"
+        android:textSize="14sp"
+        android:gravity="left"
+        android:paddingLeft="16dp"
+        android:padding="10dp"
+        android:maxLines = "100"
+        android:scrollbars = "vertical"
+        android:id="@+id/txtReadData"
+        android:text=""
+        android:layout_marginTop="8dp"/>
+
+
+
+</LinearLayout>
+</ScrollView>

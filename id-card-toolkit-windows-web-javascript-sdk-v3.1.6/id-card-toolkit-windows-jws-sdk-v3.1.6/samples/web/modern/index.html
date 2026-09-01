@@ -1,0 +1,3292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emirates ID Card Toolkit</title>
+    <style>
+        /* ============================================================
+           Reset
+        ============================================================ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ============================================================
+           Grid body layout
+        ============================================================ */
+        body {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            grid-template-rows: 1fr 32px;
+            grid-template-areas:
+                "sidebar content"
+                "statusbar statusbar";
+            height: 100vh;
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            font-size: 13px;
+            color: #1E1E1E;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           Sidebar
+        ============================================================ */
+        .sidebar {
+            grid-area: sidebar;
+            background: #1B2838;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Branding */
+        .sidebar-brand {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid #2A3F54;
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .brand-subtitle {
+            font-size: 14px;
+            font-weight: 300;
+            color: #B0BEC5;
+            margin-top: 2px;
+        }
+
+        /* Connection controls section */
+        .sidebar-section {
+            padding: 10px 16px;
+            background: #15202D;
+            flex-shrink: 0;
+            border-bottom: 1px solid #2A3F54;
+        }
+
+        .conn-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* Small sidebar buttons */
+        .sidebar-section button {
+            height: 30px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0 8px;
+            transition: background 0.15s, color 0.15s, opacity 0.15s;
+        }
+
+        .sidebar-section button:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        /* Primary small (Initialize, Connect, Find Readers) */
+        #btnInit,
+        #btnConnect,
+        #btnFindReaders {
+            background: #0078D4;
+            color: #ffffff;
+        }
+
+        #btnInit:hover:not(:disabled),
+        #btnConnect:hover:not(:disabled),
+        #btnFindReaders:hover:not(:disabled) {
+            background: #106EBE;
+        }
+
+        /* Danger small (Cleanup, Disconnect) */
+        .btn-danger-sm {
+            background: #D13438;
+            color: #ffffff;
+        }
+
+        .btn-danger-sm:hover:not(:disabled) {
+            background: #C62828;
+        }
+
+        /* Full-width sidebar button */
+        .btn-full {
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        /* Reader select inside sidebar */
+        #selReader {
+            width: 100%;
+            height: 30px;
+            font-family: inherit;
+            font-size: 11px;
+            background: #ffffff;
+            color: #1E1E1E;
+            border: 1px solid #555555;
+            border-radius: 4px;
+            padding: 0 6px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        #selReader:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: #2A3F54;
+            border-radius: 2px;
+        }
+
+        .nav-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            color: #B0BEC5;
+            border: none;
+            border-left: 3px solid transparent;
+            padding: 12px 20px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: background 0.12s, color 0.12s, border-color 0.12s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+
+        .nav-btn.active {
+            background: #0078D4;
+            color: #ffffff;
+            border-left-color: #0078D4;
+            font-weight: 600;
+        }
+
+        /* ============================================================
+           Content area
+        ============================================================ */
+        .content {
+            grid-area: content;
+            background: #F3F3F3;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Content header bar */
+        .content-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            padding: 16px 32px;
+            border-bottom: 1px solid #E0E0E0;
+            flex-shrink: 0;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 300;
+            color: #1E1E1E;
+        }
+
+        .version-label {
+            font-size: 11px;
+            color: #6E6E6E;
+        }
+
+        /* Scrollable page area */
+        .content-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .content-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content-body::-webkit-scrollbar-track {
+            background: #F3F3F3;
+        }
+
+        .content-body::-webkit-scrollbar-thumb {
+            background: #D0D0D0;
+            border-radius: 4px;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ============================================================
+           Card panel
+        ============================================================ */
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .section-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1E1E1E;
+            margin-bottom: 16px;
+        }
+
+        /* ============================================================
+           Form elements (content area)
+        ============================================================ */
+        .field-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6E6E6E;
+            margin-bottom: 4px;
+        }
+
+        .input,
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        .content select {
+            height: 38px;
+            font-family: inherit;
+            font-size: 13px;
+            color: #1E1E1E;
+            background: #ffffff;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            padding: 0 8px;
+            transition: border-color 0.12s, box-shadow 0.12s;
+            width: 100%;
+        }
+
+        .input:hover,
+        input[type="text"]:hover,
+        input[type="password"]:hover,
+        input[type="number"]:hover,
+        .content select:hover {
+            border-color: #0078D4;
+        }
+
+        .input:focus,
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        .content select:focus {
+            outline: none;
+            border-color: #0078D4;
+            border-width: 2px;
+            box-shadow: none;
+        }
+
+        /* Read-only / result fields */
+        .result-field,
+        input[readonly] {
+            background: #F5F5F5;
+            color: #1E1E1E;
+            cursor: default;
+        }
+
+        /* XML / monospace response area */
+        .xml-response {
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 11px;
+            background: #F5F5F5;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            padding: 8px;
+            min-height: 80px;
+            max-height: 400px;
+            overflow-y: auto;
+            resize: vertical;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #1E1E1E;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* ============================================================
+           Buttons (content area)
+        ============================================================ */
+        .btn-primary,
+        .btn-secondary,
+        .btn-danger {
+            height: 38px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            border: none;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: background 0.12s, opacity 0.12s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #0078D4;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #106EBE;
+        }
+
+        .btn-primary:active:not(:disabled) {
+            background: #005A9E;
+        }
+
+        .btn-primary:disabled {
+            background: #BDBDBD;
+            color: #555555;
+            cursor: default;
+        }
+
+        .btn-secondary {
+            background: #ffffff;
+            color: #0078D4;
+            border: 1px solid #0078D4;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #E8F0FE;
+        }
+
+        .btn-secondary:disabled {
+            border-color: #CCCCCC;
+            color: #888888;
+            cursor: default;
+        }
+
+        .btn-danger {
+            background: #D13438;
+            color: #ffffff;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #C62828;
+        }
+
+        .btn-danger:disabled {
+            background: #BDBDBD;
+            color: #555555;
+            cursor: default;
+        }
+
+        /* ============================================================
+           Layout helpers
+        ============================================================ */
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-row input,
+        .form-row .input {
+            flex: 1;
+        }
+
+        /* Placeholder text inside cards */
+        .placeholder {
+            font-style: italic;
+            color: #9E9E9E;
+            font-size: 13px;
+        }
+
+        /* Result grid for multi-field displays */
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .result-item { }
+
+        .field-value {
+            font-size: 13px;
+            color: #333333;
+            display: block;
+            margin-top: 2px;
+            word-break: break-all;
+        }
+
+        /* ============================================================
+           Status bar
+        ============================================================ */
+        .statusbar {
+            grid-area: statusbar;
+            background: #1A1A2E;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #B0BEC5;
+            font-size: 11px;
+        }
+
+        .status-sep {
+            color: #607D8B;
+            font-size: 11px;
+        }
+
+        .status-right {
+            font-size: 11px;
+            color: #B0BEC5;
+            max-width: 500px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .conn-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .conn-dot.connected {
+            background: #4CAF50;
+        }
+
+        .conn-dot.disconnected {
+            background: #F44336;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================================================================
+         Sidebar
+    ================================================================ -->
+    <aside class="sidebar">
+
+        <!-- Branding -->
+        <div class="sidebar-brand">
+            <div class="brand-title">Emirates ID</div>
+            <div id="brandSubtitle" class="brand-subtitle">Card Toolkit</div>
+        </div>
+
+        <!-- Connection controls -->
+        <div class="sidebar-section">
+            <div class="conn-buttons">
+                <button id="btnInit" onclick="doInitialize()">Initialize</button>
+                <button id="btnCleanup" class="btn-danger-sm" onclick="doCleanup()" disabled>Cleanup</button>
+            </div>
+            <button id="btnFindReaders" class="btn-full" onclick="doFindReaders()" disabled>Find Readers</button>
+            <select id="selReader" disabled>
+                <option value="">-- Select Reader --</option>
+            </select>
+            <div class="conn-buttons">
+                <button id="btnConnect" onclick="doConnect()" disabled>Connect</button>
+                <button id="btnDisconnect" class="btn-danger-sm" onclick="doDisconnect()" disabled>Disconnect</button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <button class="nav-btn active" onclick="navigateTo('card-ops', this)">Card Operations</button>
+            <button class="nav-btn" onclick="navigateTo('public-data', this)">Public Data</button>
+            <button class="nav-btn" onclick="navigateTo('pin-ops', this)">PIN Operations</button>
+            <button class="nav-btn" onclick="navigateTo('biometric', this)">Biometric Auth</button>
+            <button class="nav-btn" onclick="navigateTo('nfc-ops', this)">NFC Operations</button>
+            <button class="nav-btn" onclick="navigateTo('pki-signing', this)">PKI &amp; Signing</button>
+            <button class="nav-btn" onclick="navigateTo('ades-signing', this)">AdES Signing</button>
+            <button class="nav-btn" onclick="navigateTo('device-mgmt', this)">Device Management</button>
+            <button class="nav-btn" onclick="navigateTo('toolkit-utils', this)">Toolkit Utilities</button>
+        </nav>
+
+    </aside>
+
+    <!-- ================================================================
+         Content
+    ================================================================ -->
+    <main class="content">
+
+        <!-- Header bar -->
+        <div class="content-header">
+            <h1 id="pageTitle" class="page-title">Card Operations</h1>
+            <span class="version-label">v3.0.4</span>
+        </div>
+
+        <!-- Scrollable page area -->
+        <div class="content-body">
+
+            <!-- Page: Card Operations -->
+            <div class="page active" id="page-card-ops">
+
+                <!-- Card Serial Number -->
+                <div class="card">
+                    <h2 class="section-header">Card Serial Number (CSN)</h2>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card Serial Number</label>
+                            <input type="text" id="csnResult" class="input result-field" readonly>
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doReadCsn()" disabled>Read CSN</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Status -->
+                <div class="card">
+                    <h2 class="section-header">Card Status</h2>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Status</label>
+                            <input type="text" id="cardStatusResult" class="input result-field" readonly>
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doCheckCardStatus()" disabled>Check Status</button>
+                        </div>
+                    </div>
+                    <label class="field-label">XML Response</label>
+                    <textarea id="cardStatusXml" class="xml-response" readonly></textarea>
+                </div>
+
+                <!-- Card Interface Type -->
+                <div class="card">
+                    <h2 class="section-header">Card Interface Type</h2>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Interface Type</label>
+                            <input type="text" id="interfaceTypeResult" class="input result-field" readonly>
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doGetInterfaceType()" disabled>Get Interface Type</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Version -->
+                <div class="card">
+                    <h2 class="section-header">Card Version</h2>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Version</label>
+                            <input type="text" id="cardVersionResult" class="input result-field" readonly>
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doGetCardVersion()" disabled>Get Card Version</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operation Status -->
+                <div class="card">
+                    <span id="cardOpsStatus" style="font-size:13px; font-weight:600;"></span>
+                </div>
+
+            </div>
+
+            <!-- Page: Public Data -->
+            <div class="page" id="page-public-data">
+
+                <!-- Read Options -->
+                <div class="card">
+                    <h2 class="section-header">Read Options</h2>
+                    <div style="display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px;">
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="chkNonMod" checked> Non-Modifiable Data
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="chkMod" checked> Modifiable Data
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="chkPhoto" checked> Photography
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="chkSig" checked> Signature Image
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="chkAddr" checked> Address
+                        </label>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-primary requires-card" onclick="doReadPublicData()" disabled>Read Public Data</button>
+                        <button class="btn-secondary" onclick="doClearPublicData()">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Identity + Photos -->
+                <div class="card">
+                    <h2 class="section-header">Identity</h2>
+                    <div class="form-row" style="margin-bottom:16px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">ID Number</label>
+                            <input type="text" id="pdIdNumber" class="input result-field" readonly>
+                        </div>
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card Number</label>
+                            <input type="text" id="pdCardNumber" class="input result-field" readonly>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:24px; margin-top:8px;">
+                        <div>
+                            <label class="field-label">Card Holder Photo</label>
+                            <div style="width:120px; height:150px; background:#F5F5F5; border:1px solid #E0E0E0; border-radius:4px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                <img id="pdPhoto" style="max-width:120px; max-height:150px; display:none;" alt="Photo">
+                                <span id="pdPhotoPlaceholder" style="font-size:11px; color:#9E9E9E;">No photo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Non-Modifiable Data -->
+                <div class="card">
+                    <h2 class="section-header">Non-Modifiable Data</h2>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+                        <div><label class="field-label">ID Type</label><input type="text" id="pdIdType" class="input result-field" readonly></div>
+                        <div><label class="field-label">Issue Date</label><input type="text" id="pdIssueDate" class="input result-field" readonly></div>
+                        <div><label class="field-label">Expiry Date</label><input type="text" id="pdExpiryDate" class="input result-field" readonly></div>
+                        <div><label class="field-label">Full Name (English)</label><input type="text" id="pdFullNameEn" class="input result-field" readonly></div>
+                        <div style="grid-column:span 2;"><label class="field-label">Full Name (Arabic)</label><input type="text" id="pdFullNameAr" class="input result-field" readonly style="direction:rtl;"></div>
+                        <div><label class="field-label">Gender</label><input type="text" id="pdGender" class="input result-field" readonly></div>
+                        <div><label class="field-label">Date of Birth</label><input type="text" id="pdDob" class="input result-field" readonly></div>
+                        <div><label class="field-label">Nationality (English)</label><input type="text" id="pdNationalityEn" class="input result-field" readonly></div>
+                        <div><label class="field-label">Title (English)</label><input type="text" id="pdTitleEn" class="input result-field" readonly></div>
+                        <div><label class="field-label">Place of Birth (English)</label><input type="text" id="pdPlaceOfBirthEn" class="input result-field" readonly></div>
+                        <div><label class="field-label">Nationality Code</label><input type="text" id="pdNationalityCode" class="input result-field" readonly></div>
+                    </div>
+                </div>
+
+                <!-- Modifiable Data -->
+                <div class="card">
+                    <h2 class="section-header">Modifiable Data</h2>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+                        <div><label class="field-label">Occupation (English)</label><input type="text" id="pdOccupationEn" class="input result-field" readonly></div>
+                        <div><label class="field-label">Company Name (English)</label><input type="text" id="pdCompanyEn" class="input result-field" readonly></div>
+                        <div><label class="field-label">Family ID</label><input type="text" id="pdFamilyId" class="input result-field" readonly></div>
+                        <div><label class="field-label">Marital Status Code</label><input type="text" id="pdMaritalStatus" class="input result-field" readonly></div>
+                        <div><label class="field-label">Sponsor Name</label><input type="text" id="pdSponsorName" class="input result-field" readonly></div>
+                        <div><label class="field-label">Residency Number</label><input type="text" id="pdResidencyNo" class="input result-field" readonly></div>
+                        <div><label class="field-label">Residency Expiry</label><input type="text" id="pdResidencyExpiry" class="input result-field" readonly></div>
+                        <div><label class="field-label">Passport Number</label><input type="text" id="pdPassportNo" class="input result-field" readonly></div>
+                        <div><label class="field-label">Passport Country</label><input type="text" id="pdPassportCountry" class="input result-field" readonly></div>
+                        <div><label class="field-label">Passport Expiry</label><input type="text" id="pdPassportExpiry" class="input result-field" readonly></div>
+                        <div><label class="field-label">Mother Name (English)</label><input type="text" id="pdMotherNameEn" class="input result-field" readonly></div>
+                    </div>
+                </div>
+
+                <!-- Home Address -->
+                <div class="card">
+                    <h2 class="section-header">Home Address</h2>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+                        <div><label class="field-label">Emirate</label><input type="text" id="pdHomeEmirate" class="input result-field" readonly></div>
+                        <div><label class="field-label">City</label><input type="text" id="pdHomeCity" class="input result-field" readonly></div>
+                        <div><label class="field-label">Area</label><input type="text" id="pdHomeArea" class="input result-field" readonly></div>
+                        <div><label class="field-label">Street</label><input type="text" id="pdHomeStreet" class="input result-field" readonly></div>
+                        <div><label class="field-label">Building</label><input type="text" id="pdHomeBuilding" class="input result-field" readonly></div>
+                        <div><label class="field-label">PO Box</label><input type="text" id="pdHomePoBox" class="input result-field" readonly></div>
+                        <div><label class="field-label">Phone</label><input type="text" id="pdHomePhone" class="input result-field" readonly></div>
+                        <div><label class="field-label">Mobile</label><input type="text" id="pdHomeMobile" class="input result-field" readonly></div>
+                        <div><label class="field-label">Email</label><input type="text" id="pdHomeEmail" class="input result-field" readonly></div>
+                    </div>
+                </div>
+
+                <!-- Work Address -->
+                <div class="card">
+                    <h2 class="section-header">Work Address</h2>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+                        <div><label class="field-label">Emirate</label><input type="text" id="pdWorkEmirate" class="input result-field" readonly></div>
+                        <div><label class="field-label">City</label><input type="text" id="pdWorkCity" class="input result-field" readonly></div>
+                        <div><label class="field-label">Street</label><input type="text" id="pdWorkStreet" class="input result-field" readonly></div>
+                        <div><label class="field-label">PO Box</label><input type="text" id="pdWorkPoBox" class="input result-field" readonly></div>
+                    </div>
+                </div>
+
+                <!-- Family Book Data -->
+                <div class="card">
+                    <h2 class="section-header">Family Book Data</h2>
+                    <p style="font-size:13px; color:#6E6E6E; margin-bottom:16px;">Read family book data (head of family, wives, children) from the Emirates ID card. Requires card PIN.</p>
+                    <div class="form-row" style="margin-bottom:12px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card PIN</label>
+                            <input type="password" id="familyBookPin" class="input" placeholder="Enter card PIN">
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doReadFamilyBookData()" disabled>Read Family Book Data</button>
+                        </div>
+                    </div>
+
+                    <div id="familyBookHeadSection" style="display:none; margin-top:12px;">
+                        <h3 style="font-size:14px; font-weight:600; color:#323130; margin-bottom:8px;">Head of Family</h3>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+                            <div><label class="field-label">Holder ID Number</label><input type="text" id="fbHolderId" class="input result-field" readonly></div>
+                            <div><label class="field-label">Family ID</label><input type="text" id="fbFamilyId" class="input result-field" readonly></div>
+                            <div><label class="field-label">Nationality Code</label><input type="text" id="fbHeadNationalityCode" class="input result-field" readonly></div>
+                            <div><label class="field-label">Emirate (English)</label><input type="text" id="fbEmirateEn" class="input result-field" readonly></div>
+                            <div><label class="field-label">Emirate (Arabic)</label><input type="text" id="fbEmirateAr" class="input result-field" readonly style="direction:rtl;"></div>
+                            <div><label class="field-label">Gender</label><input type="text" id="fbHeadGender" class="input result-field" readonly></div>
+                            <div><label class="field-label">First Name (English)</label><input type="text" id="fbFirstNameEn" class="input result-field" readonly></div>
+                            <div><label class="field-label">First Name (Arabic)</label><input type="text" id="fbFirstNameAr" class="input result-field" readonly style="direction:rtl;"></div>
+                            <div><label class="field-label">Date of Birth</label><input type="text" id="fbHeadDob" class="input result-field" readonly></div>
+                            <div><label class="field-label">Father Name (English)</label><input type="text" id="fbFatherNameEn" class="input result-field" readonly></div>
+                            <div><label class="field-label">Father Name (Arabic)</label><input type="text" id="fbFatherNameAr" class="input result-field" readonly style="direction:rtl;"></div>
+                            <div><label class="field-label">Grand Father (English)</label><input type="text" id="fbGrandFatherEn" class="input result-field" readonly></div>
+                            <div><label class="field-label">Grand Father (Arabic)</label><input type="text" id="fbGrandFatherAr" class="input result-field" readonly style="direction:rtl;"></div>
+                            <div><label class="field-label">Tribe (English)</label><input type="text" id="fbTribeEn" class="input result-field" readonly></div>
+                            <div><label class="field-label">Tribe (Arabic)</label><input type="text" id="fbTribeAr" class="input result-field" readonly style="direction:rtl;"></div>
+                            <div><label class="field-label">Clan (English)</label><input type="text" id="fbClanEn" class="input result-field" readonly></div>
+                            <div><label class="field-label">Clan (Arabic)</label><input type="text" id="fbClanAr" class="input result-field" readonly style="direction:rtl;"></div>
+                            <div><label class="field-label">Nationality (English)</label><input type="text" id="fbNationalityEn" class="input result-field" readonly></div>
+                            <div><label class="field-label">Nationality (Arabic)</label><input type="text" id="fbNationalityAr" class="input result-field" readonly style="direction:rtl;"></div>
+                            <div><label class="field-label">Place of Birth (English)</label><input type="text" id="fbPlaceOfBirthEn" class="input result-field" readonly></div>
+                            <div><label class="field-label">Place of Birth (Arabic)</label><input type="text" id="fbPlaceOfBirthAr" class="input result-field" readonly style="direction:rtl;"></div>
+                            <div style="grid-column:span 2;"><label class="field-label">Mother Full Name (English)</label><input type="text" id="fbMotherNameEn" class="input result-field" readonly></div>
+                            <div style="grid-column:span 2;"><label class="field-label">Mother Full Name (Arabic)</label><input type="text" id="fbMotherNameAr" class="input result-field" readonly style="direction:rtl;"></div>
+                        </div>
+                    </div>
+
+                    <div id="familyBookWivesSection" style="display:none; margin-top:16px;">
+                        <h3 style="font-size:14px; font-weight:600; color:#323130; margin-bottom:8px;">Wives</h3>
+                        <div id="familyBookWivesList"></div>
+                    </div>
+
+                    <div id="familyBookChildrenSection" style="display:none; margin-top:16px;">
+                        <h3 style="font-size:14px; font-weight:600; color:#323130; margin-bottom:8px;">Children</h3>
+                        <div id="familyBookChildrenList"></div>
+                    </div>
+
+                    <label class="field-label" style="margin-top:12px;">XML Response</label>
+                    <textarea id="familyBookXml" class="xml-response" readonly></textarea>
+                    <div style="margin-top:8px;">
+                        <span id="familyBookStatus" style="font-size:13px; font-weight:600;"></span>
+                    </div>
+                </div>
+
+                <!-- XML Response -->
+                <div class="card">
+                    <h2 class="section-header">XML Response</h2>
+                    <textarea id="pdXml" class="xml-response" readonly></textarea>
+                </div>
+
+            </div>
+
+            <!-- Page: PIN Operations -->
+            <div class="page" id="page-pin-ops">
+
+                <!-- Finger Data -->
+                <div class="card">
+                    <h2 class="section-header">Finger Data</h2>
+                    <p style="font-size:13px; color:#6E6E6E; margin-bottom:12px;">Finger data must be loaded before PIN operations that require biometric verification.</p>
+                    <button class="btn-primary requires-card" onclick="doPinLoadFingerData()" disabled>Load Finger Data from Card</button>
+                </div>
+
+                <!-- Reset PIN -->
+                <div class="card">
+                    <h2 class="section-header">Reset PIN</h2>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <label class="field-label">New PIN</label>
+                            <input type="password" id="resetPinNew" class="input" placeholder="4–16 digits">
+                        </div>
+                        <div>
+                            <label class="field-label">Confirm PIN</label>
+                            <input type="password" id="resetPinConfirm" class="input" placeholder="Repeat PIN">
+                        </div>
+                        <div>
+                            <label class="field-label">Finger Index</label>
+                            <select id="resetFingerSel" class="input" style="height:38px;">
+                                <option value="">-- Load finger data first --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Sensor Timeout (seconds)</label>
+                            <input type="number" id="resetTimeout" class="input" value="30" min="1">
+                        </div>
+                    </div>
+                    <button class="btn-danger requires-card" onclick="doResetPin()" disabled style="margin-bottom:12px;">Reset PIN</button>
+                    <label class="field-label">Result</label>
+                    <input type="text" id="resetPinResult" class="input result-field" readonly style="margin-bottom:12px;">
+                    <label class="field-label">XML Response</label>
+                    <textarea id="resetPinXml" class="xml-response" readonly></textarea>
+                </div>
+
+                <!-- Unblock PIN -->
+                <div class="card">
+                    <h2 class="section-header">Unblock PIN</h2>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <label class="field-label">New PIN</label>
+                            <input type="password" id="unblockPinNew" class="input" placeholder="4–16 digits">
+                        </div>
+                        <div>
+                            <label class="field-label">Confirm PIN</label>
+                            <input type="password" id="unblockPinConfirm" class="input" placeholder="Repeat PIN">
+                        </div>
+                        <div>
+                            <label class="field-label">Finger Index</label>
+                            <select id="unblockFingerSel" class="input" style="height:38px;">
+                                <option value="">-- Load finger data first --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Sensor Timeout (seconds)</label>
+                            <input type="number" id="unblockTimeout" class="input" value="30" min="1">
+                        </div>
+                    </div>
+                    <button class="btn-danger requires-card" onclick="doUnblockPin()" disabled style="margin-bottom:12px;">Unblock PIN</button>
+                    <label class="field-label">Result</label>
+                    <input type="text" id="unblockPinResult" class="input result-field" readonly style="margin-bottom:12px;">
+                    <label class="field-label">XML Response</label>
+                    <textarea id="unblockPinXml" class="xml-response" readonly></textarea>
+                </div>
+
+            </div>
+
+            <!-- Page: Biometric Auth -->
+            <div class="page" id="page-biometric">
+
+                <!-- Biometric Authentication on Server -->
+                <div class="card">
+                    <h2 class="section-header">Biometric Authentication on Server</h2>
+                    <p style="font-size:13px; color:#6E6E6E; margin-bottom:16px;">Captures a fingerprint image using the connected sensor and sends it to the Validation Gateway for biometric verification against the card holder's stored template.</p>
+                    <button class="btn-secondary requires-card" onclick="doBioLoadFingerData()" disabled style="margin-bottom:16px;">Load Finger Data from Card</button>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                        <div>
+                            <label class="field-label">Select Finger Index</label>
+                            <select id="bioFingerSel" class="input" style="height:38px;">
+                                <option value="">-- Load finger data first --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Sensor Timeout (seconds)</label>
+                            <input type="number" id="bioTimeout" class="input" value="30" min="1">
+                        </div>
+                    </div>
+                    <button class="btn-primary requires-card" onclick="doAuthBiometric()" disabled style="margin-bottom:16px;">Authenticate</button>
+                    <label class="field-label">Authentication Result</label>
+                    <input type="text" id="bioAuthResult" class="input result-field" readonly style="margin-bottom:12px;">
+                    <label class="field-label">XML Response</label>
+                    <textarea id="bioXml" class="xml-response" readonly></textarea>
+                </div>
+
+                <!-- Card + Biometric Authentication -->
+                <div class="card">
+                    <h2 class="section-header">Card + Biometric Authentication</h2>
+                    <p style="font-size:13px; color:#6E6E6E; margin-bottom:16px;">Validates the Emirates ID card and performs biometric authentication with the Validation Gateway (VG) service against the captured finger image.</p>
+                    <button class="btn-secondary requires-card" onclick="doCardBioLoadFingerData()" disabled style="margin-bottom:16px;">Load Finger Data from Card</button>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                        <div>
+                            <label class="field-label">Select Finger Index</label>
+                            <select id="cardBioFingerSel" class="input" style="height:38px;">
+                                <option value="">-- Load finger data first --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Sensor Timeout (seconds)</label>
+                            <input type="number" id="cardBioTimeout" class="input" value="30" min="1">
+                        </div>
+                    </div>
+                    <button class="btn-primary requires-card" onclick="doAuthCardBiometric()" disabled style="margin-bottom:16px;">Authenticate Card + Biometric</button>
+                    <label class="field-label">Authentication Result</label>
+                    <input type="text" id="cardBioAuthResult" class="input result-field" readonly style="margin-bottom:12px;">
+                    <label class="field-label">XML Response</label>
+                    <textarea id="cardBioXml" class="xml-response" readonly></textarea>
+                </div>
+
+            </div>
+
+            <!-- Page: NFC Operations -->
+            <div class="page" id="page-nfc-ops">
+
+                <!-- NFC Authentication Parameters -->
+                <div class="card">
+                    <h2 class="section-header">NFC Authentication Parameters</h2>
+                    <p style="font-size:13px; color:#6E6E6E; margin-bottom:16px;">Set the NFC authentication parameters (card number, date of birth, expiry date) required before reading public data via NFC. For NFC-capable devices.</p>
+                    <label class="field-label">Card Number</label>
+                    <input type="text" id="nfcCardNumber" class="input" placeholder="e.g. 123456789" style="margin-bottom:12px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <label class="field-label">Date of Birth (yyMMdd)</label>
+                            <div style="display:flex; gap:4px;">
+                                <input type="text" id="nfcDobYY" class="input" placeholder="yy" maxlength="2" style="flex:1;">
+                                <input type="text" id="nfcDobMM" class="input" placeholder="MM" maxlength="2" style="flex:1;">
+                                <input type="text" id="nfcDobDD" class="input" placeholder="dd" maxlength="2" style="flex:1;">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="field-label">Expiry Date (yyMMdd)</label>
+                            <div style="display:flex; gap:4px;">
+                                <input type="text" id="nfcExpYY" class="input" placeholder="yy" maxlength="2" style="flex:1;">
+                                <input type="text" id="nfcExpMM" class="input" placeholder="MM" maxlength="2" style="flex:1;">
+                                <input type="text" id="nfcExpDD" class="input" placeholder="dd" maxlength="2" style="flex:1;">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-primary requires-card" onclick="doSetNfcAuthParams()" disabled>Set NFC Auth Parameters</button>
+                        <button class="btn-secondary" onclick="doClearNfcAuth()">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Read Public Data Using NFC -->
+                <div class="card">
+                    <h2 class="section-header">Read Public Data Using NFC</h2>
+                    <p style="font-size:13px; color:#6E6E6E; margin-bottom:16px;">Read public data from the card via NFC device. NFC authentication parameters must be set first.</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px;">
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="nfcChkNonMod" checked> Non-Modifiable
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="nfcChkMod" checked> Modifiable
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="nfcChkPhoto" checked> Photo
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="nfcChkSig" checked> Signature
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="nfcChkAddr" checked> Address
+                        </label>
+                    </div>
+                    <button class="btn-primary requires-card" onclick="doReadPublicDataNfc()" disabled style="margin-bottom:16px;">Read Public Data (NFC)</button>
+                    <label class="field-label">Response Status</label>
+                    <input type="text" id="nfcResponseStatus" class="input result-field" readonly style="margin-bottom:12px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:8px;">
+                        <div><label class="field-label">ID Number</label><input type="text" id="nfcIdNumber" class="input result-field" readonly></div>
+                        <div><label class="field-label">Card Number</label><input type="text" id="nfcCardNumberResult" class="input result-field" readonly></div>
+                        <div><label class="field-label">Nationality</label><input type="text" id="nfcNationality" class="input result-field" readonly></div>
+                        <div><label class="field-label">Full Name (English)</label><input type="text" id="nfcFullNameEn" class="input result-field" readonly></div>
+                        <div><label class="field-label">Full Name (Arabic)</label><input type="text" id="nfcFullNameAr" class="input result-field" readonly style="direction:rtl;"></div>
+                        <div><label class="field-label">Gender</label><input type="text" id="nfcGender" class="input result-field" readonly></div>
+                        <div><label class="field-label">Date of Birth</label><input type="text" id="nfcDob" class="input result-field" readonly></div>
+                        <div><label class="field-label">Expiry Date</label><input type="text" id="nfcExpiry" class="input result-field" readonly></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Page: PKI & Signing -->
+            <div class="page" id="page-pki-signing">
+
+                <!-- Card 1: PKI Authentication -->
+                <div class="card">
+                    <h2 class="section-header">PKI Authentication</h2>
+                    <div class="form-row" style="margin-bottom:12px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card PIN</label>
+                            <input type="password" id="pkiAuthPin" class="input" placeholder="Enter card PIN">
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doPkiAuth()" disabled>Authenticate PKI</button>
+                        </div>
+                    </div>
+                    <label class="field-label">Auth Status</label>
+                    <input type="text" id="pkiAuthStatus" class="input result-field" readonly style="margin-bottom:12px;">
+                    <label class="field-label">XML Response</label>
+                    <textarea id="pkiAuthXml" class="xml-response" readonly></textarea>
+                </div>
+
+                <!-- Card 2: PKI Certificates -->
+                <div class="card">
+                    <h2 class="section-header">PKI Certificates</h2>
+                    <div class="form-row" style="margin-bottom:12px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card PIN</label>
+                            <input type="password" id="pkiCertPin" class="input" placeholder="Enter card PIN">
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doReadCertificates()" disabled>Read Certificates</button>
+                        </div>
+                    </div>
+                    <label class="field-label">Authentication Certificate (PEM)</label>
+                    <textarea id="authCertPem" class="xml-response" readonly style="font-family:Consolas,'Courier New',monospace; font-size:11px; margin-bottom:12px;"></textarea>
+                    <label class="field-label">Signing Certificate (PEM)</label>
+                    <textarea id="signCertPem" class="xml-response" readonly style="font-family:Consolas,'Courier New',monospace; font-size:11px;"></textarea>
+                </div>
+
+                <!-- Card 3: Sign Data (Authentication Certificate) -->
+                <div class="card">
+                    <h2 class="section-header">Sign Data (Authentication Certificate)</h2>
+                    <label class="field-label">Data to Sign</label>
+                    <textarea id="signAuthData" class="xml-response" style="height:60px; margin-bottom:12px;" placeholder="Enter text to sign"></textarea>
+                    <div class="form-row" style="margin-bottom:12px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card PIN</label>
+                            <input type="password" id="signAuthPin" class="input" placeholder="Enter card PIN">
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doSignDataAuth()" disabled>Sign Data (Auth Cert)</button>
+                        </div>
+                    </div>
+                    <label class="field-label">Signature</label>
+                    <textarea id="signAuthOutput" class="xml-response" readonly style="margin-bottom:12px;"></textarea>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button class="btn-secondary requires-card" onclick="doVerifySignatureAuth()" disabled>Verify Signature (Auth Cert)</button>
+                        <span id="signAuthVerifyResult" style="font-size:13px; font-weight:600;"></span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Sign Data (Signing Certificate) -->
+                <div class="card">
+                    <h2 class="section-header">Sign Data (Signing Certificate)</h2>
+                    <label class="field-label">Data to Sign</label>
+                    <textarea id="signSignData" class="xml-response" style="height:60px; margin-bottom:12px;" placeholder="Enter text to sign"></textarea>
+                    <div class="form-row" style="margin-bottom:12px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card PIN</label>
+                            <input type="password" id="signSignPin" class="input" placeholder="Enter card PIN">
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doSignDataSign()" disabled>Sign Data (Sign Cert)</button>
+                        </div>
+                    </div>
+                    <label class="field-label">Signature</label>
+                    <textarea id="signSignOutput" class="xml-response" readonly style="margin-bottom:12px;"></textarea>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button class="btn-secondary requires-card" onclick="doVerifySignatureSign()" disabled>Verify Signature (Sign Cert)</button>
+                        <span id="signSignVerifyResult" style="font-size:13px; font-weight:600;"></span>
+                    </div>
+                </div>
+
+                <!-- Card 5: Operation Status -->
+                <div class="card">
+                    <span id="pkiSigningStatus" style="font-size:13px; font-weight:600;"></span>
+                </div>
+
+            </div>
+
+            <!-- Page: AdES Signing -->
+            <div class="page" id="page-ades-signing">
+
+                <!-- Card 1: CAdES-B Sign -->
+                <div class="card">
+                    <h2 class="section-header">CAdES-B Sign</h2>
+                    <label class="field-label">Input File</label>
+                    <input type="file" id="cadesInputFile" style="display:block; margin-bottom:12px; font-size:13px;">
+                    <div class="form-row" style="margin-bottom:12px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card PIN</label>
+                            <input type="password" id="cadesPin" class="input" placeholder="Enter card PIN">
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doCadesSign()" disabled>Sign CAdES-B</button>
+                        </div>
+                    </div>
+                    <label class="field-label">Signature (base64)</label>
+                    <textarea id="cadesSignOutput" class="xml-response" readonly style="margin-bottom:12px;"></textarea>
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                        <button class="btn-secondary requires-card" onclick="doCadesVerify()" disabled>Verify CAdES-B</button>
+                    </div>
+                    <label class="field-label">Verification Report</label>
+                    <textarea id="cadesVerifyOutput" class="xml-response" readonly></textarea>
+                </div>
+
+                <!-- Card 2: XAdES-B Sign -->
+                <div class="card">
+                    <h2 class="section-header">XAdES-B Sign</h2>
+                    <label class="field-label">XML Input File</label>
+                    <input type="file" id="xadesInputFile" accept=".xml" style="display:block; margin-bottom:12px; font-size:13px;">
+                    <label class="field-label">Output File Path</label>
+                    <input type="text" id="xadesOutputPath" class="input" placeholder="e.g. C:\output\signed.xml" style="margin-bottom:12px;">
+                    <div class="form-row" style="margin-bottom:12px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card PIN</label>
+                            <input type="password" id="xadesPin" class="input" placeholder="Enter card PIN">
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doXadesSign()" disabled>Sign XAdES-B</button>
+                        </div>
+                    </div>
+                    <label class="field-label">Output File</label>
+                    <input type="text" id="xadesOutputResult" class="input result-field" readonly style="margin-bottom:8px;">
+                    <label class="field-label">Result</label>
+                    <input type="text" id="xadesResult" class="input result-field" readonly>
+                    <p style="font-size:12px; color:#6E6E6E; margin-top:8px; font-style:italic;">Verification available for CAdES only.</p>
+                </div>
+
+                <!-- Card 3: PAdES-B Sign -->
+                <div class="card">
+                    <h2 class="section-header">PAdES-B Sign</h2>
+                    <label class="field-label">PDF Input File</label>
+                    <input type="file" id="padesInputFile" accept=".pdf" style="display:block; margin-bottom:12px; font-size:13px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <label class="field-label">Reason (optional)</label>
+                            <input type="text" id="padesReason" class="input" placeholder="e.g. Approval">
+                        </div>
+                        <div>
+                            <label class="field-label">Location (optional)</label>
+                            <input type="text" id="padesLocation" class="input" placeholder="e.g. Dubai, UAE">
+                        </div>
+                    </div>
+                    <label class="field-label">Signature Image File (optional)</label>
+                    <input type="file" id="padesImageFile" accept=".png,.jpg,.jpeg" style="display:block; margin-bottom:12px; font-size:13px;">
+                    <div class="form-row" style="margin-bottom:12px;">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Card PIN</label>
+                            <input type="password" id="padesPin" class="input" placeholder="Enter card PIN">
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-card" onclick="doPadesSign()" disabled>Sign PAdES-B</button>
+                        </div>
+                    </div>
+                    <label class="field-label">Output File</label>
+                    <input type="text" id="padesOutputResult" class="input result-field" readonly style="margin-bottom:8px;">
+                    <label class="field-label">Result</label>
+                    <input type="text" id="padesResult" class="input result-field" readonly>
+                    <p style="font-size:12px; color:#6E6E6E; margin-top:8px; font-style:italic;">Verification available for CAdES only.</p>
+                </div>
+
+            </div>
+
+            <!-- Page: Device Management -->
+            <div class="page" id="page-device-mgmt">
+
+                <!-- Card 1: Register Device -->
+                <div class="card">
+                    <h2 class="section-header">Register Device</h2>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <label class="field-label">User ID</label>
+                            <input type="text" id="regUserId" class="input" placeholder="User ID">
+                        </div>
+                        <div>
+                            <label class="field-label">Password</label>
+                            <input type="password" id="regPassword" class="input" placeholder="Password">
+                        </div>
+                        <div>
+                            <label class="field-label">Device Reference ID</label>
+                            <input type="text" id="regDeviceRef" class="input" placeholder="Device Reference ID">
+                        </div>
+                    </div>
+                    <button class="btn-primary requires-init" onclick="doRegisterDevice()" disabled style="margin-bottom:12px;">Register Device</button>
+                    <label class="field-label">Registration ID</label>
+                    <input type="text" id="regResult" class="input result-field" readonly style="margin-bottom:12px;">
+                    <label class="field-label">XML Response</label>
+                    <textarea id="regXml" class="xml-response" readonly></textarea>
+                </div>
+
+                <!-- Card 2: Get Device ID -->
+                <div class="card">
+                    <h2 class="section-header">Get Device ID</h2>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Device ID</label>
+                            <input type="text" id="deviceIdResult" class="input result-field" readonly>
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-init" onclick="doGetDeviceId()" disabled>Get Device ID</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Page: Toolkit Utilities -->
+            <div class="page" id="page-toolkit-utils">
+
+                <!-- Card 1: Parse MRZ Data -->
+                <div class="card">
+                    <h2 class="section-header">Parse MRZ Data</h2>
+                    <label class="field-label">MRZ Input</label>
+                    <div class="form-row" style="align-items:flex-start; margin-bottom:12px;">
+                        <textarea id="mrzInput" class="xml-response" style="flex:1; height:60px; font-family:Consolas,'Courier New',monospace;" placeholder="Paste MRZ string here"></textarea>
+                        <button class="btn-primary requires-init" onclick="doParseMRZ()" disabled style="align-self:flex-start;">Parse MRZ</button>
+                    </div>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <label class="field-label">Document Type</label>
+                            <span class="field-value" id="mrzDocumentType">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Issued Country</label>
+                            <span class="field-value" id="mrzIssuedCountry">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Card Number</label>
+                            <span class="field-value" id="mrzCardNumber">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">ID Number</label>
+                            <span class="field-value" id="mrzIdNumber">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Date of Birth</label>
+                            <span class="field-value" id="mrzDateOfBirth">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Gender</label>
+                            <span class="field-value" id="mrzGender">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Expiry Date</label>
+                            <span class="field-value" id="mrzExpiryDate">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Nationality</label>
+                            <span class="field-value" id="mrzNationality">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Full Name</label>
+                            <span class="field-value" id="mrzFullName">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: License Expiry Date -->
+                <div class="card">
+                    <h2 class="section-header">License Expiry Date</h2>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label class="field-label">Expiry Date</label>
+                            <input type="text" id="licenseExpiryResult" class="input result-field" readonly>
+                        </div>
+                        <div class="form-group" style="flex:0 0 auto; align-self:flex-end">
+                            <button class="btn-primary requires-init" onclick="doGetLicenseExpiry()" disabled>Get Expiry Date</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Config Certificate Expiry -->
+                <div class="card">
+                    <h2 class="section-header">Config Certificate Expiry</h2>
+                    <button class="btn-primary requires-init" onclick="doGetConfigExpiry()" disabled style="margin-bottom:12px;">Get Config Cert Expiry</button>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <label class="field-label">VG Cert Expiry</label>
+                            <span class="field-value" id="configVgCertExpiry">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">LV Cert Expiry</label>
+                            <span class="field-value" id="configLvCertExpiry">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Server TLS Cert Expiry</label>
+                            <span class="field-value" id="serverTlsCertExpiry">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">AG Cert Expiry</label>
+                            <span class="field-value" id="configAgCertExpiry">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">License Expiry</label>
+                            <span class="field-value" id="configLicenseExpiry">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Validate Toolkit Response -->
+                <div class="card">
+                    <h2 class="section-header">Validate Toolkit Response</h2>
+                    <label class="field-label">XML Response</label>
+                    <textarea id="validateXmlInput" class="xml-response" style="height:100px; margin-bottom:12px;" placeholder="Paste toolkit XML response here"></textarea>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <label class="field-label">Signer Certificate File</label>
+                            <input type="file" id="validateCertFile" style="display:block; margin-top:4px; font-size:13px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Chain File (optional)</label>
+                            <input type="file" id="validateChainFile" style="display:block; margin-top:4px; font-size:13px;">
+                        </div>
+                    </div>
+                    <button class="btn-primary requires-init" onclick="doVerifyToolkitResponse()" disabled style="margin-bottom:12px;">Validate Response</button>
+                    <div class="result-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                        <div class="result-item">
+                            <label class="field-label">Service</label>
+                            <span class="field-value" id="vtService">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Action</label>
+                            <span class="field-value" id="vtAction">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Request ID</label>
+                            <span class="field-value" id="vtRequestId">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Nonce</label>
+                            <span class="field-value" id="vtNonce">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Correlation ID</label>
+                            <span class="field-value" id="vtCorrelationId">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">CSN</label>
+                            <span class="field-value" id="vtCsn">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Card Number</label>
+                            <span class="field-value" id="vtCardNumber">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">ID Number</label>
+                            <span class="field-value" id="vtIdNumber">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Timestamp</label>
+                            <span class="field-value" id="vtTimestamp">—</span>
+                        </div>
+                        <div class="result-item">
+                            <label class="field-label">Validity Interval</label>
+                            <span class="field-value" id="vtValidityInterval">—</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div><!-- /.content-body -->
+    </main>
+
+    <!-- ================================================================
+         Status bar
+    ================================================================ -->
+    <footer class="statusbar">
+        <div class="status-left">
+            <span id="connDot" class="conn-dot disconnected"></span>
+            <span id="connStatus">Disconnected</span>
+            <span class="status-sep"> | </span>
+            <span id="readerName">No reader selected</span>
+        </div>
+        <div id="statusMsg" class="status-right"></div>
+    </footer>
+
+    <!-- ================================================================
+         JavaScript
+    ================================================================ -->
+    <script src="eidatoolkit.js"></script>
+    <script src="../health-probe.js"></script>
+    <script>
+        'use strict';
+
+        /* ---- App state ---- */
+        var app = {
+            toolkit: null,
+            reader: null,
+            connected: false,
+            readerConnected: false,
+            cachedModulus: null,
+            cachedExponent: null,
+            lastSignature: null,
+            lastSignedData: null,
+            lastSignatureCert: null,
+            lastAuthCert: null,
+            lastSigningCert: null,
+            lastXmlResponse: null
+        };
+
+        /* ---- SDK options ---- */
+        // Connection-attempt strategy: try non-TLS to localhost first
+        // (simplest dev setup), fall back to TLS to production agent DNS.
+        // Customers should pick one of these directly and remove the
+        // fallback once they know which mode their deployment uses.
+        var sdkConnectionAttempts = [
+            { tls: false, host: "localhost",                  label: "ws://localhost (non-TLS)" },
+            { tls: true,  host: "toolkitagent.emiratesid.ae", label: "wss://toolkitagent.emiratesid.ae (TLS)" }
+        ];
+        var sdkCurrentAttempt = -1;
+        var sdkConnectionEstablished = false;
+
+        function buildSdkOptions(attemptIdx) {
+            var a = sdkConnectionAttempts[attemptIdx];
+            var opts = {
+                "debugEnabled": true,
+                "agent_tls_enabled": a.tls,
+                "agent_host_name": a.host
+            };
+            opts.toolkitConfig = 'vg_connection_timeout = 60\n';
+            opts.toolkitConfig += 'log_level = "INFO"\n';
+            opts.toolkitConfig += 'log_performance_time = true\n';
+            return opts;
+        }
+
+        /* ---- Page names map ---- */
+        var pageNames = {
+            'card-ops':     'Card Operations',
+            'public-data':  'Public Data',
+            'pin-ops':      'PIN Operations',
+            'biometric':    'Biometric Auth',
+            'nfc-ops':      'NFC Operations',
+            'pki-signing':  'PKI & Signing',
+            'ades-signing': 'AdES Signing',
+            'device-mgmt':  'Device Management',
+            'toolkit-utils':'Toolkit Utilities'
+        };
+
+        /* ---- Navigation ---- */
+        function navigateTo(pageId, btn) {
+            document.querySelectorAll('.page').forEach(function (p) {
+                p.classList.remove('active');
+            });
+
+            var target = document.getElementById('page-' + pageId);
+            if (target) {
+                target.classList.add('active');
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(function (b) {
+                b.classList.remove('active');
+            });
+            if (btn) {
+                btn.classList.add('active');
+            }
+
+            document.getElementById('pageTitle').textContent =
+                pageNames[pageId] || pageId;
+        }
+
+        /* ================================================================
+           Status helpers
+        ================================================================ */
+        function setStatus(msg, isSuccess) {
+            var el = document.getElementById('statusMsg');
+            el.textContent = msg;
+            el.style.color = isSuccess === true ? '#4CAF50' :
+                             isSuccess === false ? '#F44336' : '#B0B0B0';
+        }
+
+        function setConnectionStatus(connected, readerName) {
+            var dot    = document.getElementById('connDot');
+            var status = document.getElementById('connStatus');
+            var rdr    = document.getElementById('readerName');
+            dot.className = 'conn-dot ' + (connected ? 'connected' : 'disconnected');
+            status.textContent = connected ? 'Connected' : 'Disconnected';
+            rdr.textContent = readerName || 'No reader selected';
+        }
+
+        /* ================================================================
+           Button state management
+        ================================================================ */
+        function updateButtonStates() {
+            var init = app.connected;
+            var card = app.readerConnected;
+
+            /* Sidebar connection buttons */
+            document.getElementById('btnInit').disabled         = init;
+            document.getElementById('btnCleanup').disabled      = !init;
+            document.getElementById('btnFindReaders').disabled  = !init;
+            document.getElementById('btnConnect').disabled      = !init || card;
+            document.getElementById('btnDisconnect').disabled   = !card;
+            document.getElementById('selReader').disabled       = !init;
+
+            /* Card-dependent buttons added in Tasks 3-9 */
+            document.querySelectorAll('.requires-card').forEach(function (el) {
+                el.disabled = !card;
+            });
+
+            /* Toolkit-level buttons (no card needed) */
+            document.querySelectorAll('.requires-init').forEach(function (el) {
+                el.disabled = !init;
+            });
+        }
+
+        /* ================================================================
+           WebSocket callbacks
+        ================================================================ */
+        // Schedule next attempt if available; returns true if scheduled.
+        // Service-status / port-listening / config_li / config_ag diagnostic
+        // guidance is logged once we've exhausted attempts.
+        function sdkFallbackOrFail(reason) {
+            if (sdkConnectionEstablished) { return false; }
+            var nextIdx = sdkCurrentAttempt + 1;
+            if (nextIdx >= sdkConnectionAttempts.length) { return false; }
+            console.warn('[sdk] attempt ' + (sdkCurrentAttempt + 1) + ' (' +
+                sdkConnectionAttempts[sdkCurrentAttempt].label + ') failed: ' +
+                reason + '. Trying ' + sdkConnectionAttempts[nextIdx].label);
+            setStatus('Attempt ' + (sdkCurrentAttempt + 1) + ' failed, retrying...');
+            app.toolkit = null;
+            setTimeout(function () { sdkTryConnect(nextIdx); }, 50);
+            return true;
+        }
+
+        function sdkLogDiagnosticGuidance() {
+            console.error('[sdk] All connection attempts failed. Diagnosis steps:');
+            console.error('[sdk]   1. services.msc -> "Emirates ID Card Toolkit Service" -> Status must be "Running".');
+            console.error('[sdk]   2. netstat -ano | findstr "9004 9005 9020"  (if no match, agent did not bind)');
+            console.error('[sdk]   3. Read the service log:');
+            console.error('[sdk]        <install dir>\\EIDAToolkit_<version>_<YYYYMMDD>.log');
+            console.error('[sdk]        (default install dir: C:\\Program Files (x86)\\ICAToolkitService\\)');
+            console.error('[sdk]      Look for "Toolkit is not intitialized" or "[EXT:Agent] Failed to initialize toolkit".');
+            console.error('[sdk]   4. The MSI installer writes <install dir>\\config_ag_ap from CONFIG_URL or CONFIG_DIRECTORY supplied at install time.');
+            console.error('[sdk]      The toolkit loads its full config (config_ap, config_li, config_lv_*, config_pg, config_tk_*, config_vg_*) either from the URL (CONFIG_URL mode) or from that directory (CONFIG_DIRECTORY mode).');
+            console.error('[sdk]      If config_ag_ap is empty / missing either key, the toolkit falls back to looking in the install dir itself - and if no license files live there, the agent never binds.');
+        }
+
+        // /health-aware boot: ask the agent what mode it's in instead of
+        // guessing through the hardcoded fallback chain. On probe success
+        // the auto-detected entry is unshifted at index 0 so the existing
+        // sdkFallbackOrFail cascade still runs if WS connection fails.
+        // On probe unavailable, falls through to today's behaviour. See
+        // docs/superpowers/specs/2026-05-10-modern-console-samples-
+        // health-probe-design.md.
+        function startConnection() {
+            probeHealth().then(function (probed) {
+                if (probed) {
+                    console.info('[sdk] /health probe succeeded: tls=' +
+                        probed.tls + ', host=' + probed.host);
+                    setStatus('Connecting via /health auto-detect (' +
+                        (probed.tls ? 'wss' : 'ws') + '://' + probed.host +
+                        ')...');
+                    sdkConnectionAttempts.unshift({
+                        tls: probed.tls,
+                        host: probed.host,
+                        label: (probed.tls ? 'wss' : 'ws') + '://' +
+                            probed.host + ' (auto-detected from /health)'
+                    });
+                    sdkTryConnect(0);
+                } else {
+                    console.info('[sdk] /health probe unavailable; ' +
+                        'using sample fallback chain');
+                    sdkTryConnect(0);
+                }
+            });
+        }
+
+        function sdkTryConnect(idx) {
+            sdkCurrentAttempt = idx;
+            var a = sdkConnectionAttempts[idx];
+            console.info('[sdk] Connection attempt ' + (idx + 1) + '/' +
+                sdkConnectionAttempts.length + ': ' + a.label);
+            setStatus('Connecting via ' + a.label + '...');
+            app.toolkit = new Toolkit(onOpenCB, onCloseCB, onErrorCB,
+                buildSdkOptions(idx));
+        }
+
+        var onOpenCB = function (response, error) {
+            if (error) {
+                if (sdkFallbackOrFail(error.message || error)) { return; }
+                sdkLogDiagnosticGuidance();
+                setStatus('Initialize failed: ' + (error.message || error), false);
+                app.toolkit = null;
+                setConnectionStatus(false, null);
+                updateButtonStates();
+                return;
+            }
+            sdkConnectionEstablished = true;
+            app.connected = true;
+            setConnectionStatus(true, null);
+            setStatus('Connected via ' + sdkConnectionAttempts[sdkCurrentAttempt].label, true);
+            updateButtonStates();
+
+            // Fetch and show the toolkit version so developers can verify the
+            // loaded middleware matches the SDK they are coding against.
+            app.toolkit.getToolkitVersion(function (verResponse, verError) {
+                var brand = document.getElementById('brandSubtitle');
+                if (verError || !verResponse) {
+                    if (brand) { brand.textContent = 'Card Toolkit'; }
+                    return;
+                }
+                var version = (typeof verResponse === 'string')
+                    ? verResponse
+                    : (verResponse.version || verResponse.Version || String(verResponse));
+                if (brand) { brand.textContent = 'Card Toolkit v' + version; }
+            });
+        };
+
+        var onCloseCB = function (response) {
+            if (sdkFallbackOrFail('close code ' + response)) { return; }
+            if (!sdkConnectionEstablished) { sdkLogDiagnosticGuidance(); }
+            app.connected = false;
+            app.readerConnected = false;
+            app.toolkit = null;
+            app.reader = null;
+            app.cachedModulus = null;
+            app.cachedExponent = null;
+            setConnectionStatus(false, null);
+            setStatus('Disconnected');
+            updateButtonStates();
+            var brand = document.getElementById('brandSubtitle');
+            if (brand) { brand.textContent = 'Card Toolkit'; }
+        };
+
+        var onErrorCB = function (err) {
+            if (sdkFallbackOrFail(err || 'connection error')) { return; }
+            sdkLogDiagnosticGuidance();
+            app.connected = false;
+            app.readerConnected = false;
+            app.toolkit = null;
+            app.reader = null;
+            app.cachedModulus = null;
+            app.cachedExponent = null;
+            setConnectionStatus(false, null);
+            setStatus('All connection attempts failed: ' + (err || 'Connection failed'), false);
+            updateButtonStates();
+        };
+
+        /* ================================================================
+           Connection handlers
+        ================================================================ */
+        function doInitialize() {
+            if (app.toolkit !== null) {
+                setStatus('Already initialized');
+                return;
+            }
+            try {
+                sdkConnectionEstablished = false;
+                console.info('[sdk] Initializing (probe /health, ' +
+                    'fall back to hardcoded chain)');
+                startConnection();
+            } catch (e) {
+                setStatus('Initialize exception: ' + e.message, false);
+                app.toolkit = null;
+            }
+        }
+
+        function doCleanup() {
+            if (!app.toolkit) {
+                setStatus('Not initialized');
+                return;
+            }
+            app.reader = null;
+            app.cachedModulus = null;
+            app.cachedExponent = null;
+            app.lastSignature = null;
+            app.lastSignedData = null;
+            app.lastSignatureCert = null;
+            app.lastAuthCert = null;
+            app.lastSigningCert = null;
+            app.lastXmlResponse = null;
+            app.toolkit.cleanup();
+            app.toolkit = null;
+            app.connected = false;
+            app.readerConnected = false;
+            setConnectionStatus(false, null);
+            setStatus('Cleaned up');
+            updateButtonStates();
+        }
+
+        function doFindReaders() {
+            if (!app.toolkit) {
+                setStatus('Not initialized', false);
+                return;
+            }
+            setStatus('Listing readers...');
+            app.toolkit.listReaders(function (response, error) {
+                if (error) {
+                    setStatus('List readers failed: ' + (error.message || error), false);
+                    return;
+                }
+                if (!response || response.length === 0) {
+                    setStatus('No readers found');
+                    return;
+                }
+                /* Populate dropdown */
+                var sel = document.getElementById('selReader');
+                sel.textContent = '';
+                for (var i = 0; i < response.length; i++) {
+                    var opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = response[i].readerName;
+                    opt._reader = response[i];
+                    sel.appendChild(opt);
+                }
+                /* Store reader objects on the select for doConnect to retrieve */
+                sel._readers = response;
+                document.getElementById('btnConnect').disabled = false;
+                setStatus('Found ' + response.length + ' reader(s)', true);
+            });
+        }
+
+        function doConnect() {
+            var sel = document.getElementById('selReader');
+            if (!sel._readers || sel._readers.length === 0) {
+                setStatus('No readers — run Find Readers first', false);
+                return;
+            }
+            var idx = parseInt(sel.value, 10) || 0;
+            app.reader = sel._readers[idx];
+            setStatus('Connecting to reader...');
+            app.reader.connect(function (response, error) {
+                if (error) {
+                    setStatus('Connect failed: ' + (error.message || error), false);
+                    app.reader = null;
+                    return;
+                }
+                app.readerConnected = true;
+                setConnectionStatus(true, app.reader.readerName);
+                setStatus('Reader connected: ' + app.reader.readerName, true);
+                updateButtonStates();
+            });
+        }
+
+        function doDisconnect() {
+            if (!app.reader) {
+                setStatus('Reader not connected', false);
+                return;
+            }
+            app.reader.disconnect(function (response, error) {
+                if (error) {
+                    setStatus('Disconnect failed: ' + (error.message || error), false);
+                    return;
+                }
+                app.readerConnected = false;
+                app.reader = null;
+                setConnectionStatus(true, null);
+                setStatus('Reader disconnected');
+                updateButtonStates();
+            });
+        }
+
+        /* ================================================================
+           Crypto helpers
+        ================================================================ */
+        function hexToBytes(hex) {
+            var bytes = new Uint8Array(hex.length / 2);
+            for (var i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+            }
+            return bytes;
+        }
+
+        function bytesToBigInt(bytes) {
+            var hex = '';
+            for (var i = 0; i < bytes.length; i++) {
+                hex += bytes[i].toString(16).padStart(2, '0');
+            }
+            return BigInt('0x' + hex);
+        }
+
+        function bigIntToBytes(n, length) {
+            var hex = n.toString(16);
+            if (hex.length % 2) { hex = '0' + hex; }
+            var bytes = new Uint8Array(length);
+            var hexBytes = hex.length / 2;
+            var offset = length - hexBytes;
+            for (var i = 0; i < hexBytes; i++) {
+                bytes[offset + i] = parseInt(hex.substr(i * 2, 2), 16);
+            }
+            return bytes;
+        }
+
+        function modPow(base, exp, mod) {
+            var result = 1n;
+            base = base % mod;
+            while (exp > 0n) {
+                if (exp % 2n === 1n) {
+                    result = (result * base) % mod;
+                }
+                exp = exp / 2n;
+                base = (base * base) % mod;
+            }
+            return result;
+        }
+
+        function pkcs1v15Pad(data, keyLength) {
+            var padLength = keyLength - data.length - 3;
+            if (padLength < 8) {
+                throw new Error('Data too long for RSA key size');
+            }
+            var padded = new Uint8Array(keyLength);
+            padded[0] = 0x00;
+            padded[1] = 0x02;
+            var randomBytes = new Uint8Array(padLength);
+            crypto.getRandomValues(randomBytes);
+            for (var i = 0; i < padLength; i++) {
+                while (randomBytes[i] === 0) {
+                    var tmp = new Uint8Array(1);
+                    crypto.getRandomValues(tmp);
+                    randomBytes[i] = tmp[0];
+                }
+                padded[2 + i] = randomBytes[i];
+            }
+            padded[2 + padLength] = 0x00;
+            padded.set(data, 3 + padLength);
+            return padded;
+        }
+
+        function rsaPkcs1Encrypt(data, modulusHex, exponentHex) {
+            var modBytes = hexToBytes(modulusHex);
+            var expBytes = hexToBytes(exponentHex);
+            var padded = pkcs1v15Pad(data, modBytes.length);
+            var m = bytesToBigInt(padded);
+            var n = bytesToBigInt(modBytes);
+            var e = bytesToBigInt(expBytes);
+            var c = modPow(m, e, n);
+            return bigIntToBytes(c, modBytes.length);
+        }
+
+        function encryptWithDataProtectionKey(plaintext, requestHandle, modulusHex, exponentHex) {
+            try {
+                var handleStr = atob(requestHandle);
+                var handleBytes = new Uint8Array(handleStr.length);
+                for (var i = 0; i < handleStr.length; i++) {
+                    handleBytes[i] = handleStr.charCodeAt(i);
+                }
+                var encoder = new TextEncoder();
+                var plaintextBytes = encoder.encode(plaintext);
+                var plainData = new Uint8Array(handleBytes.length + plaintextBytes.length);
+                plainData.set(handleBytes, 0);
+                plainData.set(plaintextBytes, handleBytes.length);
+                var encrypted = rsaPkcs1Encrypt(plainData, modulusHex, exponentHex);
+                var binary = '';
+                for (var j = 0; j < encrypted.length; j++) {
+                    binary += String.fromCharCode(encrypted[j]);
+                }
+                return btoa(binary);
+            } catch (e) {
+                setStatus('PIN encryption failed: ' + e.message, false);
+                return null;
+            }
+        }
+
+        function generateRequestId() {
+            var text = '';
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            for (var i = 0; i < 40; i++) {
+                text += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return btoa(text);
+        }
+
+        function formatPEM(base64Data, type) {
+            if (!base64Data) { return '(empty)'; }
+            type = type || 'CERTIFICATE';
+            var lines = ['-----BEGIN ' + type + '-----'];
+            for (var i = 0; i < base64Data.length; i += 64) {
+                lines.push(base64Data.substring(i, i + 64));
+            }
+            lines.push('-----END ' + type + '-----');
+            return lines.join('\n');
+        }
+
+        function isAsciiSafe(str) {
+            for (var i = 0; i < str.length; i++) {
+                if (str.charCodeAt(i) > 127) { return false; }
+            }
+            return true;
+        }
+
+        function getEncryptedPin(pin, callback) {
+            if (!app.reader) { callback(null); return; }
+            var requestId = generateRequestId();
+            app.reader.prepareRequest(requestId, function (requestHandle, error) {
+                if (error || !requestHandle) {
+                    setStatus('PrepareRequest failed', false);
+                    callback(null);
+                    return;
+                }
+                if (app.cachedModulus && app.cachedExponent) {
+                    var encrypted = encryptWithDataProtectionKey(
+                        pin, requestHandle, app.cachedModulus, app.cachedExponent);
+                    callback(encrypted);
+                    return;
+                }
+                app.toolkit.getDataProtectionKey(function (response, dpkError) {
+                    if (dpkError || !response || !response.modulus || !response.exponent) {
+                        setStatus('Failed to get data protection key', false);
+                        callback(null);
+                        return;
+                    }
+                    app.cachedModulus = response.modulus;
+                    app.cachedExponent = response.exponent;
+                    var encrypted = encryptWithDataProtectionKey(
+                        pin, requestHandle, app.cachedModulus, app.cachedExponent);
+                    callback(encrypted);
+                });
+            });
+        }
+
+        /* ================================================================
+           Finger data cache (shared across PIN and Biometric pages)
+        ================================================================ */
+        var fingerDataCache = null;
+
+        /* ================================================================
+           Page 1: Card Operations
+        ================================================================ */
+        function setCardOpsStatus(msg, isSuccess) {
+            var el = document.getElementById('cardOpsStatus');
+            el.textContent = msg;
+            el.style.color = isSuccess === true ? '#107C10' :
+                             isSuccess === false ? '#D13438' : '#6E6E6E';
+        }
+
+        function doReadCsn() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            setStatus('Reading card serial number...');
+            app.reader.getCardSerialNumber(function (response, error) {
+                if (error) {
+                    document.getElementById('csnResult').value = error.message || 'Error';
+                    document.getElementById('csnResult').style.color = '#D13438';
+                    setStatus('CSN read failed: ' + (error.message || error), false);
+                    setCardOpsStatus('CSN read failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                var csn = str(response.CSN || response.csn || response);
+                document.getElementById('csnResult').value = csn;
+                document.getElementById('csnResult').style.color = '#107C10';
+                setStatus('CSN read successfully', true);
+                setCardOpsStatus('CSN read successfully', true);
+            });
+        }
+
+        function doCheckCardStatus() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            setStatus('Checking card status...');
+            var requestId = generateRequestId();
+            app.reader.checkCardStatus(requestId, function (response, error) {
+                if (error) {
+                    document.getElementById('cardStatusResult').value = error.message || 'Error';
+                    document.getElementById('cardStatusResult').style.color = '#D13438';
+                    document.getElementById('cardStatusXml').value = '';
+                    setStatus('Card status check failed: ' + (error.message || error), false);
+                    setCardOpsStatus('Card status check failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                var status = str(response && response.status) || 'Valid';
+                var xml = str(response && response.xmlString);
+                document.getElementById('cardStatusResult').value = status;
+                document.getElementById('cardStatusResult').style.color = '#107C10';
+                document.getElementById('cardStatusXml').value = xml;
+                setStatus('Card status: ' + status, true);
+                setCardOpsStatus('Card status: ' + status, true);
+            });
+        }
+
+        function doGetInterfaceType() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            setStatus('Getting interface type...');
+            app.reader.getInterfaceType(function (response, error) {
+                if (error) {
+                    document.getElementById('interfaceTypeResult').value = error.message || 'Error';
+                    document.getElementById('interfaceTypeResult').style.color = '#D13438';
+                    setStatus('Get interface type failed: ' + (error.message || error), false);
+                    setCardOpsStatus('Get interface type failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                var types = { 0: 'Unknown', 1: 'Contact', 2: 'NFC' };
+                var ifType = (response !== null && response !== undefined)
+                    ? (types[response] || String(response))
+                    : 'Unknown';
+                document.getElementById('interfaceTypeResult').value = ifType;
+                document.getElementById('interfaceTypeResult').style.color = '#107C10';
+                setStatus('Interface type: ' + ifType, true);
+                setCardOpsStatus('Interface type: ' + ifType, true);
+            });
+        }
+
+        function doGetCardVersion() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            setStatus('Getting card version...');
+            app.reader.getCardVersion(function (response, error) {
+                if (error) {
+                    document.getElementById('cardVersionResult').value = error.message || 'Error';
+                    document.getElementById('cardVersionResult').style.color = '#D13438';
+                    setStatus('Get card version failed: ' + (error.message || error), false);
+                    setCardOpsStatus('Get card version failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                // Map numeric version to the generation label the business cares about.
+                // Unknown values fall through to the raw number so a future V6 card
+                // still shows something sensible instead of 'Unknown'.
+                var versions = { 2: 'V2', 3: 'V3', 4: 'V4', 5: 'V5' };
+                var ver = (response !== null && response !== undefined)
+                    ? (versions[response] || String(response))
+                    : 'Unknown';
+                document.getElementById('cardVersionResult').value = ver;
+                document.getElementById('cardVersionResult').style.color = '#107C10';
+                setStatus('Card version: ' + ver, true);
+                setCardOpsStatus('Card version: ' + ver, true);
+            });
+        }
+
+        /* ================================================================
+           Page 2: Public Data
+        ================================================================ */
+
+        // Safely extract a display string from an SDK response field.
+        // xmlToJson() may return an object when an XML element has child
+        // elements or attributes.  Extract the text content via known
+        // property names, or fall back to an empty string rather than
+        // letting [object Object] appear in the UI.
+        function str(val) {
+            if ((val === null) || (val === undefined)) { return ''; }
+            if (typeof val === 'string') { return val; }
+            if (typeof val === 'number') { return String(val); }
+            if (typeof val === 'object') {
+                // xmlToJson wraps text nodes with attributes as { text: "value", "@attributes": {...} }
+                if (val.text !== undefined) { return String(val.text); }
+                if (val['#text'] !== undefined) { return String(val['#text']); }
+                // Some SDK response objects have specific string properties
+                if (val.value !== undefined) { return String(val.value); }
+                if (val.english !== undefined) { return String(val.english); }
+                if (val.englishValue !== undefined) { return String(val.englishValue); }
+                if (val.description !== undefined) { return String(val.description); }
+                // Fallback: try to get any meaningful string from single-property objects
+                var keys = Object.keys(val).filter(function (k) { return k !== '@attributes'; });
+                if ((keys.length === 1) && (typeof val[keys[0]] !== 'object')) {
+                    return String(val[keys[0]]);
+                }
+                // Last resort: show the object's content as JSON
+                if (keys.length > 0) { return JSON.stringify(val); }
+                return '';
+            }
+            return String(val);
+        }
+
+        function setTextField(id, value) {
+            var el = document.getElementById(id);
+            if (el) { el.value = str(value); }
+        }
+
+        function doClearPublicData() {
+            var ids = [
+                'pdIdNumber', 'pdCardNumber', 'pdIdType', 'pdIssueDate', 'pdExpiryDate',
+                'pdFullNameEn', 'pdFullNameAr', 'pdGender', 'pdDob', 'pdNationalityEn',
+                'pdTitleEn', 'pdPlaceOfBirthEn', 'pdNationalityCode',
+                'pdOccupationEn', 'pdCompanyEn', 'pdFamilyId', 'pdMaritalStatus',
+                'pdSponsorName', 'pdResidencyNo', 'pdResidencyExpiry',
+                'pdPassportNo', 'pdPassportCountry', 'pdPassportExpiry', 'pdMotherNameEn',
+                'pdHomeEmirate', 'pdHomeCity', 'pdHomeArea', 'pdHomeStreet',
+                'pdHomeBuilding', 'pdHomePoBox', 'pdHomePhone', 'pdHomeMobile', 'pdHomeEmail',
+                'pdWorkEmirate', 'pdWorkCity', 'pdWorkStreet', 'pdWorkPoBox', 'pdXml'
+            ];
+            ids.forEach(function (id) { setTextField(id, ''); });
+
+            var photo = document.getElementById('pdPhoto');
+            photo.src = '';
+            photo.style.display = 'none';
+            document.getElementById('pdPhotoPlaceholder').style.display = '';
+
+        }
+
+        function doReadPublicData() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            setStatus('Reading public data...');
+            var requestId = generateRequestId();
+            var readNonMod = document.getElementById('chkNonMod').checked;
+            var readMod    = document.getElementById('chkMod').checked;
+            var readPhoto  = document.getElementById('chkPhoto').checked;
+            var readSig    = document.getElementById('chkSig').checked;
+            var readAddr   = document.getElementById('chkAddr').checked;
+
+            app.reader.readPublicData(requestId, readNonMod, readMod, readPhoto, readSig, readAddr,
+                function (response, error) {
+                    if (error) {
+                        setStatus('Read public data failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    setTextField('pdIdNumber', response.iDNumber || response.idNumber);
+                    setTextField('pdCardNumber', response.cardNumber);
+
+                    var nm = response.nonModifiablePublicData;
+                    if (nm) {
+                        setTextField('pdIdType', nm.iDType || nm.idType);
+                        setTextField('pdIssueDate', nm.issueDate);
+                        setTextField('pdExpiryDate', nm.expiryDate);
+                        setTextField('pdFullNameEn', nm.fullNameEnglish);
+                        setTextField('pdFullNameAr', nm.fullNameArabic);
+                        setTextField('pdGender', nm.gender);
+                        setTextField('pdDob', nm.dateOfBirth);
+                        setTextField('pdNationalityEn', nm.nationalityEnglish);
+                        setTextField('pdTitleEn', nm.titleEnglish);
+                        setTextField('pdPlaceOfBirthEn', nm.placeOfBirthEnglish);
+                        setTextField('pdNationalityCode', nm.nationalityCode);
+                    }
+
+                    var m = response.modifiablePublicData;
+                    if (m) {
+                        setTextField('pdOccupationEn', m.occupationEnglish);
+                        setTextField('pdCompanyEn', m.companyNameEnglish);
+                        setTextField('pdFamilyId', m.familyId);
+                        setTextField('pdMaritalStatus', m.maritalStatusCode);
+                        setTextField('pdSponsorName', m.sponsorName);
+                        setTextField('pdResidencyNo', m.residencyNumber);
+                        setTextField('pdResidencyExpiry', m.residencyExpiryDate);
+                        setTextField('pdPassportNo', m.passportNumber);
+                        setTextField('pdPassportCountry', m.passportCountryEnglish);
+                        setTextField('pdPassportExpiry', m.passportExpiryDate);
+                        setTextField('pdMotherNameEn', m.motherFullNameEnglish);
+                    }
+
+                    var h = response.homeAddress;
+                    if (h) {
+                        setTextField('pdHomeEmirate', h.emiratesDescEnglish || h.emirateEnglish);
+                        setTextField('pdHomeCity', h.cityDescEnglish || h.cityEnglish);
+                        setTextField('pdHomeArea', h.areaDescEnglish || h.areaEnglish);
+                        setTextField('pdHomeStreet', h.streetEnglish);
+                        setTextField('pdHomeBuilding', h.buildingNameEnglish);
+                        setTextField('pdHomePoBox', h.pOBOX || h.poBox);
+                        setTextField('pdHomePhone', h.residentPhoneNumber || h.landPhoneNumber);
+                        setTextField('pdHomeMobile', h.mobilePhoneNumber);
+                        setTextField('pdHomeEmail', h.email);
+                    }
+
+                    var w = response.workAddress;
+                    if (w) {
+                        setTextField('pdWorkEmirate', w.emiratesDescEnglish || w.emirateEnglish);
+                        setTextField('pdWorkCity', w.cityDescEnglish || w.cityEnglish);
+                        setTextField('pdWorkStreet', w.streetEnglish);
+                        setTextField('pdWorkPoBox', w.pOBOX || w.poBox);
+                    }
+
+                    var photoData = str(response.cardHolderPhoto);
+                    if (photoData) {
+                        var photo = document.getElementById('pdPhoto');
+                        photo.src = 'data:image/jpeg;base64,' + photoData;
+                        photo.style.display = 'block';
+                        document.getElementById('pdPhotoPlaceholder').style.display = 'none';
+                    }
+
+                    setTextField('pdXml', response.xmlString);
+                    setStatus('Public data read successfully', true);
+                });
+        }
+
+        /* ================================================================
+           Family Book Data (Page 2: Public Data)
+        ================================================================ */
+        function setFamilyBookStatus(msg, isSuccess) {
+            var el = document.getElementById('familyBookStatus');
+            el.textContent = msg;
+            el.style.color = isSuccess === true ? '#107C10' :
+                             isSuccess === false ? '#D13438' : '#6E6E6E';
+        }
+
+        function clearFamilyBookDisplay() {
+            var headIds = ['fbHolderId', 'fbFamilyId', 'fbHeadNationalityCode',
+                'fbEmirateEn', 'fbEmirateAr', 'fbHeadGender',
+                'fbFirstNameEn', 'fbFirstNameAr', 'fbHeadDob',
+                'fbFatherNameEn', 'fbFatherNameAr',
+                'fbGrandFatherEn', 'fbGrandFatherAr',
+                'fbTribeEn', 'fbTribeAr', 'fbClanEn', 'fbClanAr',
+                'fbNationalityEn', 'fbNationalityAr',
+                'fbPlaceOfBirthEn', 'fbPlaceOfBirthAr',
+                'fbMotherNameEn', 'fbMotherNameAr'];
+            for (var i = 0; i < headIds.length; i++) {
+                var el = document.getElementById(headIds[i]);
+                if (el) { el.value = ''; }
+            }
+
+            document.getElementById('familyBookHeadSection').style.display = 'none';
+            document.getElementById('familyBookWivesSection').style.display = 'none';
+            document.getElementById('familyBookChildrenSection').style.display = 'none';
+            document.getElementById('familyBookWivesList').textContent = '';
+            document.getElementById('familyBookChildrenList').textContent = '';
+            document.getElementById('familyBookXml').value = '';
+        }
+
+        function buildWifeCard(wife, index) {
+            var wrap = document.createElement('div');
+            wrap.style.cssText = 'border:1px solid #E0E0E0; border-radius:4px; padding:10px; margin-bottom:8px; background:#FAFAFA;';
+            var title = document.createElement('div');
+            title.style.cssText = 'font-weight:600; font-size:13px; margin-bottom:6px;';
+            title.textContent = 'Wife ' + (index + 1);
+            wrap.appendChild(title);
+            var grid = document.createElement('div');
+            grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;';
+            var fields = [
+                ['Wife ID Number', wife.WifeIdn],
+                ['Full Name (English)', wife.FullNameEnglish],
+                ['Full Name (Arabic)', wife.FullNameArabic, true],
+                ['Nationality Code', wife.NationalityCode],
+                ['Nationality (English)', wife.NationalityEnglish],
+                ['Nationality (Arabic)', wife.NationalityArabic, true]
+            ];
+            for (var i = 0; i < fields.length; i++) {
+                var cell = document.createElement('div');
+                var lbl = document.createElement('label');
+                lbl.className = 'field-label';
+                lbl.textContent = fields[i][0];
+                var inp = document.createElement('input');
+                inp.type = 'text';
+                inp.className = 'input result-field';
+                inp.readOnly = true;
+                inp.value = fields[i][1] || '';
+                if (fields[i][2]) { inp.style.direction = 'rtl'; }
+                cell.appendChild(lbl);
+                cell.appendChild(inp);
+                grid.appendChild(cell);
+            }
+
+            wrap.appendChild(grid);
+            return wrap;
+        }
+
+        function buildChildCard(child, index) {
+            var wrap = document.createElement('div');
+            wrap.style.cssText = 'border:1px solid #E0E0E0; border-radius:4px; padding:10px; margin-bottom:8px; background:#FAFAFA;';
+            var title = document.createElement('div');
+            title.style.cssText = 'font-weight:600; font-size:13px; margin-bottom:6px;';
+            title.textContent = 'Child ' + (index + 1);
+            wrap.appendChild(title);
+            var grid = document.createElement('div');
+            grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;';
+            var fields = [
+                ['Child ID Number', child.ChildIdn],
+                ['First Name (English)', child.FirstNameEnglish],
+                ['First Name (Arabic)', child.FirstNameArabic, true],
+                ['Gender', child.Gender],
+                ['Date of Birth', child.DateOfBirth],
+                ['Mother ID Number', child.MotherIdn],
+                ['Place of Birth (English)', child.PlaceOfBirthEnglish],
+                ['Place of Birth (Arabic)', child.PlaceOfBirthArabic, true],
+                ['Mother Name (English)', child.MotherFullNameEnglish],
+                ['Mother Name (Arabic)', child.MotherFullNameArabic, true]
+            ];
+            for (var i = 0; i < fields.length; i++) {
+                var cell = document.createElement('div');
+                var lbl = document.createElement('label');
+                lbl.className = 'field-label';
+                lbl.textContent = fields[i][0];
+                var inp = document.createElement('input');
+                inp.type = 'text';
+                inp.className = 'input result-field';
+                inp.readOnly = true;
+                inp.value = fields[i][1] || '';
+                if (fields[i][2]) { inp.style.direction = 'rtl'; }
+                cell.appendChild(lbl);
+                cell.appendChild(inp);
+                grid.appendChild(cell);
+            }
+
+            wrap.appendChild(grid);
+            return wrap;
+        }
+
+        function doReadFamilyBookData() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var pin = document.getElementById('familyBookPin').value;
+            if (!pin || pin.length < 4 || pin.length > 16) {
+                setStatus('PIN must be between 4 and 16 digits', false);
+                setFamilyBookStatus('PIN must be between 4 and 16 digits', false);
+                return;
+            }
+
+            clearFamilyBookDisplay();
+            setStatus('Reading family book data...');
+            setFamilyBookStatus('Reading family book data...', null);
+
+            getEncryptedPin(pin, function (encodedPin) {
+                if (!encodedPin) {
+                    setStatus('PIN encryption failed', false);
+                    setFamilyBookStatus('PIN encryption failed', false);
+                    return;
+                }
+
+                app.reader.readFamilyBookData(encodedPin, function (response, error) {
+                    if (error) {
+                        var msg = 'Read family book failed: ' + (error.message || error);
+                        if (error.attemptsLeft !== undefined && error.attemptsLeft !== null) {
+                            msg += ' (' + error.attemptsLeft + ' attempts left)';
+                        }
+
+                        setStatus(msg, false);
+                        setFamilyBookStatus(msg, false);
+                        if (error.vGResponse) {
+                            document.getElementById('familyBookXml').value = error.vGResponse;
+                        }
+
+                        return;
+                    }
+
+                    if (response.HeadOfFamily) {
+                        var h = response.HeadOfFamily;
+                        setTextField('fbHolderId', h.HolderIdNumber);
+                        setTextField('fbFamilyId', h.FamilyId);
+                        setTextField('fbHeadNationalityCode', h.NationalityCode);
+                        setTextField('fbEmirateEn', h.EmirateNameEnglish);
+                        setTextField('fbEmirateAr', h.EmirateNameArabic);
+                        setTextField('fbHeadGender', h.Gender);
+                        setTextField('fbFirstNameEn', h.FirstNameEnglish);
+                        setTextField('fbFirstNameAr', h.FirstNameArabic);
+                        setTextField('fbHeadDob', h.DateOfBirth);
+                        setTextField('fbFatherNameEn', h.FatherNameEnglish);
+                        setTextField('fbFatherNameAr', h.FatherNameArabic);
+                        setTextField('fbGrandFatherEn', h.GrandFatherNameEnglish);
+                        setTextField('fbGrandFatherAr', h.GrandFatherNameArabic);
+                        setTextField('fbTribeEn', h.TribeEnglish);
+                        setTextField('fbTribeAr', h.TribeArabic);
+                        setTextField('fbClanEn', h.ClanEnglish);
+                        setTextField('fbClanAr', h.ClanArabic);
+                        setTextField('fbNationalityEn', h.NationalityEnglish);
+                        setTextField('fbNationalityAr', h.NationalityArabic);
+                        setTextField('fbPlaceOfBirthEn', h.PlaceOfBirthEnglish);
+                        setTextField('fbPlaceOfBirthAr', h.PlaceOfBirthArabic);
+                        setTextField('fbMotherNameEn', h.MotherFullNameEnglish);
+                        setTextField('fbMotherNameAr', h.MotherFullNameArabic);
+                        document.getElementById('familyBookHeadSection').style.display = '';
+                    }
+
+                    var wivesList = document.getElementById('familyBookWivesList');
+                    if (response.wives && response.wives.length > 0) {
+                        for (var wi = 0; wi < response.wives.length; wi++) {
+                            wivesList.appendChild(buildWifeCard(response.wives[wi], wi));
+                        }
+
+                        document.getElementById('familyBookWivesSection').style.display = '';
+                    }
+
+                    var childrenList = document.getElementById('familyBookChildrenList');
+                    if (response.children && response.children.length > 0) {
+                        for (var ci = 0; ci < response.children.length; ci++) {
+                            childrenList.appendChild(buildChildCard(response.children[ci], ci));
+                        }
+
+                        document.getElementById('familyBookChildrenSection').style.display = '';
+                    }
+
+                    setTextField('familyBookXml', response.xmlString);
+                    setStatus('Family book data read successfully', true);
+                    setFamilyBookStatus('Family book data read successfully', true);
+                });
+            });
+        }
+
+        /* ================================================================
+           Page 3: PIN Operations
+        ================================================================ */
+        function populateFingerSelect(selId, fingerData) {
+            var sel = document.getElementById(selId);
+            sel.textContent = '';
+            for (var i = 0; i < fingerData.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = fingerData[i].fingerIndex
+                    ? fingerData[i].fingerIndex.replace(/_/g, ' ')
+                    : ('Finger ' + (i + 1));
+                sel.appendChild(opt);
+            }
+        }
+
+        function doPinLoadFingerData() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            setStatus('Loading finger data...');
+            app.reader.getFingerData(function (response, error) {
+                if (error) {
+                    setStatus('Load finger data failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                fingerDataCache = response;
+                populateFingerSelect('resetFingerSel', response);
+                populateFingerSelect('unblockFingerSel', response);
+                setStatus('Finger data loaded (' + response.length + ' fingers)', true);
+            });
+        }
+
+        function doResetPin() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var newPin     = document.getElementById('resetPinNew').value;
+            var confirmPin = document.getElementById('resetPinConfirm').value;
+            var timeout    = parseInt(document.getElementById('resetTimeout').value) || 30;
+            var fingerIdx  = document.getElementById('resetFingerSel').value;
+
+            if (!newPin) { setStatus('Please enter the PIN', false); return; }
+            if (!confirmPin) { setStatus('Please enter the confirm PIN', false); return; }
+            if (newPin !== confirmPin) { setStatus('PIN does not match', false); return; }
+            if ((newPin.length < 4) || (newPin.length > 16)) {
+                setStatus('PIN must be between 4 and 16 digits', false); return;
+            }
+            if (timeout <= 0) { setStatus('Sensor timeout must be greater than zero', false); return; }
+            if (fingerIdx === '') { setStatus('Please select a finger index', false); return; }
+            if (!fingerDataCache || (fingerDataCache.length === 0)) {
+                setStatus('Please load finger data from card first', false); return;
+            }
+
+            var selectedFinger = fingerDataCache[parseInt(fingerIdx, 10)];
+            setStatus('Encrypting PIN and resetting...');
+            getEncryptedPin(newPin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                app.reader.resetPin(encodedPin, selectedFinger, timeout, function (response, error) {
+                    if (error) {
+                        document.getElementById('resetPinResult').value = error.message || 'Error';
+                        document.getElementById('resetPinResult').style.color = '#D13438';
+                        document.getElementById('resetPinXml').value =
+                            (error.vGResponse || error.xmlString || '');
+                        setStatus('Reset PIN failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    var result = str(response && response.status) || 'Success';
+                    document.getElementById('resetPinResult').value = result;
+                    document.getElementById('resetPinResult').style.color = '#107C10';
+                    document.getElementById('resetPinXml').value =
+                        str(response && response.xmlString);
+                    setStatus('PIN reset: ' + result, true);
+                });
+            });
+        }
+
+        function doUnblockPin() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var newPin     = document.getElementById('unblockPinNew').value;
+            var confirmPin = document.getElementById('unblockPinConfirm').value;
+            var timeout    = parseInt(document.getElementById('unblockTimeout').value) || 30;
+            var fingerIdx  = document.getElementById('unblockFingerSel').value;
+
+            if (!newPin) { setStatus('Please enter the PIN', false); return; }
+            if (!confirmPin) { setStatus('Please enter the confirm PIN', false); return; }
+            if (newPin !== confirmPin) { setStatus('PIN does not match', false); return; }
+            if ((newPin.length < 4) || (newPin.length > 16)) {
+                setStatus('PIN must be between 4 and 16 digits', false); return;
+            }
+            if (timeout <= 0) { setStatus('Sensor timeout must be greater than zero', false); return; }
+            if (fingerIdx === '') { setStatus('Please select a finger index', false); return; }
+            if (!fingerDataCache || (fingerDataCache.length === 0)) {
+                setStatus('Please load finger data from card first', false); return;
+            }
+
+            var selectedFinger = fingerDataCache[parseInt(fingerIdx, 10)];
+            setStatus('Encrypting PIN and unblocking...');
+            getEncryptedPin(newPin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                app.reader.unblockPin(encodedPin, selectedFinger, timeout, function (response, error) {
+                    if (error) {
+                        document.getElementById('unblockPinResult').value = error.message || 'Error';
+                        document.getElementById('unblockPinResult').style.color = '#D13438';
+                        document.getElementById('unblockPinXml').value =
+                            (error.vGResponse || error.xmlString || '');
+                        setStatus('Unblock PIN failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    var result = str(response && response.status) || 'Success';
+                    document.getElementById('unblockPinResult').value = result;
+                    document.getElementById('unblockPinResult').style.color = '#107C10';
+                    document.getElementById('unblockPinXml').value =
+                        str(response && response.xmlString);
+                    setStatus('PIN unblocked: ' + result, true);
+                });
+            });
+        }
+
+        /* ================================================================
+           Page 4: Biometric Auth
+        ================================================================ */
+        var bioFingerCache = null;
+        var cardBioFingerCache = null;
+
+        function doBioLoadFingerData() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            setStatus('Loading finger data...');
+            app.reader.getFingerData(function (response, error) {
+                if (error) {
+                    setStatus('Load finger data failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                bioFingerCache = response;
+                populateFingerSelect('bioFingerSel', response);
+                setStatus('Finger data loaded (' + response.length + ' fingers)', true);
+            });
+        }
+
+        function doCardBioLoadFingerData() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            setStatus('Loading finger data...');
+            app.reader.getFingerData(function (response, error) {
+                if (error) {
+                    setStatus('Load finger data failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                cardBioFingerCache = response;
+                populateFingerSelect('cardBioFingerSel', response);
+                setStatus('Finger data loaded (' + response.length + ' fingers)', true);
+            });
+        }
+
+        function doAuthBiometric() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var timeout   = parseInt(document.getElementById('bioTimeout').value) || 30;
+            var fingerIdx = document.getElementById('bioFingerSel').value;
+
+            if (timeout <= 0) { setStatus('Sensor timeout must be greater than zero', false); return; }
+            if (fingerIdx === '') { setStatus('Please select a finger index', false); return; }
+            if (!bioFingerCache || (bioFingerCache.length === 0)) {
+                setStatus('Please load finger data from card first', false); return;
+            }
+
+            var selectedFinger = bioFingerCache[parseInt(fingerIdx, 10)];
+            setStatus('Authenticating biometric on server...');
+            var requestId = generateRequestId();
+            app.reader.authenticateBiometricOnServer(requestId, selectedFinger.fingerIndex, timeout,
+                function (response, error) {
+                    if (error) {
+                        document.getElementById('bioAuthResult').value = error.message || 'Error';
+                        document.getElementById('bioAuthResult').style.color = '#D13438';
+                        document.getElementById('bioXml').value =
+                            (error.vGResponse || error.xmlString || '');
+                        setStatus('Biometric auth failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    var result = str(response && response.status) || 'Authenticated';
+                    document.getElementById('bioAuthResult').value = result;
+                    document.getElementById('bioAuthResult').style.color = '#107C10';
+                    document.getElementById('bioXml').value =
+                        str(response && response.xmlString);
+                    setStatus('Authentication result: ' + result, true);
+                });
+        }
+
+        function doAuthCardBiometric() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var timeout   = parseInt(document.getElementById('cardBioTimeout').value) || 30;
+            var fingerIdx = document.getElementById('cardBioFingerSel').value;
+
+            if (timeout <= 0) { setStatus('Sensor timeout must be greater than zero', false); return; }
+            if (fingerIdx === '') { setStatus('Please select a finger index', false); return; }
+            if (!cardBioFingerCache || (cardBioFingerCache.length === 0)) {
+                setStatus('Please load finger data from card first', false); return;
+            }
+
+            var selectedFinger = cardBioFingerCache[parseInt(fingerIdx, 10)];
+            setStatus('Authenticating card and biometric...');
+            var requestId = generateRequestId();
+            app.reader.authenticateBiometricandCardOnServer(requestId, selectedFinger.fingerIndex,
+                timeout, function (response, error) {
+                    if (error) {
+                        document.getElementById('cardBioAuthResult').value = error.message || 'Error';
+                        document.getElementById('cardBioAuthResult').style.color = '#D13438';
+                        document.getElementById('cardBioXml').value =
+                            (error.vGResponse || error.xmlString || '');
+                        setStatus('Card + Biometric auth failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    var result = str(response && response.status) || 'Authenticated';
+                    document.getElementById('cardBioAuthResult').value = result;
+                    document.getElementById('cardBioAuthResult').style.color = '#107C10';
+                    document.getElementById('cardBioXml').value =
+                        str(response && response.xmlString);
+                    setStatus('Card + Biometric result: ' + result, true);
+                });
+        }
+
+        /* ================================================================
+           Page 5: NFC Operations
+        ================================================================ */
+        var nfcAuthSet = false;
+
+        function doSetNfcAuthParams() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var cardNo  = document.getElementById('nfcCardNumber').value;
+            var dobYY   = document.getElementById('nfcDobYY').value;
+            var dobMM   = document.getElementById('nfcDobMM').value;
+            var dobDD   = document.getElementById('nfcDobDD').value;
+            var expYY   = document.getElementById('nfcExpYY').value;
+            var expMM   = document.getElementById('nfcExpMM').value;
+            var expDD   = document.getElementById('nfcExpDD').value;
+
+            if (!cardNo || !dobYY || !dobMM || !dobDD || !expYY || !expMM || !expDD) {
+                setStatus('Please fill all NFC authentication fields', false);
+                return;
+            }
+
+            var dateOfBirth = dobYY + dobMM + dobDD;
+            var expiryDate  = expYY + expMM + expDD;
+            setStatus('Setting NFC authentication parameters...');
+            app.reader.setNfcAuthenticationParameters(cardNo, dateOfBirth, expiryDate,
+                function (response, error) {
+                    if (error) {
+                        nfcAuthSet = false;
+                        setStatus('Set NFC params failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    nfcAuthSet = true;
+                    setStatus('NFC authentication parameters set successfully', true);
+                });
+        }
+
+        function doClearNfcAuth() {
+            document.getElementById('nfcCardNumber').value = '';
+            document.getElementById('nfcDobYY').value = '';
+            document.getElementById('nfcDobMM').value = '';
+            document.getElementById('nfcDobDD').value = '';
+            document.getElementById('nfcExpYY').value = '';
+            document.getElementById('nfcExpMM').value = '';
+            document.getElementById('nfcExpDD').value = '';
+            nfcAuthSet = false;
+
+            var nfcIds = ['nfcResponseStatus', 'nfcIdNumber', 'nfcCardNumberResult',
+                'nfcNationality', 'nfcFullNameEn', 'nfcFullNameAr',
+                'nfcGender', 'nfcDob', 'nfcExpiry'];
+            nfcIds.forEach(function (id) { setTextField(id, ''); });
+            setStatus('NFC auth parameters cleared');
+        }
+
+        function doReadPublicDataNfc() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            if (!nfcAuthSet) {
+                setStatus('Please set NFC authentication parameters first', false);
+                return;
+            }
+
+            setStatus('Reading public data using NFC...');
+            var requestId  = generateRequestId();
+            var readNonMod = document.getElementById('nfcChkNonMod').checked;
+            var readMod    = document.getElementById('nfcChkMod').checked;
+            var readPhoto  = document.getElementById('nfcChkPhoto').checked;
+            var readSig    = document.getElementById('nfcChkSig').checked;
+            var readAddr   = document.getElementById('nfcChkAddr').checked;
+
+            app.reader.readPublicData(requestId, readNonMod, readMod, readPhoto, readSig, readAddr,
+                function (response, error) {
+                    if (error) {
+                        setTextField('nfcResponseStatus', error.message || 'Error');
+                        setStatus('NFC read failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    var status = str(response && response.status) || 'Success';
+                    setTextField('nfcResponseStatus', status);
+                    setTextField('nfcIdNumber', response.iDNumber || response.idNumber);
+                    setTextField('nfcCardNumberResult', response.cardNumber);
+
+                    var nm = response && response.nonModifiablePublicData;
+                    if (nm) {
+                        setTextField('nfcFullNameEn', nm.fullNameEnglish);
+                        setTextField('nfcFullNameAr', nm.fullNameArabic);
+                        setTextField('nfcNationality', nm.nationalityEnglish);
+                        setTextField('nfcGender', nm.gender);
+                        setTextField('nfcDob', nm.dateOfBirth);
+                        setTextField('nfcExpiry', nm.expiryDate);
+                    }
+
+                    setStatus('NFC public data read: ' + status, true);
+                });
+        }
+
+        /* ================================================================
+           Page 6: PKI & Signing
+        ================================================================ */
+        function setPkiSigningStatus(msg, isSuccess) {
+            var el = document.getElementById('pkiSigningStatus');
+            el.textContent = msg;
+            el.style.color = isSuccess === true ? '#107C10' :
+                             isSuccess === false ? '#D13438' : '#6E6E6E';
+        }
+
+        function doPkiAuth() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var pin = document.getElementById('pkiAuthPin').value;
+            if (!pin || pin.length < 4) { setStatus('Enter a valid PIN (4+ digits)', false); return; }
+            setStatus('PKI authenticating...');
+            getEncryptedPin(pin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                app.reader.authenticatePki(encodedPin, function (response, error) {
+                    if (error) {
+                        document.getElementById('pkiAuthStatus').value = error.message || 'Error';
+                        document.getElementById('pkiAuthXml').value = (error.vGResponse || error.xmlString || '');
+                        setStatus('PKI auth failed: ' + (error.message || error), false);
+                        setPkiSigningStatus('PKI auth failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    var status = str(response && response.status) || 'Authenticated';
+                    document.getElementById('pkiAuthStatus').value = status;
+                    document.getElementById('pkiAuthXml').value =
+                        str(response && response.xmlString);
+                    setStatus('PKI authentication: ' + status, true);
+                    setPkiSigningStatus('PKI authentication: ' + status, true);
+                });
+            });
+        }
+
+        function doReadCertificates() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var pin = document.getElementById('pkiCertPin').value;
+            if (!pin || pin.length < 4) { setStatus('Enter a valid PIN (4+ digits)', false); return; }
+            setStatus('Reading PKI certificates...');
+            getEncryptedPin(pin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                app.reader.getPkiCertificates(encodedPin, function (response, error) {
+                    if (error) {
+                        setStatus('Read certificates failed: ' + (error.message || error), false);
+                        setPkiSigningStatus('Read certificates failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    app.lastAuthCert = response.authenticationCertificate;
+                    app.lastSigningCert = response.signingCertificate;
+                    document.getElementById('authCertPem').value =
+                        formatPEM(response.authenticationCertificate);
+                    document.getElementById('signCertPem').value =
+                        formatPEM(response.signingCertificate);
+                    setStatus('Certificates read successfully', true);
+                    setPkiSigningStatus('Certificates read successfully', true);
+                });
+            });
+        }
+
+        function doSignDataAuth() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var dataInput = document.getElementById('signAuthData').value;
+            if (!dataInput) { setStatus('Enter data to sign', false); return; }
+            var pin = document.getElementById('signAuthPin').value;
+            if (!pin || pin.length < 4) { setStatus('Enter a valid PIN (4+ digits)', false); return; }
+            setStatus('Signing with auth certificate...');
+            getEncryptedPin(pin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                app.reader.signChallenge(dataInput, 0, encodedPin, function (response, error) {
+                    if (error) {
+                        setStatus('Sign failed: ' + (error.message || error), false);
+                        setPkiSigningStatus('Sign failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    app.lastSignature = response.signature;
+                    app.lastSignedData = dataInput;
+                    app.lastSignatureCert = app.lastAuthCert;
+                    document.getElementById('signAuthOutput').value = response.signature || '';
+                    document.getElementById('signAuthVerifyResult').textContent = '';
+                    setStatus('Data signed with auth certificate', true);
+                    setPkiSigningStatus('Data signed with auth certificate', true);
+                });
+            });
+        }
+
+        function doVerifySignatureAuth() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var dataInput = document.getElementById('signAuthData').value;
+            if (!dataInput) { setStatus('Enter the signed data', false); return; }
+            var sig = document.getElementById('signAuthOutput').value;
+            if (!sig) { setStatus('Sign data first to get a signature', false); return; }
+            if (!app.lastAuthCert) { setStatus('Read certificates first', false); return; }
+            setStatus('Verifying signature (auth cert)...');
+            app.reader.verifySignature(dataInput, 0, sig, app.lastAuthCert, function (response, error) {
+                if (error) {
+                    document.getElementById('signAuthVerifyResult').textContent = 'Verification failed';
+                    document.getElementById('signAuthVerifyResult').style.color = '#D13438';
+                    setStatus('Verify failed: ' + (error.message || error), false);
+                    setPkiSigningStatus('Verify failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                var ok = (response === 'success' || response === true || response === 'true');
+                var label = ok ? 'Valid' : String(response);
+                document.getElementById('signAuthVerifyResult').textContent = label;
+                document.getElementById('signAuthVerifyResult').style.color = ok ? '#107C10' : '#D13438';
+                setStatus('Signature verification: ' + label, ok);
+                setPkiSigningStatus('Signature verification: ' + label, ok);
+            });
+        }
+
+        function doSignDataSign() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var dataInput = document.getElementById('signSignData').value;
+            if (!dataInput) { setStatus('Enter data to sign', false); return; }
+            var pin = document.getElementById('signSignPin').value;
+            if (!pin || pin.length < 4) { setStatus('Enter a valid PIN (4+ digits)', false); return; }
+            setStatus('Signing with signing certificate...');
+            getEncryptedPin(pin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                app.reader.signData(dataInput, 0, encodedPin, function (response, error) {
+                    if (error) {
+                        setStatus('Sign failed: ' + (error.message || error), false);
+                        setPkiSigningStatus('Sign failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    app.lastSignature = response.signature;
+                    app.lastSignedData = dataInput;
+                    app.lastSignatureCert = app.lastSigningCert;
+                    document.getElementById('signSignOutput').value = response.signature || '';
+                    document.getElementById('signSignVerifyResult').textContent = '';
+                    setStatus('Data signed with signing certificate', true);
+                    setPkiSigningStatus('Data signed with signing certificate', true);
+                });
+            });
+        }
+
+        function doVerifySignatureSign() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var dataInput = document.getElementById('signSignData').value;
+            if (!dataInput) { setStatus('Enter the signed data', false); return; }
+            var sig = document.getElementById('signSignOutput').value;
+            if (!sig) { setStatus('Sign data first to get a signature', false); return; }
+            if (!app.lastSigningCert) { setStatus('Read certificates first', false); return; }
+            setStatus('Verifying signature (signing cert)...');
+            app.reader.verifySignature(dataInput, 0, sig, app.lastSigningCert, function (response, error) {
+                if (error) {
+                    document.getElementById('signSignVerifyResult').textContent = 'Verification failed';
+                    document.getElementById('signSignVerifyResult').style.color = '#D13438';
+                    setStatus('Verify failed: ' + (error.message || error), false);
+                    setPkiSigningStatus('Verify failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                var ok = (response === 'success' || response === true || response === 'true');
+                var label = ok ? 'Valid' : String(response);
+                document.getElementById('signSignVerifyResult').textContent = label;
+                document.getElementById('signSignVerifyResult').style.color = ok ? '#107C10' : '#D13438';
+                setStatus('Signature verification: ' + label, ok);
+                setPkiSigningStatus('Signature verification: ' + label, ok);
+            });
+        }
+
+        /* ================================================================
+           Page 7: AdES Signing
+        ================================================================ */
+        var lastCadesSignature = null;
+        var lastCadesFileBase64 = null;
+
+        function readFileAsBase64(fileInputId, callback) {
+            var file = document.getElementById(fileInputId).files[0];
+            if (!file) { callback(null); return; }
+            var reader = new FileReader();
+            reader.onload = function () {
+                var base64 = reader.result.split(',')[1];
+                callback(base64);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function doCadesSign() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var pin = document.getElementById('cadesPin').value;
+            if (!pin || pin.length < 4) { setStatus('Enter a valid PIN (4+ digits)', false); return; }
+            var file = document.getElementById('cadesInputFile').files[0];
+            if (!file) { setStatus('Select an input file', false); return; }
+            var filePath = file.name;
+            setStatus('CAdES-B signing...');
+            getEncryptedPin(pin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                var ctx = {
+                    signatureLevel: 1,
+                    packagingMode: 3,
+                    userPin: encodedPin,
+                    tsaUrl: '',
+                    ocspUrl: '',
+                    certPath: '',
+                    countryCode: '',
+                    locality: '',
+                    postalCode: '',
+                    stateOrProvince: '',
+                    street: ''
+                };
+                app.reader.cadesSign(ctx, filePath, function (response, error) {
+                    if (error) {
+                        setStatus('CAdES sign failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    var sig = null;
+                    if (response && response.rawResult && response.rawResult.sign_data) {
+                        sig = response.rawResult.sign_data;
+                    } else if (response && response.sign_data) {
+                        sig = response.sign_data;
+                    }
+
+                    if (sig) {
+                        lastCadesSignature = sig;
+                        lastCadesFileBase64 = filePath;
+                        document.getElementById('cadesSignOutput').value = sig;
+                    } else {
+                        document.getElementById('cadesSignOutput').value =
+                            JSON.stringify(response, null, 2);
+                    }
+
+                    document.getElementById('cadesVerifyOutput').value = '';
+                    setStatus('CAdES-B signed', true);
+                });
+            });
+        }
+
+        function doCadesVerify() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            if (!lastCadesSignature || !lastCadesFileBase64) {
+                setStatus('Sign a file first to get a signature to verify', false);
+                return;
+            }
+
+            setStatus('CAdES-B verifying...');
+            var ctx = { report_type: 1, ocspPath: '', certPath: '' };
+            app.reader.cadesVerify(ctx, lastCadesFileBase64, lastCadesSignature,
+                function (response, error) {
+                    if (error) {
+                        document.getElementById('cadesVerifyOutput').value =
+                            (error.message || String(error));
+                        setStatus('CAdES verify failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    var report = (typeof response === 'string') ? response :
+                        JSON.stringify(response, null, 2);
+                    document.getElementById('cadesVerifyOutput').value = report;
+                    setStatus('CAdES-B verified', true);
+                });
+        }
+
+        function doXadesSign() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var pin = document.getElementById('xadesPin').value;
+            if (!pin || pin.length < 4) { setStatus('Enter a valid PIN (4+ digits)', false); return; }
+            var file = document.getElementById('xadesInputFile').files[0];
+            if (!file) { setStatus('Select an XML input file', false); return; }
+            var filePath = file.name;
+            var outputPath = document.getElementById('xadesOutputPath').value;
+            if (!outputPath) {
+                outputPath = filePath.replace('.xml', '_signed.xml');
+                document.getElementById('xadesOutputPath').value = outputPath;
+            }
+
+            setStatus('XAdES-B signing...');
+            getEncryptedPin(pin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                var ctx = {
+                    signatureLevel: 1,
+                    packagingMode: 1,
+                    userPin: encodedPin,
+                    tsaUrl: '',
+                    ocspUrl: '',
+                    certPath: '',
+                    countryCode: '',
+                    locality: '',
+                    postalCode: '',
+                    stateOrProvince: '',
+                    street: ''
+                };
+                app.reader.xadesSign(ctx, filePath, outputPath, function (response, error) {
+                    if (error) {
+                        document.getElementById('xadesResult').value = error.message || 'Error';
+                        document.getElementById('xadesResult').style.color = '#D13438';
+                        setStatus('XAdES sign failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    document.getElementById('xadesOutputResult').value = outputPath;
+                    document.getElementById('xadesResult').value = 'Signed successfully';
+                    document.getElementById('xadesResult').style.color = '#107C10';
+                    setStatus('XAdES-B signed: ' + outputPath, true);
+                });
+            });
+        }
+
+        function doPadesSign() {
+            if (!app.reader) { setStatus('Reader not connected', false); return; }
+            var pin = document.getElementById('padesPin').value;
+            if (!pin || pin.length < 4) { setStatus('Enter a valid PIN (4+ digits)', false); return; }
+            var file = document.getElementById('padesInputFile').files[0];
+            if (!file) { setStatus('Select a PDF input file', false); return; }
+            var filePath = file.name;
+            var outputPath = filePath.replace('.pdf', '_signed.pdf');
+            var reason = document.getElementById('padesReason').value || '';
+            var location = document.getElementById('padesLocation').value || '';
+            var sigImgPath = '';
+            var imgFile = document.getElementById('padesImageFile').files[0];
+            if (imgFile) { sigImgPath = imgFile.name; }
+
+            setStatus('PAdES-B signing...');
+            getEncryptedPin(pin, function (encodedPin) {
+                if (!encodedPin) { setStatus('PIN encryption failed', false); return; }
+                var ctx = {
+                    signatureLevel: 1,
+                    packagingMode: 1,
+                    userPin: encodedPin,
+                    tsaUrl: '',
+                    ocspUrl: '',
+                    certPath: '',
+                    countryCode: '',
+                    locality: '',
+                    postalCode: '',
+                    stateOrProvince: '',
+                    street: '',
+                    signNmPositionSelect: 0,
+                    sigVisibleSelect: 1,
+                    pgNumberTxtBx: 1,
+                    sigTextTxtBx: '',
+                    fontSizeTxtBx: 0,
+                    fontColorTxtBx: '',
+                    fontNameTxtBx: '',
+                    bgColorTxtBx: '',
+                    sigImgPathTxtBx: sigImgPath,
+                    sigYaxisTxtBx: 50,
+                    sigXaxisTxtBx: 150,
+                    signerContactInfoTxtBx: '',
+                    signerLocationTxtBx: location,
+                    reasonSignTxtBx: reason
+                };
+                app.reader.padesSign(ctx, filePath, outputPath, function (response, error) {
+                    if (error) {
+                        document.getElementById('padesResult').value = error.message || 'Error';
+                        document.getElementById('padesResult').style.color = '#D13438';
+                        setStatus('PAdES sign failed: ' + (error.message || error), false);
+                        return;
+                    }
+
+                    document.getElementById('padesOutputResult').value = outputPath;
+                    document.getElementById('padesResult').value = 'Signed successfully';
+                    document.getElementById('padesResult').style.color = '#107C10';
+                    setStatus('PAdES-B signed: ' + outputPath, true);
+                });
+            });
+        }
+
+        /* ================================================================
+           Page 8: Device Management
+        ================================================================ */
+        function doRegisterDevice() {
+            if (!app.toolkit) { setStatus('Not initialized', false); return; }
+            var userId    = document.getElementById('regUserId').value;
+            var password  = document.getElementById('regPassword').value;
+            var deviceRef = document.getElementById('regDeviceRef').value;
+            if (!userId || !password || !deviceRef) {
+                setStatus('Fill all fields (User ID, Password, Device Reference ID)', false);
+                return;
+            }
+
+            setStatus('Preparing toolkit-level VG session...');
+            var requestId = generateRequestId();
+            app.toolkit.prepareRequest(requestId, function (requestHandle, prepareError) {
+                if (prepareError || !requestHandle) {
+                    setStatus('PrepareRequest failed', false);
+                    return;
+                }
+
+                var proceed = function () {
+                    var encUserId   = encryptWithDataProtectionKey(
+                        userId, requestHandle, app.cachedModulus, app.cachedExponent);
+                    var encPassword = encryptWithDataProtectionKey(
+                        password, requestHandle, app.cachedModulus, app.cachedExponent);
+                    if (!encUserId || !encPassword) {
+                        setStatus('Credential encryption failed', false);
+                        return;
+                    }
+
+                    setStatus('Registering device...');
+                    app.toolkit.registerDevice(encUserId, encPassword, deviceRef,
+                        function (response, error) {
+                            if (error) {
+                                document.getElementById('regResult').value = '';
+                                document.getElementById('regXml').value =
+                                    (error.vGResponse || error.xmlString || '');
+                                setStatus('RegisterDevice failed: ' + (error.message || error), false);
+                                return;
+                            }
+
+                            document.getElementById('regResult').value =
+                                str(response && response.deviceRegistrationID);
+                            document.getElementById('regXml').value =
+                                str(response && response.xmlString);
+                            setStatus('Device registered successfully', true);
+                        });
+                };
+
+                if (app.cachedModulus && app.cachedExponent) {
+                    proceed();
+                } else {
+                    app.toolkit.getDataProtectionKey(function (dpk, dpkErr) {
+                        if (dpkErr || !dpk || !dpk.modulus || !dpk.exponent) {
+                            setStatus('Failed to get data protection key', false);
+                            return;
+                        }
+
+                        app.cachedModulus  = dpk.modulus;
+                        app.cachedExponent = dpk.exponent;
+                        proceed();
+                    });
+                }
+            });
+        }
+
+        function doGetDeviceId() {
+            if (!app.toolkit) { setStatus('Not initialized', false); return; }
+            setStatus('Getting device ID...');
+            app.toolkit.getDeviceId(function (response, error) {
+                if (error) {
+                    document.getElementById('deviceIdResult').value = error.message || 'Error';
+                    document.getElementById('deviceIdResult').style.color = '#D13438';
+                    setStatus('Get device ID failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                var devId = (typeof response === 'string') ? response :
+                    str(response && response.device_id) || str(response);
+                document.getElementById('deviceIdResult').value = devId;
+                document.getElementById('deviceIdResult').style.color = '#107C10';
+                setStatus('Device ID: ' + devId, true);
+            });
+        }
+
+        /* ================================================================
+           Page 9: Toolkit Utilities
+        ================================================================ */
+        function setFieldValue(id, value) {
+            var el = document.getElementById(id);
+            if (!el) { return; }
+            var s = str(value);
+            el.textContent = s ? s : '\u2014';
+        }
+
+        function doParseMRZ() {
+            if (!app.toolkit) { setStatus('Not initialized', false); return; }
+            var mrzInput = document.getElementById('mrzInput').value;
+            if (!mrzInput) { setStatus('Enter MRZ string', false); return; }
+            setStatus('Parsing MRZ...');
+            app.toolkit.parseMRZ(mrzInput, function (response, error) {
+                if (error) {
+                    setStatus('Parse MRZ failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                setFieldValue('mrzDocumentType', response.documentType || response.DocumentType);
+                setFieldValue('mrzIssuedCountry', response.issuedCountry || response.IssuedCountry);
+                setFieldValue('mrzCardNumber', response.cardNumber || response.CardNumber);
+                setFieldValue('mrzIdNumber', response.idNumber || response.IdNumber || response.iDNumber);
+                setFieldValue('mrzDateOfBirth', response.dateOfBirth || response.DateOfBirth);
+                setFieldValue('mrzGender', response.gender || response.Gender);
+                setFieldValue('mrzExpiryDate',
+                    response.cardExpiryDate || response.expiryDate || response.ExpiryDate);
+                setFieldValue('mrzNationality',
+                    response.nationality || response.Nationality);
+                setFieldValue('mrzFullName',
+                    response.fullName || response.FullName);
+                setStatus('MRZ parsed successfully', true);
+            });
+        }
+
+        function doGetLicenseExpiry() {
+            if (!app.toolkit) { setStatus('Not initialized', false); return; }
+            setStatus('Getting license expiry date...');
+            app.toolkit.getLicenseExpiryDate(function (response, error) {
+                if (error) {
+                    setStatus('Get license expiry failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                var expiry = (response && (response.expirydate || response.license_expiry)) || '';
+                document.getElementById('licenseExpiryResult').value = expiry;
+                setStatus('License expiry: ' + (expiry || 'see result'), true);
+            });
+        }
+
+        function doGetConfigExpiry() {
+            if (!app.toolkit) { setStatus('Not initialized', false); return; }
+            setStatus('Getting config certificate expiry dates...');
+            app.toolkit.getConfigFilesExpiryDates(function (response, error) {
+                if (error) {
+                    setStatus('Get config expiry failed: ' + (error.message || error), false);
+                    return;
+                }
+
+                setFieldValue('configVgCertExpiry',
+                    response && response.config_vg_cert_expiry);
+                setFieldValue('configLvCertExpiry',
+                    response && response.config_lv_cert_expiry);
+                setFieldValue('serverTlsCertExpiry',
+                    response && response.server_tls_cert_expiry);
+                setFieldValue('configAgCertExpiry',
+                    response && response.config_ag_cert_expiry);
+                setFieldValue('configLicenseExpiry',
+                    response && response.license_expiry);
+                setStatus('Config expiry dates retrieved', true);
+            });
+        }
+
+        function doVerifyToolkitResponse() {
+            if (!app.toolkit) { setStatus('Not initialized', false); return; }
+            var xml = document.getElementById('validateXmlInput').value;
+            if (!xml) { setStatus('Paste an XML response to validate', false); return; }
+
+            var certFile  = document.getElementById('validateCertFile').files[0];
+            var chainFile = document.getElementById('validateChainFile').files[0];
+
+            function readAsBase64OrNull(file, cb) {
+                if (!file) { cb(null); return; }
+                var r = new FileReader();
+                r.onload = function () { cb(r.result.split(',')[1]); };
+                r.readAsDataURL(file);
+            }
+
+            setStatus('Validating toolkit response...');
+            readAsBase64OrNull(certFile, function (certBase64) {
+                readAsBase64OrNull(chainFile, function (chainBase64) {
+                    app.toolkit.getverifyToolkitResponse(xml, certBase64, chainBase64,
+                        function (response, error) {
+                            if (error) {
+                                setStatus('Validate failed: ' + (error.message || error), false);
+                                return;
+                            }
+
+                            setFieldValue('vtService',
+                                response && response.service);
+                            setFieldValue('vtAction',
+                                response && (response.action || response.Action));
+                            setFieldValue('vtRequestId',
+                                response && response.requestId);
+                            setFieldValue('vtNonce',
+                                response && (response.nonce || response.Nonce));
+                            setFieldValue('vtCorrelationId',
+                                response && (response.correlationId || response.CorrelationId));
+                            setFieldValue('vtCsn',
+                                response && (response.CSN || response.csn));
+                            setFieldValue('vtCardNumber',
+                                response && response.cardNumber);
+                            setFieldValue('vtIdNumber',
+                                response && (response.iDNumber || response.idNumber));
+                            setFieldValue('vtTimestamp',
+                                response && response.timeStamp);
+                            setFieldValue('vtValidityInterval',
+                                response && (response.validityInterval || response.ValidityInterval));
+                            setStatus('Toolkit response validated successfully', true);
+                        });
+                });
+            });
+        }
+
+        /* ---- Initial button state ---- */
+        updateButtonStates();
+    </script>
+
+</body>
+</html>

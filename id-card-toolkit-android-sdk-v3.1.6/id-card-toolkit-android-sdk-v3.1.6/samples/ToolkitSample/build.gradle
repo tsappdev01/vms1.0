@@ -1,0 +1,102 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+/*buildscript {
+    ext {
+        repositoryUrlMI="https://mi-artifactory.otlabs.fr/artifactory/smartsdk"
+        artifactoryUserMI="ica_portal_10_06_2020_06_22"
+        artifactoryPasswordMI="zVQqvsw42s4M"
+        repositoryUrlMIPrivate="https://prd.lkms.xantav.com/api"
+    }
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url "$repositoryUrlMI"
+            credentials {
+                username "$artifactoryUserMI"
+                password "$artifactoryPasswordMI"
+            }
+        }
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:7.0.2"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+allprojects {
+    repositories {
+        mavenCentral()
+        google()
+        maven {
+            url "$repositoryUrlMI"
+            credentials {
+                username "$artifactoryUserMI"
+                password "$artifactoryPasswordMI"
+            }
+        }
+        maven {
+            url "$repositoryUrlMIPrivate"
+            credentials {
+                username "$artifactoryUserMI"
+                password "$artifactoryPasswordMI"
+            }
+        }
+    }
+}*/
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    ext.kotlin_version = '1.7.20-Beta'
+
+    ext {
+        dotVersion = '7.0.1'
+        navigationVersion = '2.6.0'
+    }
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        maven {
+            url 'https://maven.innovatrics.com/releases'
+        }
+        maven {
+            url 'https://jitpack.io'
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.5.1"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+
+}
+
+plugins {
+    id 'org.jlleitschuh.gradle.ktlint' version '11.6.1' apply false
+}
+
+allprojects {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        maven {
+            url 'https://maven.innovatrics.com/releases'
+        }
+        maven {
+            url 'https://jitpack.io'
+        }
+        // Warning: this repository is going to shut down soon
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

@@ -1,0 +1,19 @@
+ICA Toolkit Android Plugin :
+Fingerprint Plugin for Android Device
+
+This is a fingerprint plugin for Android Device (AirSnap - Finger Capture through Android Mobile Camera)
+
+Supported Android Application Binary Interfaces (ABIs) for Android Mobile:
+	1.armeabi-v7a
+	2.arm64-v8a
+
+Permissions:
+Camera 
+<uses-permission android:name="android.permission.CAMERA" /><uses-feature    android:name="android.hardware.camera"    android:required="false" />
+
+Dependencies:
+This requires license for the application package id. Please contact on the below for any queries related to license/plugin
+TECH5 UAE
+Office No. 21, 1st Floor, Princess Cars Building,
+Sheikh Zayed Road, Dubai, UAE
++971-4-5530960

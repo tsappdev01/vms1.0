@@ -1,0 +1,26 @@
+ICA Toolkit Android Plugin :
+Device Plugin for Morpho Fingerprint sensor 
+
+v1.0 :
+Supported Android Application Binary Interfaces (ABIs):
+	1.armeabi
+	2.armeabi-v7a
+	
+	This plugin is for Taztag V1 – Android v 4.2.2.
+	This plugin is built with Morpho SDK 6.14.5.0
+
+v2.0 :
+Supported Android Application Binary Interfaces (ABIs):
+	1.armeabi
+	2.armeabi-v7a
+	
+	All other Android devices except Taztag V1 with Android 4.2.2 can use or upgrade to Morpho plugin v2.0
+	This plugin is built with Morpho SDK 6.22.0.0
+	
+v3.0 :
+Supported Android Application Binary Interfaces (ABIs):
+	1.armeabi
+	2.armeabi-v7a
+	3.arm64-v8a
+		
+	This plugin is built with Morpho SDK 6.34.1.0

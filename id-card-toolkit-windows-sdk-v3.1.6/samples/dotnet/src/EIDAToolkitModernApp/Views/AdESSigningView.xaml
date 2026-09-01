@@ -1,0 +1,277 @@
+<UserControl x:Class="EIDAToolkitModernApp.Views.AdESSigningView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
+
+        <!-- CAdES-B Signing -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="CAdES-B Sign" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Create a CAdES Baseline-B detached signature for any file using the Emirates ID card."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Input File" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding CadesInputFile, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Browse..."
+                            Click="BrowseCadesInput_Click"
+                            Style="{StaticResource SecondaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Card PIN" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="CadesPinBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     MaxLength="16"
+                                     PasswordChanged="CadesPinBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Sign CAdES-B"
+                            Command="{Binding SignCadesCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Bottom"/>
+
+                    <Button Grid.Column="4"
+                            Content="Verify"
+                            Command="{Binding VerifyCadesCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <TextBlock Text="Signature (Base64)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding CadesSignature, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MinHeight="40" MaxHeight="80"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="Verification Report" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding CadesVerifyResult, Mode=OneWay}"
+                         Style="{StaticResource XmlResponseBox}"
+                         MinHeight="40" MaxHeight="80"/>
+            </StackPanel>
+        </Border>
+
+        <!-- XAdES-B Signing -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="XAdES-B Sign" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Create an XAdES Baseline-B enveloped signature for XML documents."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="XML Input File" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding XadesInputFile, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Browse..."
+                            Click="BrowseXadesInput_Click"
+                            Style="{StaticResource SecondaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Card PIN" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="XadesPinBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     MaxLength="16"
+                                     PasswordChanged="XadesPinBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Sign XAdES-B"
+                            Command="{Binding SignXadesCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <TextBlock Text="Output File" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding XadesOutputFile, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="Result" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding XadesResult, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="Note: Signature verification is available for CAdES only."
+                           FontFamily="{StaticResource AppFont}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontStyle="Italic"/>
+            </StackPanel>
+        </Border>
+
+        <!-- PAdES-B Signing -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="PAdES-B Sign" Style="{StaticResource SectionHeader}"/>
+
+                <TextBlock Text="Create a PAdES Baseline-B signature on PDF documents with visible signature."
+                           Style="{StaticResource FieldValue}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="PDF Input File" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding PadesInputFile, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Browse..."
+                            Click="BrowsePadesInput_Click"
+                            Style="{StaticResource SecondaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Reason" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding PadesSignReason, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Location" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding PadesSignLocation, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Signature Image (JPEG/PNG)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding PadesSignatureImage, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Browse..."
+                            Click="BrowsePadesImage_Click"
+                            Style="{StaticResource SecondaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Card PIN" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox x:Name="PadesPinBox"
+                                     Style="{StaticResource ModernPasswordBox}"
+                                     MaxLength="16"
+                                     PasswordChanged="PadesPinBox_PasswordChanged"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Sign PAdES-B"
+                            Command="{Binding SignPadesCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <TextBlock Text="Output File" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding PadesOutputFile, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="Result" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding PadesResult, Mode=OneWay}"
+                         Style="{StaticResource ModernTextBox}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="Note: Signature verification is available for CAdES only."
+                           FontFamily="{StaticResource AppFont}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontStyle="Italic"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Status -->
+        <Border Style="{StaticResource CardPanel}">
+            <StackPanel>
+                <TextBlock Text="Status" Style="{StaticResource SectionHeader}"/>
+                <TextBlock Text="{Binding OperationStatus}"
+                           Foreground="{Binding OperationStatusColor}"
+                           Style="{StaticResource FieldValue}"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+    </StackPanel></ScrollViewer>
+
+</UserControl>

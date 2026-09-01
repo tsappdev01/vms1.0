@@ -1,0 +1,71 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+<LinearLayout
+  
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical"
+  android:background="@drawable/other_screen_bg">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@color/colorParseMRZAccent"
+        android:background="@color/colorParseMRZBG"
+        android:gravity="center"
+        android:textSize="@dimen/text_large"
+        android:text="Please insert your card in the reader to read the public data"
+        android:typeface="monospace"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enter MRZ : "
+            android:textColor="@color/colorParseMRZAccent"/>
+        <EditText
+            android:id="@+id/edt_txt_parse_mrz"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="Parse MRZ"
+        android:background="@drawable/normal_button_bg"
+        android:textColor="@color/colorParseMRZAccent"
+        android:id="@+id/btn_parse_mrz"
+        android:textStyle="bold"
+        android:textSize="@dimen/text_large"
+        android:layout_gravity="center_horizontal"
+        android:textAllCaps="false"/>
+
+
+    <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+        android:id="@+id/txtReadData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="left"
+        android:maxLines="100"
+        android:padding="10dp"
+        android:paddingLeft="16dp"
+        android:scrollbars="vertical"
+        android:text=""
+        android:textSize="14sp"
+        android:typeface="monospace" />
+
+
+</LinearLayout>
+</ScrollView>

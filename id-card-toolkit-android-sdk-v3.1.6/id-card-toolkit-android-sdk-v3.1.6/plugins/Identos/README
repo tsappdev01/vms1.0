@@ -1,0 +1,13 @@
+ICA Toolkit Android Plugin :
+Device Combi Plugin for identos device
+
+Supported Android Application Binary Interfaces (ABIs):
+	1.armeabi-v7a
+	2.arm64-v8a
+	3.x86
+	4.x86_64
+
+Dependencies:
+idt-pcsc-driver-release.aar
+idt-tactivo-driver-release.aar
+net.java.dev.jna:jna:5.2.0

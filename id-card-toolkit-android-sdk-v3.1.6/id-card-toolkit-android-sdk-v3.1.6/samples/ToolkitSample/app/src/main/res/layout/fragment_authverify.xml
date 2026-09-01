@@ -1,0 +1,86 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+<LinearLayout 
+ 
+ android:layout_width="match_parent"
+ android:orientation="vertical"
+ android:layout_height="wrap_content"
+ tools:context="ae.emiratesid.idcard.toolkit.sample.fragment.AuthCardVerifyFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:typeface="monospace"
+        android:gravity="center"
+        android:background="#e7e4e4"
+
+        android:text="Please insert your card in the reader and place your finger"
+        android:id="@+id/textView"
+        android:layout_gravity="center_horizontal" />
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner"
+        />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="Load Finger Data"
+        android:background="@drawable/btn_selector"
+        android:textColor="#FFFFFF"
+        android:id="@+id/btn_refresh"
+        android:padding="8dp"
+        android:layout_gravity="center_horizontal" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="Authenticate Card and Verify"
+            android:enabled="false"
+            android:background="@drawable/btn_selector"
+            android:textColor="#FFFFFF"
+            android:id="@+id/btn_authverify"
+            android:padding="8dp"
+            android:layout_gravity="center_horizontal" />
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="Verify on card"
+            android:enabled="false"
+            android:background="@drawable/btn_selector"
+            android:textColor="#FFFFFF"
+            android:id="@+id/btn_verify_on_card"
+            android:padding="8dp"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+    <ae.emiratesid.idcard.toolkit.sample.widget.LogTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:typeface="monospace"
+        android:textSize="14sp"
+        android:gravity="left"
+        android:paddingLeft="16dp"
+        android:padding="10dp"
+        android:maxLines = "100"
+        android:scrollbars = "vertical"
+        android:id="@+id/txtReadData"
+
+        />
+
+</LinearLayout>
+</ScrollView>

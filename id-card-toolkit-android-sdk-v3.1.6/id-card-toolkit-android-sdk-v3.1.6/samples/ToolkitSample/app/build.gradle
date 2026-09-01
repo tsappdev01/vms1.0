@@ -1,0 +1,261 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+
+    id 'kotlin-android-extensions'
+
+    //kotlin kapt and navigatio`n safeargs plugin
+    id 'kotlin-kapt'
+
+    id "androidx.navigation.safeargs"
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jlleitschuh.gradle.ktlint'
+}
+
+android {
+    namespace 'ae.emiratesid.idcard.toolkit.sample'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "ae.emiratesid.idcard.toolkit.sample"
+        minSdk 28
+        targetSdk 34
+        versionCode 1
+        versionName "3.1.6"
+        multiDexEnabled true
+    }
+    signingConfigs {
+        release {
+            keyAlias 'key0'
+            keyPassword '123456'
+            storeFile file('D:\\Toolkit\\2.0.6-r1\\PayskyKeyStore\\payskykey.jks')
+            storePassword '123456'
+            //Enable V1 signing
+            v1SigningEnabled true
+            v2SigningEnabled false
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+    splits {
+
+        // Configures multiple APKs based on ABI.
+        abi {
+
+            // Enables building multiple APKs per ABI.
+            enable true
+
+            // By default all ABIs are included, so use reset() and include to specify that we only
+            // want APKs for x86, armeabi-v7a, and mips.
+
+            // Resets the list of ABIs that Gradle should create APKs for to none.
+            reset()
+
+            // arm64-v8a : modern 64-bit ARM devices (Android 5.0+)
+            // armeabi-v7a : older 32-bit ARM devices
+            include "arm64-v8a", "armeabi-v7a"
+            universalApk true
+        }
+    }
+
+    packagingOptions {
+        exclude 'AndroidManifest.xml'
+        // Multiple SDK AARs bundle libc++_shared.so at different NDK versions.
+        // pickFirst keeps whichever merges FIRST, not the newest. Tech5's
+        // libopencv_world.so needs a newer libc++ that exports the
+        // std::__ndk1::basic_stringstream VTT symbol; if an older copy wins the
+        // merge, OpenCV fails to dlopen at runtime (UnsatisfiedLinkError). The
+        // app source set is merged first, so we pin Tech5's (newest) copy in
+        // app/src/main/jniLibs/<abi>/libc++_shared.so to win pickFirst. libc++
+        // is a backward-compatible superset, so the newest satisfies every
+        // consumer. (Not in tng_file_hash.c, so pinning it does not trip
+        // tng_validate_plugin_integrity.)
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        // Do not re-strip .so files — they are already stripped by CMake
+        // (source-built plugins) or vendors (pre-built AARs).  Re-stripping
+        // changes the SHA256, causing tng_validate_plugin_integrity() to
+        // reject every plugin as tampered.
+        doNotStrip "**/*.so"
+        jniLibs {
+            // Required for plugin .so extraction — toolkitcore uses dlopen()
+            // to discover and load plugin libraries at runtime.
+            useLegacyPackaging = true
+        }
+    }
+
+
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+}
+
+// Tech5 dependency AARs are now resolved via Gradle project modules
+// (tech5-airsnapFinger, tech5-AirsnapFingerSDK, tech5-Ncnn_CPP_20230816,
+//  tech5-OpenCV_CPP_460) — no flatDir needed.
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:cardview-v7:26.0.0'
+    implementation 'com.android.support:appcompat-v7:26.0.0'
+    implementation 'com.android.support:support-v4:26.0.0'
+    implementation 'com.android.support:design:26.0.0'
+    implementation 'com.madgag.spongycastle:core:1.54.0.0'
+    implementation 'com.madgag.spongycastle:prov:1.54.0.0'
+    implementation 'com.madgag.spongycastle:pkix:1.54.0.0'
+    implementation 'com.madgag.spongycastle:pg:1.54.0.0'
+    implementation project(':ocr-reader-release')
+    implementation 'com.rmtheis:tess-two:6.0.4'
+    // Gson is required by the EIDAToolkit AAR but is declared as a
+    // transitive dependency on the :EIDAToolkit shim module's "default"
+    // configuration, so no explicit `implementation 'com.google.code.gson:gson'`
+    // line is needed here.  See EIDAToolkit/build.gradle.
+    implementation project(':EIDAToolkit')
+    implementation project(':xmlsec2-release')
+
+    // omapossc-plugin-release
+    //implementation project(':omapossc-plugin-release')
+
+    // feitian-plugin-release'
+    //implementation project(':feitian-plugin-release')
+
+    // nfcreader-plugin-release'
+    //implementation project(':nfcreader-plugin-release')
+
+    // morpho-plugin-release
+    //implementation project(':morpho-plugin-release')
+
+    // acs-plugin-release
+    // disabled for NFC + Tech5 ResetPIN test build
+    //implementation project(':acs-plugin-release')
+
+    // gripid-fingerprint-sensor-plugin-release
+//    implementation project(':gripid-fingerprint-sensor-plugin-release')
+
+    //telpo-plugin-release
+    //implementation project(':tps360-plugin-release')
+
+//    implementation project(':libBioMini_v20')
+
+    // gen2wave-plugin-release
+    //implementation project(':gen2wave-plugin-release')
+
+    // gen2waverp70a-plugin-release
+    //implementation project(':gen2waverp70a-plugin-release')
+    //implementation project(':libBioMini_v20')
+
+    // idt-plugin-identos
+    //implementation project(':idt-plugin-identos')
+    //implementation project(':idt-pcsc-driver-release')
+    //implementation project(':idt-tactivo-driver-release')
+    //implementation ('net.java.dev.jna:jna:5.2.0@aar')
+
+    // grabba-plugin-release
+    //implementation project(':grabba-plugin-release')
+    //implementation project(':grabba-interfaces-release')
+    //implementation project(':grabba-sdk-release')
+
+    // artisecure-suprema-plugin-fingerprint
+    //implementation project(':artisecure-suprema-plugin-fingerprint')
+    //implementation project(':libBioMini_v20')
+
+    // artisecure-plugin-smartcard
+    //implementation project(':artisecure-plugin-smartcard')
+
+    // dsap-biopos-plugin-release
+    //implementation project(':dsap-biopos-plugin-release')
+
+    // wcts8-plugin-release
+    //implementation project(':wcts8-plugin-release')
+    //implementation project(':ptapi-release')
+    //implementation 'org.slf4j:slf4j-api:1.7.21'
+
+    // idscreen-plugin-release
+    // disabled for NFC + Tech5 ResetPIN test build
+    //implementation project(':idscreen-plugin-release')
+    //implementation project(':libsmartcard')
+
+    //implementation project(':paysky-plugin-release')
+    //implementation project(':FingerPrintLib_v1.0.9')
+
+    // tech5-airsnap-finger-plugin — Tech5 AirSnap Finger Capture plugin.
+    // The plugin AAR (tech5-airsnap-finger-plugin.aar) carries the
+    // toolkit-side libAirSnapFinger.so + ML models + Java glue. The four
+    // sub-module deps below carry the vendor runtime SDK (libT5AirSnap.so,
+    // libT5NistLibrary.so, libncnn.so, libopencv_world.so) — all 5 are
+    // required for fingerprint capture to work. Drop the matching AARs
+    // into each sample-tree module folder from plugins/tech5airsnap/ +
+    // plugins/tech5airsnap/dependencies/.
+    // Enabled for NFC + Tech5 ResetPIN test build (validating
+    // NFCReader.java tag-loss retry + PinResetFragment reattach callback).
+    //implementation project(':tech5-airsnap-finger-plugin')
+    //implementation project(':tech5-airsnapFinger')
+    //implementation project(':tech5-AirsnapFingerSDK')
+    //implementation project(':tech5-Ncnn_CPP_20230816')
+    //implementation project(':tech5-OpenCV_CPP_460')
+//    implementation project(':gripidfab30-plugin')
+    
+    
+    // implementation 'io.fotoapparat:fotoapparat:2.7.0' // removed — unused, unavailable on jitpack
+    implementation 'com.itextpdf:itextg:5.5.10'
+
+
+    implementation "androidx.core:core-ktx:1.8.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.10"
+    implementation 'com.google.android.material:material:1.6.1'
+
+
+    /*Dot Face SDK*/
+
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
+
+    implementation "com.innovatrics.dot:dot-face-detection-balanced:$dotVersion"
+    implementation "com.innovatrics.dot:dot-face-expression-neutral:$dotVersion"
+    implementation "com.innovatrics.dot:dot-face-passive-liveness:$dotVersion"
+
+    implementation 'com.google.android.material:material:1.2.0-alpha03'
+
+    // ssp and sdp
+    implementation 'com.intuit.ssp:ssp-android:1.1.0'
+    implementation 'com.intuit.sdp:sdp-android:1.1.0'
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+
+    implementation 'com.android.support:multidex:1.0.3'
+
+    // CameraX core library
+    def camerax_version = '1.0.0-beta12'
+    implementation "androidx.camera:camera-core:$camerax_version"
+
+    // CameraX Camera2 extensions
+    implementation "androidx.camera:camera-camera2:$camerax_version"
+
+    // CameraX Lifecycle library
+    implementation "androidx.camera:camera-lifecycle:$camerax_version"
+
+    // CameraX View class
+    implementation 'androidx.camera:camera-view:1.0.0-alpha19'
+
+
+    implementation 'androidx.exifinterface:exifinterface:1.3.3'
+
+}
+
+ktlint {
+    android = true
+}

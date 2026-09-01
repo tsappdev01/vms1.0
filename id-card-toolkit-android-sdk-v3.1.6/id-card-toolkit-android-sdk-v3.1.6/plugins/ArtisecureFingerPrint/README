@@ -1,0 +1,6 @@
+ICA Toolkit Android Plugin :
+Artisecure's suprema fingerprint reader plugin for Digit9 IAM M8 tablet device
+
+Supported Android Application Binary Interfaces (ABIs):
+	1.armeabi-v7a
+	2.arm64-v8a

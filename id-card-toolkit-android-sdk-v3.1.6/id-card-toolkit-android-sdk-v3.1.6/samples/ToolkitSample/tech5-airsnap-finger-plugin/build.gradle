@@ -1,0 +1,15 @@
+// Tech5 AirSnap Finger plugin — AAR-shim form for the customer-shipped sample.
+//
+// Customers drop tech5-airsnap-finger-plugin.aar from
+// plugins/tech5airsnap/tech5-airsnap-finger-plugin.aar into this folder
+// (sibling to this build.gradle). Each of the four Tech5 dependency AARs
+// also has its own AAR-shim sibling module (tech5-airsnapFinger,
+// tech5-AirsnapFingerSDK, tech5-Ncnn_CPP_20230816, tech5-OpenCV_CPP_460);
+// drop their AARs from plugins/tech5airsnap/dependencies/.
+//
+// All five `implementation project(...)` lines must be uncommented together
+// in app/build.gradle for the Tech5 capture flow to function — see
+// app/build.gradle for details.
+
+configurations.maybeCreate("default")
+artifacts.add("default", file('tech5-airsnap-finger-plugin.aar'))
