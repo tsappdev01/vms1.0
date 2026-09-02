@@ -1,0 +1,570 @@
+09-02 08:50:49.133 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:50:49.133 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:50:49.133 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:50:49.133 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:50:49.133 65912 24512 I [19:263] Failed to read file ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\config_li"]
+09-02 08:50:49.133 65912 24512 E [37:1410] Could not read config file [Error#1:135:12, "File could not be opened"]
+09-02 08:50:49.133 65912 24512 E [30:1351] Failed to get config_li data [Error#1:135:12, "File could not be opened"]
+09-02 08:50:49.133 65912 24512 E [67:869] Failed to get license config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:50:49.133 65912 24512 E [17:1461] Failed to get config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:50:56.672 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:50:56.672 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:50:56.672 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:50:56.672 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:50:56.672 65912 24512 I [19:263] Failed to read file ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\config_li"]
+09-02 08:50:56.672 65912 24512 E [37:1410] Could not read config file [Error#1:135:12, "File could not be opened"]
+09-02 08:50:56.672 65912 24512 E [30:1351] Failed to get config_li data [Error#1:135:12, "File could not be opened"]
+09-02 08:50:56.672 65912 24512 E [67:869] Failed to get license config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:50:56.672 65912 24512 E [17:1461] Failed to get config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:50:57.347 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:50:57.351 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:50:57.351 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:50:57.351 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:50:57.351 65912 24512 I [19:263] Failed to read file ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\config_li"]
+09-02 08:50:57.351 65912 24512 E [37:1410] Could not read config file [Error#1:135:12, "File could not be opened"]
+09-02 08:50:57.351 65912 24512 E [30:1351] Failed to get config_li data [Error#1:135:12, "File could not be opened"]
+09-02 08:50:57.351 65912 24512 E [67:869] Failed to get license config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:50:57.351 65912 24512 E [17:1461] Failed to get config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:50:57.779 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:50:57.779 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:50:57.779 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:50:57.779 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:50:57.779 65912 24512 I [19:263] Failed to read file ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\config_li"]
+09-02 08:50:57.779 65912 24512 E [37:1410] Could not read config file [Error#1:135:12, "File could not be opened"]
+09-02 08:50:57.779 65912 24512 E [30:1351] Failed to get config_li data [Error#1:135:12, "File could not be opened"]
+09-02 08:50:57.779 65912 24512 E [67:869] Failed to get license config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:50:57.779 65912 24512 E [17:1461] Failed to get config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:51:08.445 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:51:08.445 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:51:08.445 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:51:08.445 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:51:08.445 65912 24512 I [19:263] Failed to read file ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\config_li"]
+09-02 08:51:08.445 65912 24512 E [37:1410] Could not read config file [Error#1:135:12, "File could not be opened"]
+09-02 08:51:08.445 65912 24512 E [30:1351] Failed to get config_li data [Error#1:135:12, "File could not be opened"]
+09-02 08:51:08.445 65912 24512 E [67:869] Failed to get license config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:51:08.445 65912 24512 E [17:1461] Failed to get config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:51:10.328 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:51:10.331 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:51:10.331 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:51:10.331 65912 24512 I [17:399] Agent TLS enabled [false]
+09-02 08:51:12.366 65912 24512 E [8:220] Toolkit operation failed
+09-02 08:51:12.366 65912 24512 E [17:149] Could not connect to the agent [Error#8:220:22, "Network error occurred"]
+09-02 08:51:14.394 65912 24512 E [8:220] Toolkit operation failed
+09-02 08:51:14.394 65912 24512 E [17:149] Could not connect to the agent [Error#8:220:22, "Network error occurred"]
+09-02 08:51:16.420 65912 24512 E [8:220] Toolkit operation failed
+09-02 08:51:16.420 65912 24512 E [17:149] Could not connect to the agent [Error#8:220:22, "Network error occurred"]
+09-02 08:51:16.420 65912 24512 E [17:245] Could not connect to the agent [Error#8:220:22, "Network error occurred"]
+09-02 08:51:16.420 65912 24512 E [17:451] Failed to send request to the Toolkit agent [Error#8:220:22, "Network error occurred"]
+09-02 08:51:30.972 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:51:30.972 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:51:30.972 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:51:30.972 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:51:30.972 65912 24512 I [19:263] Failed to read file ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\config_li"]
+09-02 08:51:30.972 65912 24512 E [37:1410] Could not read config file [Error#1:135:12, "File could not be opened"]
+09-02 08:51:30.972 65912 24512 E [30:1351] Failed to get config_li data [Error#1:135:12, "File could not be opened"]
+09-02 08:51:30.972 65912 24512 E [67:869] Failed to get license config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:51:30.972 65912 24512 E [17:1461] Failed to get config data [Error#30:1351:188, "Invalid config (config_li) data"]
+09-02 08:52:40.516 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:52:40.516 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:52:40.516 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:52:40.516 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:52:40.518 65912 24512 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCert"]
+09-02 08:52:40.518 65912 24512 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCertChain"]
+09-02 08:52:40.518 65912 24512 W [67:486] Could not find face SDK license.
+09-02 08:52:40.518 65912 24512 I [67:534] License expiry date ["2027-07-29+04:00"]
+09-02 08:52:40.518 65912 24512 I [67:874] License type PRE-PRODUCTION
+09-02 08:52:40.518 65912 24512 I [19:263] Failed to read file ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\config_vg_qa"]
+09-02 08:52:40.518 65912 24512 E [37:1410] Could not read config file [Error#1:135:12, "File could not be opened"]
+09-02 08:52:40.518 65912 24512 E [30:1351] Failed to load config_vg_qa data [Error#1:135:12, "File could not be opened"]
+09-02 08:52:40.518 65912 24512 E [17:1461] Failed to get config data [Error#30:1351:224, "Invalid config (config_vg_qa) data"]
+09-02 08:52:41.182 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:52:41.184 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:52:41.184 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:52:41.184 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:52:41.184 65912 24512 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCert"]
+09-02 08:52:41.184 65912 24512 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCertChain"]
+09-02 08:52:41.184 65912 24512 W [67:486] Could not find face SDK license.
+09-02 08:52:41.184 65912 24512 I [67:534] License expiry date ["2027-07-29+04:00"]
+09-02 08:52:41.184 65912 24512 I [67:874] License type PRE-PRODUCTION
+09-02 08:52:41.186 65912 24512 I [19:263] Failed to read file ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\config_vg_qa"]
+09-02 08:52:41.186 65912 24512 E [37:1410] Could not read config file [Error#1:135:12, "File could not be opened"]
+09-02 08:52:41.186 65912 24512 E [30:1351] Failed to load config_vg_qa data [Error#1:135:12, "File could not be opened"]
+09-02 08:52:41.186 65912 24512 E [17:1461] Failed to get config data [Error#30:1351:224, "Invalid config (config_vg_qa) data"]
+09-02 08:52:59.883 65912 24512 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:52:59.883 65912 24512 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:52:59.883 65912 24512 I [17:1297] SDK used is ["DotNet"]
+09-02 08:52:59.883 65912 24512 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:52:59.885 65912 24512 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCert"]
+09-02 08:52:59.885 65912 24512 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCertChain"]
+09-02 08:52:59.885 65912 24512 W [67:486] Could not find face SDK license.
+09-02 08:52:59.885 65912 24512 I [67:534] License expiry date ["2027-07-29+04:00"]
+09-02 08:52:59.885 65912 24512 I [67:874] License type PRE-PRODUCTION
+09-02 08:52:59.890 65912 24512 I [37:2288] config_sb file not loaded
+09-02 08:52:59.892 65912 24512 I [67:1112] Encoded configuration file content version [config_vg_qa ["1.1"] config_li ["1.1"] config_lv_qa ["1.1"] config_pg ["1.1"] config_tk_qa [""]]
+09-02 08:52:59.893 65912 24512 I [37:340] Log level ["INFO"]
+09-02 08:52:59.893 65912 24512 I [37:382] SM mode [2]
+09-02 08:52:59.893 65912 24512 I [37:403] Enable digital signature [false]
+09-02 08:52:59.893 65912 24512 I [37:425] Read public data offline [false]
+09-02 08:52:59.893 65912 24512 I [37:429] Log performance time [false]
+09-02 08:52:59.893 65912 24512 I [37:463] Client SDK mode ["InProcess"]
+09-02 08:52:59.893 65912 24512 I [9:593] "smartcard_reader" plugins in configuration
+09-02 08:52:59.893 65912 24512 I [9:601] [0. "PCSCLib.dll"]
+09-02 08:52:59.893 65912 24512 I [9:601] [1. "NcrSmartCardReader.dll"]
+09-02 08:52:59.893 65912 24512 I [9:623] Smartcard reader plugin ["PCSCLib.dll"]
+09-02 08:52:59.906 65912 24512 I [9:2538] [PCSCLib] monitoring context established
+09-02 08:52:59.906 65912 24512 I [9:446] Plugin capabilities: version=2 flags=0x0000000B max_conn=1 ver=PCSCLib/3.0.6
+09-02 08:52:59.906 65912 24512 I [49:620] Reading plugin ["PCSCLib.dll"] configuration from config file
+09-02 08:52:59.906 65912 24512 I [9:172] Plugin integrity check required [false]
+09-02 08:52:59.906 65912 24512 I [49:640] Contact interface supported [true]
+09-02 08:52:59.906 65912 24512 I [49:650] Contactless interface supported [true]
+09-02 08:52:59.907 65912 24512 I [9:672] Loaded plugin ["PCSCLib.dll"]
+09-02 08:52:59.907 65912 24512 I [9:623] Smartcard reader plugin ["NcrSmartCardReader.dll"]
+09-02 08:52:59.907 65912 24512 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\NcrSmartCardReader.dll"]
+09-02 08:52:59.907 65912 24512 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:52:59.907 65912 24512 W [49:1018] Failed to load executable module ["NcrSmartCardReader.dll"]
+09-02 08:52:59.907 65912 24512 I [9:459] Plugin not loaded ["NcrSmartCardReader.dll"]
+09-02 08:52:59.907 65912 24512 I [9:593] "fingerprint_scanner" plugins in configuration
+09-02 08:52:59.907 65912 24512 I [9:601] [0. "SagemMSO1350.dll"]
+09-02 08:52:59.907 65912 24512 I [9:601] [1. "DermalogPluginZF1.dll"]
+09-02 08:52:59.907 65912 24512 I [9:601] [2. "NcrFingerprintReader.dll"]
+09-02 08:52:59.907 65912 24512 I [9:601] [3. "Secugen.dll"]
+09-02 08:52:59.907 65912 24512 I [9:601] [4. "Nexus.dll"]
+09-02 08:52:59.907 65912 24512 I [9:627] Fingerprint scanner plugin ["SagemMSO1350.dll"]
+09-02 08:52:59.941 65912 24512 I [49:620] Reading plugin ["SagemMSO1350.dll"] configuration from config file
+09-02 08:52:59.941 65912 24512 I [9:172] Plugin integrity check required [false]
+09-02 08:52:59.941 65912 24512 I [49:662] Raw image supported [true]
+09-02 08:52:59.941 65912 24512 I [49:673] Capture and convert supported [true]
+09-02 08:52:59.941 65912 24512 I [49:681] Captured fingerprint quality [60]
+09-02 08:52:59.941 65912 24512 I [9:672] Loaded plugin ["SagemMSO1350.dll"]
+09-02 08:52:59.941 65912 24512 I [9:627] Fingerprint scanner plugin ["DermalogPluginZF1.dll"]
+09-02 08:52:59.941 65912 24512 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\DermalogPluginZF1.dll"]
+09-02 08:52:59.941 65912 24512 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:52:59.941 65912 24512 W [49:1018] Failed to load executable module ["DermalogPluginZF1.dll"]
+09-02 08:52:59.941 65912 24512 I [9:459] Plugin not loaded ["DermalogPluginZF1.dll"]
+09-02 08:52:59.941 65912 24512 I [9:627] Fingerprint scanner plugin ["NcrFingerprintReader.dll"]
+09-02 08:52:59.941 65912 24512 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\NcrFingerprintReader.dll"]
+09-02 08:52:59.941 65912 24512 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:52:59.941 65912 24512 W [49:1018] Failed to load executable module ["NcrFingerprintReader.dll"]
+09-02 08:52:59.941 65912 24512 I [9:459] Plugin not loaded ["NcrFingerprintReader.dll"]
+09-02 08:52:59.941 65912 24512 I [9:627] Fingerprint scanner plugin ["Secugen.dll"]
+09-02 08:52:59.941 65912 24512 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\Secugen.dll"]
+09-02 08:52:59.941 65912 24512 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:52:59.941 65912 24512 W [49:1018] Failed to load executable module ["Secugen.dll"]
+09-02 08:52:59.941 65912 24512 I [9:459] Plugin not loaded ["Secugen.dll"]
+09-02 08:52:59.941 65912 24512 I [9:627] Fingerprint scanner plugin ["Nexus.dll"]
+09-02 08:52:59.941 65912 24512 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\Nexus.dll"]
+09-02 08:52:59.941 65912 24512 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:52:59.941 65912 24512 W [49:1018] Failed to load executable module ["Nexus.dll"]
+09-02 08:52:59.941 65912 24512 I [9:459] Plugin not loaded ["Nexus.dll"]
+09-02 08:52:59.941 65912 24512 I [37:529] Client OS version ["Windows 11.0"]
+09-02 08:52:59.943 65912 24512 I [37:554] Client processor architecture ["X64"]
+09-02 08:52:59.943 65912 24512 I [37:612] Client SDK platform ["Windows"]
+09-02 08:53:03.475 65912 24512 I [33:996] Invoking get toolkit version API
+09-02 08:53:33.095 65912 24512 I [33:933] Invoking GetConnectedReaderAndSerialNumber API
+09-02 08:53:33.194 65912 24512 I [9:2538] [PCSCLib] connected to: ACS ACR39U ICC Reader 0
+09-02 08:53:35.935 65912 24512 I [33:503] Invoking Connect API
+09-02 08:53:36.284 65912 24512 I [66:1214] CSN generation byte [0x03].
+09-02 08:53:36.284 65912 24512 I [78:230] UAE ID Card version ["4"], connection type ["CONTACT"], chip type: ["2"].
+09-02 08:53:38.020 65912 24512 I [33:541] Invoking Disconnect API
+09-02 08:53:38.020 65912 24512 I [9:2538] [PCSCLib] disconnected
+09-02 08:53:38.020 65912 24512 I [33:503] Invoking Connect API
+09-02 08:53:38.022 65912 24512 I [9:2538] [PCSCLib] connected to: ACS ACR39U ICC Reader 0
+09-02 08:53:38.345 65912 24512 I [66:1214] CSN generation byte [0x03].
+09-02 08:53:38.350 65912 24512 I [78:230] UAE ID Card version ["4"], connection type ["CONTACT"], chip type: ["2"].
+09-02 08:53:41.908 65912 24512 I [33:1053] Invoking ReadPublicData service
+09-02 08:53:41.912 65912 24512 I [33:1074] ReadPublicData options [NONMODIFIABLE_DATA: true, MODIFIABLE_DATA: true, PHOTOGRAPHY: true, SIGNATURE_IMAGE: true, ADDRESS: true]
+09-02 08:53:44.934 65912 24512 I [7:517] Received response from Validation Gateway (VG) with status : ["HTTP/1.1 401 "]
+09-02 08:53:44.934 65912 24512 W [telemetry] POST rejected: HTTP 401 (enforced), response: {"code":401,"message":"License not found or not active","status":"error","timestamp":"2026-09-02T04:55:50.611006447Z"}
+09-02 08:53:44.934 65912 24512 E [68:1541] Failed to retrieve HTTP header from received response
+09-02 08:53:44.934 65912 24512 E [33:1150] Failed to read public data [Error#68:1541:233, "Failed to get response from server"]
+09-02 08:53:44.934 65912 24512 I [17:965] Invoked execute command - 42 times successfully
+09-02 08:53:44.934 65912 24512 I [17:1207] Service status : ["ReadPublicDataOffline"] Service execution completed [Error: Failed to get response from server]
+
+09-02 08:53:55.186 65912 24512 I [33:541] Invoking Disconnect API
+09-02 08:53:55.186 65912 24512 I [9:2538] [PCSCLib] disconnected
+09-02 08:53:55.186 65912 24512 I [33:503] Invoking Connect API
+09-02 08:53:55.186 65912 24512 I [9:2538] [PCSCLib] connected to: ACS ACR39U ICC Reader 0
+09-02 08:53:55.519 65912 24512 I [66:1214] CSN generation byte [0x03].
+09-02 08:53:55.519 65912 24512 I [78:230] UAE ID Card version ["4"], connection type ["CONTACT"], chip type: ["2"].
+09-02 08:53:57.437 65912 24512 I [33:619] Invoking get interface type API
+09-02 08:54:01.019 65912 24512 I [33:657] Invoking get CSN API
+09-02 08:54:02.808 65912 24512 I [33:1053] Invoking ReadPublicData service
+09-02 08:54:02.808 65912 24512 I [33:1074] ReadPublicData options [NONMODIFIABLE_DATA: true, MODIFIABLE_DATA: true, PHOTOGRAPHY: true, SIGNATURE_IMAGE: true, ADDRESS: true]
+09-02 08:54:04.656 65912 24512 I [7:517] Received response from Validation Gateway (VG) with status : ["HTTP/1.1 401 "]
+09-02 08:54:04.656 65912 24512 W [telemetry] POST rejected: HTTP 401 (enforced), response: {"code":401,"message":"License not found or not active","status":"error","timestamp":"2026-09-02T04:56:10.331507358Z"}
+09-02 08:54:04.656 65912 24512 E [68:1541] Failed to retrieve HTTP header from received response
+09-02 08:54:04.656 65912 24512 E [33:1150] Failed to read public data [Error#68:1541:233, "Failed to get response from server"]
+09-02 08:54:04.656 65912 24512 I [17:965] Invoked execute command - 33 times successfully
+09-02 08:54:04.656 65912 24512 I [17:1207] Service status : ["ReadPublicDataOffline"] Service execution completed [Error: Failed to get response from server]
+
+09-02 08:54:14.354 65912 24512 I [33:1645] Invoking read public data EF API
+09-02 08:54:14.354 65912 24512 E [33:1645] The license provided is not authorized for this service.
+09-02 08:54:23.776 65912 24512 I [34:147] Invoking CheckCardStatus service
+09-02 08:54:23.776 65912 24512 E [34:147] The license provided is not authorized for this service.
+09-02 08:54:25.123 65912 24512 I [34:147] Invoking CheckCardStatus service
+09-02 08:54:25.123 65912 24512 E [34:147] The license provided is not authorized for this service.
+09-02 08:54:25.398 65912 24512 I [34:147] Invoking CheckCardStatus service
+09-02 08:54:25.398 65912 24512 E [34:147] The license provided is not authorized for this service.
+09-02 08:54:41.435 65912 24512 I [17:1694] Invoking get deviceID API
+09-02 08:54:41.435 65912 24512 E [14:1310] The license provided is not authorized for this service.
+09-02 08:54:41.435 65912 24512 E [17:1713] Failed to get device information [Error#14:1310:23, "Functionality not supported"]
+09-02 08:54:45.100 65912 24512 I [17:1909] Invoking get license expiry date API
+09-02 08:54:46.191 65912 24512 I [17:1909] Invoking get license expiry date API
+09-02 08:54:46.496 65912 24512 I [17:1909] Invoking get license expiry date API
+09-02 08:54:58.910 65912 24512 I [17:1909] Invoking get license expiry date API
+09-02 08:54:59.321 65912 24512 I [17:1909] Invoking get license expiry date API
+09-02 08:54:59.579 65912 24512 I [17:1909] Invoking get license expiry date API
+09-02 08:55:02.462 65912 24512 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:55:03.492 65912 24512 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:55:03.887 65912 24512 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:55:04.266 65912 24512 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:55:04.550 65912 24512 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:55:10.019 65912 24512 I [33:933] Invoking GetConnectedReaderAndSerialNumber API
+09-02 08:55:10.024 65912 24512 I [9:2538] [PCSCLib] connected to: ACS ACR39U ICC Reader 0
+09-02 08:55:11.248 65912 24512 I [33:933] Invoking GetConnectedReaderAndSerialNumber API
+09-02 08:55:11.248 65912 24512 I [9:2538] [PCSCLib] disconnected
+09-02 08:55:11.253 65912 24512 I [9:2538] [PCSCLib] connected to: ACS ACR39U ICC Reader 0
+09-02 08:55:11.534 65912 24512 I [33:933] Invoking GetConnectedReaderAndSerialNumber API
+09-02 08:55:11.535 65912 24512 I [9:2538] [PCSCLib] disconnected
+09-02 08:55:11.540 65912 24512 I [9:2538] [PCSCLib] connected to: ACS ACR39U ICC Reader 0
+09-02 08:55:13.515 65912 24512 I [33:503] Invoking Connect API
+09-02 08:55:13.845 65912 24512 I [66:1214] CSN generation byte [0x03].
+09-02 08:55:13.848 65912 24512 I [78:230] UAE ID Card version ["4"], connection type ["CONTACT"], chip type: ["2"].
+09-02 08:55:15.225 65912 24512 I [33:619] Invoking get interface type API
+09-02 08:55:18.274 65912 24512 I [33:657] Invoking get CSN API
+09-02 08:55:21.458 65912 24512 I [33:1053] Invoking ReadPublicData service
+09-02 08:55:21.458 65912 24512 I [33:1074] ReadPublicData options [NONMODIFIABLE_DATA: true, MODIFIABLE_DATA: true, PHOTOGRAPHY: true, SIGNATURE_IMAGE: true, ADDRESS: true]
+09-02 08:55:23.339 65912 24512 I [7:517] Received response from Validation Gateway (VG) with status : ["HTTP/1.1 401 "]
+09-02 08:55:23.339 65912 24512 W [telemetry] POST rejected: HTTP 401 (enforced), response: {"code":401,"message":"License not found or not active","status":"error","timestamp":"2026-09-02T04:57:29.011582920Z"}
+09-02 08:55:23.339 65912 24512 E [68:1541] Failed to retrieve HTTP header from received response
+09-02 08:55:23.339 65912 24512 E [33:1150] Failed to read public data [Error#68:1541:233, "Failed to get response from server"]
+09-02 08:55:23.339 65912 24512 I [17:965] Invoked execute command - 33 times successfully
+09-02 08:55:23.339 65912 24512 I [17:1207] Service status : ["ReadPublicDataOffline"] Service execution completed [Error: Failed to get response from server]
+
+09-02 08:55:31.291 65912 24512 I [33:1053] Invoking ReadPublicData service
+09-02 08:55:31.291 65912 24512 I [33:1074] ReadPublicData options [NONMODIFIABLE_DATA: false, MODIFIABLE_DATA: false, PHOTOGRAPHY: false, SIGNATURE_IMAGE: false, ADDRESS: true]
+09-02 08:55:32.403 65912 24512 I [7:517] Received response from Validation Gateway (VG) with status : ["HTTP/1.1 401 "]
+09-02 08:55:32.403 65912 24512 W [telemetry] POST rejected: HTTP 401 (enforced), response: {"code":401,"message":"License not found or not active","status":"error","timestamp":"2026-09-02T04:57:38.061617196Z"}
+09-02 08:55:32.403 65912 24512 E [68:1541] Failed to retrieve HTTP header from received response
+09-02 08:55:32.403 65912 24512 E [33:1150] Failed to read public data [Error#68:1541:233, "Failed to get response from server"]
+09-02 08:55:32.403 65912 24512 I [17:965] Invoked execute command - 9 times successfully
+09-02 08:55:32.403 65912 24512 I [17:1207] Service status : ["ReadPublicDataOffline"] Service execution completed [Error: Failed to get response from server]
+
+09-02 08:55:35.699 65912 24512 I [33:1645] Invoking read public data EF API
+09-02 08:55:35.699 65912 24512 E [33:1645] The license provided is not authorized for this service.
+09-02 08:55:39.407 65912 24512 I [33:1645] Invoking read public data EF API
+09-02 08:55:39.407 65912 24512 E [33:1645] The license provided is not authorized for this service.
+09-02 08:55:44.168 65912 24512 I [33:1645] Invoking read public data EF API
+09-02 08:55:44.168 65912 24512 E [33:1645] The license provided is not authorized for this service.
+09-02 08:55:44.803 65912 24512 I [33:1645] Invoking read public data EF API
+09-02 08:55:44.803 65912 24512 E [33:1645] The license provided is not authorized for this service.
+09-02 08:55:45.120 65912 24512 I [33:1645] Invoking read public data EF API
+09-02 08:55:45.120 65912 24512 E [33:1645] The license provided is not authorized for this service.
+09-02 08:56:00.571 65912 24512 I [33:1053] Invoking ReadPublicData service
+09-02 08:56:00.571 65912 24512 I [33:1074] ReadPublicData options [NONMODIFIABLE_DATA: true, MODIFIABLE_DATA: true, PHOTOGRAPHY: true, SIGNATURE_IMAGE: true, ADDRESS: true]
+09-02 08:56:02.912 65912 24512 I [7:517] Received response from Validation Gateway (VG) with status : ["HTTP/1.1 401 "]
+09-02 08:56:02.912 65912 24512 W [telemetry] POST rejected: HTTP 401 (enforced), response: {"code":401,"message":"License not found or not active","status":"error","timestamp":"2026-09-02T04:58:08.584501835Z"}
+09-02 08:56:02.912 65912 24512 E [68:1541] Failed to retrieve HTTP header from received response
+09-02 08:56:02.912 65912 24512 E [33:1150] Failed to read public data [Error#68:1541:233, "Failed to get response from server"]
+09-02 08:56:02.912 65912 24512 I [17:965] Invoked execute command - 33 times successfully
+09-02 08:56:02.912 65912 24512 I [17:1207] Service status : ["ReadPublicDataOffline"] Service execution completed [Error: Failed to get response from server]
+
+09-02 08:56:06.901 65912 24512 I [33:1053] Invoking ReadPublicData service
+09-02 08:56:06.901 65912 24512 I [33:1074] ReadPublicData options [NONMODIFIABLE_DATA: true, MODIFIABLE_DATA: true, PHOTOGRAPHY: true, SIGNATURE_IMAGE: true, ADDRESS: true]
+09-02 08:56:06.903 65912 24512 E [9:2526] [PCSCLib] SCardStatus (ATR) failed: 0x80100069 (Card was removed)
+09-02 08:56:06.903 65912 24512 E [9:1692] Plugin ["PCSCLib.dll"] failed to retrieve ATR [Error#245]
+09-02 08:56:06.903 65912 24512 E [9:2526] [PCSCLib] SCardTransmit failed: 0x80100069 (Card was removed)
+09-02 08:56:06.903 65912 24512 E [9:1474] Failed to execute smart card command [Error#245]
+09-02 08:56:06.903 65912 24512 E [10:228] Failed to execute smartcard command [Error#9:1476:245, "Smartcard has been removed, please insert the card & connect again"]
+09-02 08:56:06.903 65912 24512 E [66:289] Select application failed [Error#9:1476:245, "Smartcard has been removed, please insert the card & connect again"]
+09-02 08:56:06.903 65912 24512 E [66:545] Failed to read the data from the smartcard [Error#9:1476:245, "Smartcard has been removed, please insert the card & connect again"]
+09-02 08:56:06.903 65912 24512 E [64:1340] Failed to read ID file from the card [Error#9:1476:245, "Smartcard has been removed, please insert the card & connect again"]
+09-02 08:56:06.903 65912 24512 E [64:1141] Failed to read public data [Error#9:1476:245, "Smartcard has been removed, please insert the card & connect again"]
+09-02 08:56:06.903 65912 24512 E [33:1150] Failed to read public data [Error#9:1476:245, "Smartcard has been removed, please insert the card & connect again"]
+09-02 08:56:06.903 65912 24512 I [17:1207] Service status : ["ReadPublicDataOffline"] Service execution completed [Error: Smartcard has been removed, please insert the card & connect again]
+
+09-02 08:56:06.903 65912 24512 I [33:541] Invoking Disconnect API
+09-02 08:56:06.903 65912 24512 I [9:2538] [PCSCLib] disconnected
+09-02 08:56:20.822 65912 24512 I [33:996] Invoking get toolkit version API
+09-02 08:56:52.362 58156 26744 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 08:56:52.362 58156 26744 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 08:56:52.362 58156 26744 I [17:1297] SDK used is ["DotNet"]
+09-02 08:56:52.362 58156 26744 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 08:56:52.368 58156 26744 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCert"]
+09-02 08:56:52.368 58156 26744 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCertChain"]
+09-02 08:56:52.368 58156 26744 W [67:486] Could not find face SDK license.
+09-02 08:56:52.368 58156 26744 I [67:534] License expiry date ["2027-07-29+04:00"]
+09-02 08:56:52.368 58156 26744 I [67:874] License type PRE-PRODUCTION
+09-02 08:56:52.374 58156 26744 I [37:2288] config_sb file not loaded
+09-02 08:56:52.375 58156 26744 I [67:1112] Encoded configuration file content version [config_vg_qa ["1.1"] config_li ["1.1"] config_lv_qa ["1.1"] config_pg ["1.1"] config_tk_qa [""]]
+09-02 08:56:52.375 58156 26744 I [37:340] Log level ["INFO"]
+09-02 08:56:52.375 58156 26744 I [37:382] SM mode [2]
+09-02 08:56:52.375 58156 26744 I [37:403] Enable digital signature [false]
+09-02 08:56:52.375 58156 26744 I [37:425] Read public data offline [false]
+09-02 08:56:52.375 58156 26744 I [37:429] Log performance time [false]
+09-02 08:56:52.375 58156 26744 I [37:463] Client SDK mode ["InProcess"]
+09-02 08:56:52.375 58156 26744 I [9:593] "smartcard_reader" plugins in configuration
+09-02 08:56:52.375 58156 26744 I [9:601] [0. "PCSCLib.dll"]
+09-02 08:56:52.375 58156 26744 I [9:601] [1. "NcrSmartCardReader.dll"]
+09-02 08:56:52.375 58156 26744 I [9:623] Smartcard reader plugin ["PCSCLib.dll"]
+09-02 08:56:52.375 58156 26744 I [9:2538] [PCSCLib] monitoring context established
+09-02 08:56:52.375 58156 26744 I [9:446] Plugin capabilities: version=2 flags=0x0000000B max_conn=1 ver=PCSCLib/3.0.6
+09-02 08:56:52.375 58156 26744 I [49:620] Reading plugin ["PCSCLib.dll"] configuration from config file
+09-02 08:56:52.375 58156 26744 I [9:172] Plugin integrity check required [false]
+09-02 08:56:52.375 58156 26744 I [49:640] Contact interface supported [true]
+09-02 08:56:52.375 58156 26744 I [49:650] Contactless interface supported [true]
+09-02 08:56:52.375 58156 26744 I [9:672] Loaded plugin ["PCSCLib.dll"]
+09-02 08:56:52.375 58156 26744 I [9:623] Smartcard reader plugin ["NcrSmartCardReader.dll"]
+09-02 08:56:52.375 58156 26744 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\NcrSmartCardReader.dll"]
+09-02 08:56:52.375 58156 26744 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:56:52.375 58156 26744 W [49:1018] Failed to load executable module ["NcrSmartCardReader.dll"]
+09-02 08:56:52.375 58156 26744 I [9:459] Plugin not loaded ["NcrSmartCardReader.dll"]
+09-02 08:56:52.375 58156 26744 I [9:593] "fingerprint_scanner" plugins in configuration
+09-02 08:56:52.375 58156 26744 I [9:601] [0. "SagemMSO1350.dll"]
+09-02 08:56:52.375 58156 26744 I [9:601] [1. "DermalogPluginZF1.dll"]
+09-02 08:56:52.375 58156 26744 I [9:601] [2. "NcrFingerprintReader.dll"]
+09-02 08:56:52.375 58156 26744 I [9:601] [3. "Secugen.dll"]
+09-02 08:56:52.375 58156 26744 I [9:601] [4. "Nexus.dll"]
+09-02 08:56:52.375 58156 26744 I [9:627] Fingerprint scanner plugin ["SagemMSO1350.dll"]
+09-02 08:56:52.384 58156 26744 I [49:620] Reading plugin ["SagemMSO1350.dll"] configuration from config file
+09-02 08:56:52.384 58156 26744 I [9:172] Plugin integrity check required [false]
+09-02 08:56:52.384 58156 26744 I [49:662] Raw image supported [true]
+09-02 08:56:52.384 58156 26744 I [49:673] Capture and convert supported [true]
+09-02 08:56:52.384 58156 26744 I [49:681] Captured fingerprint quality [60]
+09-02 08:56:52.384 58156 26744 I [9:672] Loaded plugin ["SagemMSO1350.dll"]
+09-02 08:56:52.384 58156 26744 I [9:627] Fingerprint scanner plugin ["DermalogPluginZF1.dll"]
+09-02 08:56:52.384 58156 26744 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\DermalogPluginZF1.dll"]
+09-02 08:56:52.384 58156 26744 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:56:52.384 58156 26744 W [49:1018] Failed to load executable module ["DermalogPluginZF1.dll"]
+09-02 08:56:52.384 58156 26744 I [9:459] Plugin not loaded ["DermalogPluginZF1.dll"]
+09-02 08:56:52.384 58156 26744 I [9:627] Fingerprint scanner plugin ["NcrFingerprintReader.dll"]
+09-02 08:56:52.384 58156 26744 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\NcrFingerprintReader.dll"]
+09-02 08:56:52.384 58156 26744 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:56:52.384 58156 26744 W [49:1018] Failed to load executable module ["NcrFingerprintReader.dll"]
+09-02 08:56:52.384 58156 26744 I [9:459] Plugin not loaded ["NcrFingerprintReader.dll"]
+09-02 08:56:52.384 58156 26744 I [9:627] Fingerprint scanner plugin ["Secugen.dll"]
+09-02 08:56:52.384 58156 26744 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\Secugen.dll"]
+09-02 08:56:52.384 58156 26744 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:56:52.384 58156 26744 W [49:1018] Failed to load executable module ["Secugen.dll"]
+09-02 08:56:52.384 58156 26744 I [9:459] Plugin not loaded ["Secugen.dll"]
+09-02 08:56:52.384 58156 26744 I [9:627] Fingerprint scanner plugin ["Nexus.dll"]
+09-02 08:56:52.384 58156 26744 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\Nexus.dll"]
+09-02 08:56:52.384 58156 26744 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 08:56:52.384 58156 26744 W [49:1018] Failed to load executable module ["Nexus.dll"]
+09-02 08:56:52.384 58156 26744 I [9:459] Plugin not loaded ["Nexus.dll"]
+09-02 08:56:52.384 58156 26744 I [37:529] Client OS version ["Windows 11.0"]
+09-02 08:56:52.384 58156 26744 I [37:554] Client processor architecture ["X64"]
+09-02 08:56:52.384 58156 26744 I [37:612] Client SDK platform ["Windows"]
+09-02 08:57:12.668 58156 26744 I [33:996] Invoking get toolkit version API
+09-02 08:57:36.600 58156 26744 I [17:1694] Invoking get deviceID API
+09-02 08:57:36.601 58156 26744 E [14:1310] The license provided is not authorized for this service.
+09-02 08:57:36.601 58156 26744 E [17:1713] Failed to get device information [Error#14:1310:23, "Functionality not supported"]
+09-02 08:57:41.539 58156 26744 I [17:1909] Invoking get license expiry date API
+09-02 08:57:46.538 58156 26744 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:57:49.976 58156 26744 I [33:933] Invoking GetConnectedReaderAndSerialNumber API
+09-02 08:57:50.076 58156 26744 I [9:2538] [PCSCLib] connected to: ACS ACR39U ICC Reader 0
+09-02 08:57:53.036 58156 26744 I [33:503] Invoking Connect API
+09-02 08:57:53.394 58156 26744 I [66:1214] CSN generation byte [0x03].
+09-02 08:57:53.397 58156 26744 I [78:230] UAE ID Card version ["4"], connection type ["CONTACT"], chip type: ["2"].
+09-02 08:57:55.475 58156 26744 I [33:619] Invoking get interface type API
+09-02 08:57:57.429 58156 26744 I [33:657] Invoking get CSN API
+09-02 08:58:52.225 58156 26744 I [17:1694] Invoking get deviceID API
+09-02 08:58:52.225 58156 26744 E [14:1310] The license provided is not authorized for this service.
+09-02 08:58:52.225 58156 26744 E [17:1713] Failed to get device information [Error#14:1310:23, "Functionality not supported"]
+09-02 08:58:55.975 58156 26744 I [17:1909] Invoking get license expiry date API
+09-02 08:58:56.574 58156 26744 I [17:1909] Invoking get license expiry date API
+09-02 08:58:56.851 58156 26744 I [17:1909] Invoking get license expiry date API
+09-02 08:59:01.366 58156 26744 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:59:02.085 58156 26744 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:59:02.370 58156 26744 I [17:1954] Invoking get config certificate expiry date API
+09-02 08:59:08.412 58156 26744 I [33:933] Invoking GetConnectedReaderAndSerialNumber API
+09-02 08:59:08.415 58156 26744 I [9:2538] [PCSCLib] connected to: ACS ACR39U ICC Reader 0
+09-02 08:59:10.692 58156 26744 I [33:503] Invoking Connect API
+09-02 08:59:11.021 58156 26744 I [66:1214] CSN generation byte [0x03].
+09-02 08:59:11.023 58156 26744 I [78:230] UAE ID Card version ["4"], connection type ["CONTACT"], chip type: ["2"].
+09-02 08:59:13.256 58156 26744 I [33:619] Invoking get interface type API
+09-02 08:59:15.489 58156 26744 I [33:657] Invoking get CSN API
+09-02 08:59:27.400 58156 26744 I [33:1053] Invoking ReadPublicData service
+09-02 08:59:27.400 58156 26744 I [33:1074] ReadPublicData options [NONMODIFIABLE_DATA: true, MODIFIABLE_DATA: false, PHOTOGRAPHY: false, SIGNATURE_IMAGE: false, ADDRESS: false]
+09-02 08:59:28.712 58156 26744 I [7:517] Received response from Validation Gateway (VG) with status : ["HTTP/1.1 401 "]
+09-02 08:59:28.712 58156 26744 W [telemetry] POST rejected: HTTP 401 (enforced), response: {"code":401,"message":"License not found or not active","status":"error","timestamp":"2026-09-02T05:01:34.397406120Z"}
+09-02 08:59:28.712 58156 26744 E [68:1541] Failed to retrieve HTTP header from received response
+09-02 08:59:28.712 58156 26744 E [33:1150] Failed to read public data [Error#68:1541:233, "Failed to get response from server"]
+09-02 08:59:28.712 58156 26744 I [17:965] Invoked execute command - 15 times successfully
+09-02 08:59:28.712 58156 26744 I [17:1207] Service status : ["ReadPublicDataOffline"] Service execution completed [Error: Failed to get response from server]
+
+09-02 09:12:08.127 58156 26744 I [33:1053] Invoking ReadPublicData service
+09-02 09:12:08.127 58156 26744 I [33:1074] ReadPublicData options [NONMODIFIABLE_DATA: true, MODIFIABLE_DATA: false, PHOTOGRAPHY: false, SIGNATURE_IMAGE: false, ADDRESS: false]
+09-02 09:12:09.076 58156 26744 I [7:517] Received response from Validation Gateway (VG) with status : ["HTTP/1.1 401 "]
+09-02 09:12:09.076 58156 26744 W [telemetry] POST rejected: HTTP 401 (enforced), response: {"code":401,"message":"License not found or not active","status":"error","timestamp":"2026-09-02T05:14:42.513840584Z"}
+09-02 09:12:09.076 58156 26744 E [68:1541] Failed to retrieve HTTP header from received response
+09-02 09:12:09.076 58156 26744 E [33:1150] Failed to read public data [Error#68:1541:233, "Failed to get response from server"]
+09-02 09:12:09.076 58156 26744 I [17:965] Invoked execute command - 6 times successfully
+09-02 09:12:09.076 58156 26744 I [17:1207] Service status : ["ReadPublicDataOffline"] Service execution completed [Error: Failed to get response from server]
+
+09-02 09:45:31.125 69280 33228 I [17:1418] Initializing Emirates ID Card Toolkit
+09-02 09:45:31.125 69280 33228 I [17:1422] Toolkit version ["3.1.6.20260622105947"]
+09-02 09:45:31.125 69280 33228 I [17:1297] SDK used is ["DotNet"]
+09-02 09:45:31.125 69280 33228 W [30:1488] Failed to load config_pd data [Error#1:135:12, "File could not be opened"]
+09-02 09:45:31.130 69280 33228 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCert"]
+09-02 09:45:31.130 69280 33228 W [2:1132] Failed to retrieve XML node ["LicenseType\LicenseDetail\ServerTLSCertChain"]
+09-02 09:45:31.130 69280 33228 W [67:486] Could not find face SDK license.
+09-02 09:45:31.130 69280 33228 I [67:534] License expiry date ["2027-07-29+04:00"]
+09-02 09:45:31.130 69280 33228 I [67:874] License type PRE-PRODUCTION
+09-02 09:45:31.135 69280 33228 I [37:2288] config_sb file not loaded
+09-02 09:45:31.135 69280 33228 I [67:1112] Encoded configuration file content version [config_vg_qa ["1.1"] config_li ["1.1"] config_lv_qa ["1.1"] config_pg ["1.1"] config_tk_qa [""]]
+09-02 09:45:31.137 69280 33228 I [37:340] Log level ["INFO"]
+09-02 09:45:31.137 69280 33228 I [37:382] SM mode [2]
+09-02 09:45:31.137 69280 33228 I [37:403] Enable digital signature [false]
+09-02 09:45:31.137 69280 33228 I [37:425] Read public data offline [false]
+09-02 09:45:31.137 69280 33228 I [37:429] Log performance time [false]
+09-02 09:45:31.137 69280 33228 I [37:463] Client SDK mode ["InProcess"]
+09-02 09:45:31.137 69280 33228 I [9:593] "smartcard_reader" plugins in configuration
+09-02 09:45:31.137 69280 33228 I [9:601] [0. "PCSCLib.dll"]
+09-02 09:45:31.137 69280 33228 I [9:601] [1. "NcrSmartCardReader.dll"]
+09-02 09:45:31.137 69280 33228 I [9:623] Smartcard reader plugin ["PCSCLib.dll"]
+09-02 09:45:31.142 69280 33228 I [9:2538] [PCSCLib] monitoring context established
+09-02 09:45:31.142 69280 33228 I [9:446] Plugin capabilities: version=2 flags=0x0000000B max_conn=1 ver=PCSCLib/3.0.6
+09-02 09:45:31.142 69280 33228 I [49:620] Reading plugin ["PCSCLib.dll"] configuration from config file
+09-02 09:45:31.142 69280 33228 I [9:172] Plugin integrity check required [false]
+09-02 09:45:31.142 69280 33228 I [49:640] Contact interface supported [true]
+09-02 09:45:31.142 69280 33228 I [49:650] Contactless interface supported [true]
+09-02 09:45:31.142 69280 33228 I [9:672] Loaded plugin ["PCSCLib.dll"]
+09-02 09:45:31.142 69280 33228 I [9:623] Smartcard reader plugin ["NcrSmartCardReader.dll"]
+09-02 09:45:31.142 69280 33228 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\NcrSmartCardReader.dll"]
+09-02 09:45:31.142 69280 33228 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 09:45:31.142 69280 33228 W [49:1018] Failed to load executable module ["NcrSmartCardReader.dll"]
+09-02 09:45:31.142 69280 33228 I [9:459] Plugin not loaded ["NcrSmartCardReader.dll"]
+09-02 09:45:31.142 69280 33228 I [9:593] "fingerprint_scanner" plugins in configuration
+09-02 09:45:31.142 69280 33228 I [9:601] [0. "SagemMSO1350.dll"]
+09-02 09:45:31.142 69280 33228 I [9:601] [1. "DermalogPluginZF1.dll"]
+09-02 09:45:31.142 69280 33228 I [9:601] [2. "NcrFingerprintReader.dll"]
+09-02 09:45:31.142 69280 33228 I [9:601] [3. "Secugen.dll"]
+09-02 09:45:31.142 69280 33228 I [9:601] [4. "Nexus.dll"]
+09-02 09:45:31.142 69280 33228 I [9:627] Fingerprint scanner plugin ["SagemMSO1350.dll"]
+09-02 09:45:31.148 69280 33228 I [49:620] Reading plugin ["SagemMSO1350.dll"] configuration from config file
+09-02 09:45:31.148 69280 33228 I [9:172] Plugin integrity check required [false]
+09-02 09:45:31.148 69280 33228 I [49:662] Raw image supported [true]
+09-02 09:45:31.148 69280 33228 I [49:673] Capture and convert supported [true]
+09-02 09:45:31.148 69280 33228 I [49:681] Captured fingerprint quality [60]
+09-02 09:45:31.148 69280 33228 I [9:672] Loaded plugin ["SagemMSO1350.dll"]
+09-02 09:45:31.148 69280 33228 I [9:627] Fingerprint scanner plugin ["DermalogPluginZF1.dll"]
+09-02 09:45:31.148 69280 33228 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\DermalogPluginZF1.dll"]
+09-02 09:45:31.148 69280 33228 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 09:45:31.148 69280 33228 W [49:1018] Failed to load executable module ["DermalogPluginZF1.dll"]
+09-02 09:45:31.148 69280 33228 I [9:459] Plugin not loaded ["DermalogPluginZF1.dll"]
+09-02 09:45:31.148 69280 33228 I [9:627] Fingerprint scanner plugin ["NcrFingerprintReader.dll"]
+09-02 09:45:31.151 69280 33228 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\NcrFingerprintReader.dll"]
+09-02 09:45:31.151 69280 33228 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 09:45:31.151 69280 33228 W [49:1018] Failed to load executable module ["NcrFingerprintReader.dll"]
+09-02 09:45:31.151 69280 33228 I [9:459] Plugin not loaded ["NcrFingerprintReader.dll"]
+09-02 09:45:31.151 69280 33228 I [9:627] Fingerprint scanner plugin ["Secugen.dll"]
+09-02 09:45:31.151 69280 33228 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\Secugen.dll"]
+09-02 09:45:31.151 69280 33228 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 09:45:31.151 69280 33228 W [49:1018] Failed to load executable module ["Secugen.dll"]
+09-02 09:45:31.151 69280 33228 I [9:459] Plugin not loaded ["Secugen.dll"]
+09-02 09:45:31.151 69280 33228 I [9:627] Fingerprint scanner plugin ["Nexus.dll"]
+09-02 09:45:31.151 69280 33228 W [6:62] Failed to load executable module ["C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\Nexus.dll"]
+09-02 09:45:31.151 69280 33228 W [6:77] Failed to load executable module due to ["The specified module could not be found."]
+09-02 09:45:31.151 69280 33228 W [49:1018] Failed to load executable module ["Nexus.dll"]
+09-02 09:45:31.151 69280 33228 I [9:459] Plugin not loaded ["Nexus.dll"]
+09-02 09:45:31.151 69280 33228 I [37:529] Client OS version ["Windows 11.0"]
+09-02 09:45:31.151 69280 33228 I [37:554] Client processor architecture ["X64"]
+09-02 09:45:31.151 69280 33228 I [37:612] Client SDK platform ["Windows"]
+09-02 09:45:46.027 69280 33228 I [33:996] Invoking get toolkit version API
+09-02 09:45:49.225 69280 33228 I [17:1694] Invoking get deviceID API
+09-02 09:45:49.225 69280 33228 E [14:1310] The license provided is not authorized for this service.
+09-02 09:45:49.225 69280 33228 E [17:1713] Failed to get device information [Error#14:1310:23, "Functionality not supported"]
+09-02 09:45:54.615 69280 33228 I [17:1909] Invoking get license expiry date API
+09-02 09:46:04.086 69280 33228 I [17:1954] Invoking get config certificate expiry date API
+09-02 09:46:11.847 69280 33228 I [17:1909] Invoking get license expiry date API
+09-02 09:46:29.347 69280 33228 I [17:1954] Invoking get config certificate expiry date API
+09-02 09:47:45.548  2156 61920 E [37:693] Could not load config params
+09-02 09:47:45.548  2156 61920 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:47:45.548  2156 61920 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:47:48.993  2156 61920 E [50:1133] Invalid configuration data
+09-02 09:47:48.993  2156 61920 E [50:1176] Invalid config data ["{"]
+09-02 09:47:48.993  2156 61920 E [37:693] Could not load config params
+09-02 09:47:48.993  2156 61920 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:47:48.993  2156 61920 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:47:49.829  2156 61920 E [50:1133] Invalid configuration data
+09-02 09:47:49.829  2156 61920 E [50:1176] Invalid config data ["{"]
+09-02 09:47:49.829  2156 61920 E [37:693] Could not load config params
+09-02 09:47:49.829  2156 61920 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:47:49.829  2156 61920 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:47:50.097  2156 61920 E [50:1133] Invalid configuration data
+09-02 09:47:50.098  2156 61920 E [50:1176] Invalid config data ["{"]
+09-02 09:47:50.098  2156 61920 E [37:693] Could not load config params
+09-02 09:47:50.098  2156 61920 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:47:50.098  2156 61920 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:02.157 61356  9392 E [37:693] Could not load config params
+09-02 09:48:02.157 61356  9392 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:02.157 61356  9392 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:03.033 61356  9392 E [50:1133] Invalid configuration data
+09-02 09:48:03.033 61356  9392 E [50:1176] Invalid config data ["{"]
+09-02 09:48:03.033 61356  9392 E [37:693] Could not load config params
+09-02 09:48:03.033 61356  9392 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:03.033 61356  9392 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:03.557 61356  9392 E [50:1133] Invalid configuration data
+09-02 09:48:03.557 61356  9392 E [50:1176] Invalid config data ["{"]
+09-02 09:48:03.557 61356  9392 E [37:693] Could not load config params
+09-02 09:48:03.557 61356  9392 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:03.557 61356  9392 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:04.176 61356  9392 E [50:1133] Invalid configuration data
+09-02 09:48:04.176 61356  9392 E [50:1176] Invalid config data ["{"]
+09-02 09:48:04.176 61356  9392 E [37:693] Could not load config params
+09-02 09:48:04.178 61356  9392 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:04.178 61356  9392 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:40.288 39888 59236 E [37:693] Could not load config params
+09-02 09:48:40.288 39888 59236 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:40.288 39888 59236 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:44.817 39888 59236 E [50:1133] Invalid configuration data
+09-02 09:48:44.817 39888 59236 E [50:1176] Invalid config data ["{"]
+09-02 09:48:44.818 39888 59236 E [37:693] Could not load config params
+09-02 09:48:44.819 39888 59236 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:44.819 39888 59236 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:45.345 39888 64024 E [50:1133] Invalid configuration data
+09-02 09:48:45.345 39888 64024 E [50:1176] Invalid config data ["{"]
+09-02 09:48:45.345 39888 64024 E [37:693] Could not load config params
+09-02 09:48:45.346 39888 64024 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:45.346 39888 64024 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:45.531 39888 59236 E [50:1133] Invalid configuration data
+09-02 09:48:45.531 39888 59236 E [50:1176] Invalid config data ["{"]
+09-02 09:48:45.531 39888 59236 E [37:693] Could not load config params
+09-02 09:48:45.532 39888 59236 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:45.532 39888 59236 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:45.684 39888 64024 E [50:1133] Invalid configuration data
+09-02 09:48:45.684 39888 64024 E [50:1176] Invalid config data ["{"]
+09-02 09:48:45.685 39888 64024 E [37:693] Could not load config params
+09-02 09:48:45.687 39888 64024 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:45.687 39888 64024 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:45.851 39888 59236 E [50:1133] Invalid configuration data
+09-02 09:48:45.851 39888 59236 E [50:1176] Invalid config data ["{"]
+09-02 09:48:45.852 39888 59236 E [37:693] Could not load config params
+09-02 09:48:45.852 39888 59236 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:45.853 39888 59236 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:55.552 39888 64024 E [50:1133] Invalid configuration data
+09-02 09:48:55.552 39888 64024 E [50:1176] Invalid config data ["{"]
+09-02 09:48:55.553 39888 64024 E [37:693] Could not load config params
+09-02 09:48:55.554 39888 64024 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:55.554 39888 64024 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:56.148 39888 59236 E [50:1133] Invalid configuration data
+09-02 09:48:56.149 39888 59236 E [50:1176] Invalid config data ["{"]
+09-02 09:48:56.149 39888 59236 E [37:693] Could not load config params
+09-02 09:48:56.150 39888 59236 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:56.150 39888 59236 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:56.327 39888 64024 E [50:1133] Invalid configuration data
+09-02 09:48:56.327 39888 64024 E [50:1176] Invalid config data ["{"]
+09-02 09:48:56.327 39888 64024 E [37:693] Could not load config params
+09-02 09:48:56.328 39888 64024 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:56.328 39888 64024 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:56.481 39888 59236 E [50:1133] Invalid configuration data
+09-02 09:48:56.481 39888 59236 E [50:1176] Invalid config data ["{"]
+09-02 09:48:56.482 39888 59236 E [37:693] Could not load config params
+09-02 09:48:56.483 39888 59236 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:56.483 39888 59236 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:56.631 39888 64024 E [50:1133] Invalid configuration data
+09-02 09:48:56.631 39888 64024 E [50:1176] Invalid config data ["{"]
+09-02 09:48:56.631 39888 64024 E [37:693] Could not load config params
+09-02 09:48:56.632 39888 64024 E [70:1141] Failed to load application configuration [Error#37:693:365, "Failed to parse config params"]
+09-02 09:48:56.632 39888 64024 E [17:1397] Could not load application configuration [Error#37:693:365, "Failed to parse config params"]
