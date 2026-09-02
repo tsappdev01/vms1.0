@@ -21,7 +21,27 @@ environment. Its README lists what a config directory must contain:
 
 > `config_ap`, `config_ag`, `config_li` license file, plugin hashes, etc.
 
-## What this repository has
+## Bundles present
+
+| Bundle | Contents | Notes |
+|---|---|---|
+| `IDCARDOFFLINE_config_2026-04-14` | `config_ag`, `config_li`, `config_pg`, `config_lv_qa`, `config_tk_qa`, `config_vg_qa` | **Use this one.** Complete set, and a different `config_li` from the first delivery. Folder name says `ag`, so agent mode is likely intended. |
+| `IDCARDOFFLINE_config_2026-07-29` | No `config_ag` | Superseded. Its files were copied into `quickstart\64`; consider moving them aside so it is unambiguous which set is in use. |
+
+`Set-ToolkitConfig.ps1` prefers whichever bundle carries `config_ag`, and prints the
+directory's contents so a partial set is visible rather than inferred from a failure.
+
+## Modes
+
+| | |
+|---|---|
+| `APP_INPROC` (default) | The toolkit loads the agent DLL into the calling process. No service. |
+| `APP_AGENT` (`-AgentMode`) | Requires `EIDAToolkitService.exe` **running before** `Initialize()`. This is what `config_ag` is for. |
+
+Try in-process first: it changes one variable from the last attempt. If it fails, agent
+mode is the next thing to try, not a rewrite.
+
+## What the first delivery was missing
 
 | File | Present | Purpose |
 |---|---|---|

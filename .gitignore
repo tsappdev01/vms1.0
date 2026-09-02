@@ -24,3 +24,7 @@ appsettings.*.Local.json
 *.pfx
 *.snk
 secrets.json
+
+# Toolkit runtime artefacts - machine-specific, and logs are diagnostics not source
+EIDAToolkit_*.log
+id-card-toolkit-windows-sdk-*/quickstart/*/config_ap
