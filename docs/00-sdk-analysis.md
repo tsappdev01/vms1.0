@@ -97,10 +97,19 @@ reception is a desk, the Windows client is finished work versus weeks of binding
 The other Windows plugins (Morpho/Sagem MSO 1350, Secugen, Dermalog, NCR, DsapBioPos) are
 fingerprint scanners and specialist terminals, not card readers.
 
-**The spike to run first.** With a PC/SC reader attached to a Windows machine, insert an
-Emirates ID and run `quickstart/64/EIDAToolkitApp.exe`. It exercises `ListReaders`,
-`GetReaderWithEmiratesId` and `ReadPublicData` against the real card. This is the cheapest
-possible test of the project's riskiest assumption, and it needs no code.
+**Confirmed on the development machine, 2026-09-02.** An **ACS ACR39U ICC Reader** is
+listed by `SCardListReaders` - the same call the toolkit makes through
+`Toolkit.ListReaders()` - and a card returns an ATR. Windows binds it with its own USB
+CCID driver, so no vendor driver was needed. `tools/Check-CardReader.ps1` performs this
+check.
+
+ACS also appears in the Android plugin list, so the same reader family remains available
+if a tablet client is ever revisited.
+
+**Still outstanding:** a real `ReadPublicData` against an Emirates ID via
+`quickstart/64/EIDAToolkitApp.exe`. PC/SC visibility proves the hardware chain; it does
+not prove the Service Provider licence, device registration or config bundle, which are
+the next things that can fail.
 
 ### The overlooked third option: a Windows reception desk
 

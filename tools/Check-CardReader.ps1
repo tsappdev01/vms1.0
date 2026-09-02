@@ -29,6 +29,11 @@ param(
 $ErrorActionPreference = 'Continue'
 $problems = New-Object System.Collections.Generic.List[string]
 
+# The two facts that decide readiness. Everything else is diagnosis for when
+# these are false - never a reason to fail a machine whose reader demonstrably works.
+$pcscOk = $false
+$cardOk = $false
+
 function Write-Result {
     param([string]$Label, [ValidateSet('ok','warn','fail','info')][string]$State, [string]$Detail = '')
     $mark, $colour = switch ($State) {
@@ -55,11 +60,26 @@ Write-Host ''
 
 # ---------------------------------------------------------------- 1. Services
 
-foreach ($name in 'SCardSvr', 'WUDFsvc') {
+# SCardSvr is required. WUDFsvc only matters if the reader turns out to be
+# unusable - it is absent or renamed on some Windows builds, and a reader that
+# PC/SC can already see plainly does not need it chased.
+$serviceChecks = @(
+    @{ Name = 'SCardSvr'; Required = $true },
+    @{ Name = 'WUDFsvc';  Required = $false }
+)
+
+foreach ($check in $serviceChecks) {
+    $name = $check.Name
+    $required = $check.Required
     $svc = Get-Service -Name $name -ErrorAction SilentlyContinue
+
     if (-not $svc) {
-        Write-Result "$name service" 'fail' 'not present on this machine'
-        $problems.Add("$name is missing.")
+        if ($required) {
+            Write-Result "$name service" 'fail' 'not present on this machine'
+            $problems.Add("$name is missing.")
+        } else {
+            Write-Result "$name service" 'info' 'not present - only relevant if the reader fails to appear'
+        }
         continue
     }
 
@@ -80,12 +100,12 @@ foreach ($name in 'SCardSvr', 'WUDFsvc') {
             Start-Service -Name $name -ErrorAction Stop
             Write-Result "$name service" 'ok' 'started and set to Automatic'
         } catch {
-            Write-Result "$name service" 'fail' $_.Exception.Message
-            $problems.Add("Could not start $name.")
+            Write-Result "$name service" $(if ($required) { 'fail' } else { 'info' }) $_.Exception.Message
+            if ($required) { $problems.Add("Could not start $name.") }
         }
     } else {
-        Write-Result "$name service" 'fail' "$($svc.Status) - re-run with -Fix as Administrator"
-        $problems.Add("$name is not running.")
+        Write-Result "$name service" $(if ($required) { 'fail' } else { 'info' }) "$($svc.Status) - re-run with -Fix as Administrator"
+        if ($required) { $problems.Add("$name is not running.") }
     }
 }
 
@@ -160,6 +180,7 @@ try {
 
     if ($readers.Count -gt 0) {
         foreach ($r in $readers) { Write-Result 'PC/SC reader' 'ok' $r }
+        $pcscOk = $true
     } else {
         $hex = '0x{0:X8}' -f $code
         $meaning = switch ($code) {
@@ -180,6 +201,7 @@ $scinfo = & certutil.exe -scinfo 2>&1 | Out-String
 
 if ($scinfo -match 'ATR:') {
     Write-Result 'Card in reader' 'ok' 'card detected and answering'
+    $cardOk = $true
 } elseif ($scinfo -match 'SCARD_E_NO_READERS_AVAILABLE') {
     Write-Result 'Card in reader' 'fail' 'no reader available'
 } elseif ($scinfo -match 'SCARD_E_NO_SMARTCARD|No smart card') {
@@ -205,8 +227,18 @@ try {
 # ------------------------------------------------------------------- Verdict
 
 Write-Host ''
-if ($problems.Count -eq 0) {
-    Write-Host 'Ready.' -ForegroundColor Green
+if ($pcscOk) {
+    if ($cardOk) {
+        Write-Host 'Ready. PC/SC lists a reader and a card is answering.' -ForegroundColor Green
+    } else {
+        Write-Host 'Reader ready. Insert an Emirates ID to complete the check.' -ForegroundColor Green
+    }
+
+    if ($problems.Count -gt 0) {
+        Write-Host ''
+        Write-Host 'Noted, but not blocking:' -ForegroundColor DarkGray
+        foreach ($p in $problems) { Write-Host "  - $p" -ForegroundColor DarkGray }
+    }
     Write-Host ''
     Write-Host 'Next: prove a real read with the vendor sample, which needs no code:' -ForegroundColor Gray
     Write-Host '  id-card-toolkit-windows-sdk-v3.1.6\quickstart\64\EIDAToolkitApp.exe' -ForegroundColor Gray
