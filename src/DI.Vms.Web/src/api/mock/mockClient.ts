@@ -5,7 +5,8 @@
 import type {
   AuditEntry, CheckInResponse, CheckOutResponse, CreateVisitRequest, CreateVisitResponse,
   DashboardSummary, DiEntityDto, EmployeeDto, IdentifyRequest, IdentifyResponse,
-  OccupancyPerson, Paged, UserDto, VisitListItem, VisitorProfile, VisitorSearchQuery,
+  OccupancyPerson, Paged, ReportDefinition, ReportResult, UserDto, VisitListItem,
+  VisitorProfile, VisitorSearchQuery,
 } from '../types';
 import {
   auditEntries, currentUser, entities, employees, occupancy, users, visits,
@@ -227,6 +228,85 @@ export const mockClient = {
     };
   },
 
+  async getReports(): Promise<ReportDefinition[]> {
+    await delay(150);
+    return REPORTS;
+  },
+
+  /* Computes a few reports over the fixtures so the screen is reviewable. Reports the
+     mock cannot derive return no rows with an explanatory title rather than fake data -
+     inventing numbers on a report screen would be worse than showing none. */
+  async runReport(name: string, from?: string, to?: string): Promise<ReportResult> {
+    await delay(350);
+    const def = REPORTS.find((r) => r.name === name);
+    const base = {
+      name,
+      title: def?.title ?? name,
+      from: from ?? null,
+      to: to ?? null,
+      generatedAtUtc: new Date().toISOString(),
+    };
+
+    /* GST, matching the API. Slicing an ISO string yields UTC and would show 05:42
+       where the real report shows 09:42. */
+    const gstTime = (iso: string | null) =>
+      iso ? new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' }) : null;
+
+    const counted = (map: Map<string, number>, columns: string[]): ReportResult => ({
+      ...base,
+      columns,
+      rows: [...map.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, String(v)]),
+    });
+
+    const group = (key: (v: VisitListItem) => string | null) => {
+      const m = new Map<string, number>();
+      for (const v of visits) {
+        if (v.status === 'Expected') continue;
+        const k = key(v) ?? '(not recorded)';
+        m.set(k, (m.get(k) ?? 0) + 1);
+      }
+      return m;
+    };
+
+    switch (name) {
+      case 'currently-inside':
+        return {
+          ...base,
+          columns: ['Visit No.', 'Visitor', 'Company', 'Host', 'DI Entity', 'Floor', 'In'],
+          rows: visits.filter((v) => v.status === 'Inside').map((v) => [
+            v.visitNumber, v.visitorName, v.company, v.hostName, v.entityName, v.floor,
+            gstTime(v.inTimeUtc),
+          ]),
+        };
+      case 'by-entity':
+        return counted(group((v) => v.entityName), ['DI Entity', 'Visitors']);
+      case 'by-host':
+        return counted(group((v) => v.hostName), ['Host', 'Visitors']);
+      case 'by-company':
+        return counted(group((v) => v.company), ['Company', 'Visitors']);
+      case 'by-floor':
+        return counted(group((v) => v.floor), ['Floor', 'Visitors']);
+      case 'expired-id':
+        return {
+          ...base,
+          columns: ['Visitor', 'Company', 'ID Number'],
+          rows: visits.filter((v) => v.idExpired)
+            .map((v) => [v.visitorName, v.company, v.idNumberMasked]),
+        };
+      case 'daily-visitors':
+        return {
+          ...base,
+          columns: ['Visit No.', 'Visitor', 'Company', 'ID Number', 'DI Entity', 'Host', 'In', 'Out'],
+          rows: visits.filter((v) => v.status !== 'Expected').map((v) => [
+            v.visitNumber, v.visitorName, v.company, v.idNumberMasked, v.entityName, v.hostName,
+            gstTime(v.inTimeUtc), gstTime(v.outTimeUtc),
+          ]),
+        };
+      default:
+        return { ...base, columns: [], rows: [] };
+    }
+  },
+
   async checkOut(id: string): Promise<CheckOutResponse> {
     await delay(400);
     const visit = visits.find((v) => v.id === id);
@@ -259,6 +339,20 @@ export const mockClient = {
     };
   },
 };
+
+const REPORTS: ReportDefinition[] = [
+  { name: 'daily-visitors', title: 'Daily Visitor Report', description: 'Visitor, company, ID type, ID number, entity, host, in, out, duration.', takesDateRange: true },
+  { name: 'by-entity', title: 'Visitor by Entity', description: 'Visit counts grouped by DI entity.', takesDateRange: true },
+  { name: 'by-host', title: 'Visitor by Host', description: 'Visit counts grouped by host employee.', takesDateRange: true },
+  { name: 'by-company', title: 'Visitor by Company', description: 'Visit counts grouped by visiting company.', takesDateRange: true },
+  { name: 'by-date', title: 'Visitor by Date', description: 'Visit counts per day.', takesDateRange: true },
+  { name: 'currently-inside', title: 'Currently Inside', description: 'Point-in-time occupancy snapshot.', takesDateRange: false },
+  { name: 'never-checked-out', title: 'Visitors Never Checked Out', description: 'Visits closed by the nightly job, or still open from a previous day.', takesDateRange: true },
+  { name: 'frequent-visitors', title: 'Frequent Visitors', description: 'Visitors ranked by visit count.', takesDateRange: true },
+  { name: 'expired-id', title: 'Expired ID Report', description: 'Visitors whose presented ID has expired.', takesDateRange: false },
+  { name: 'by-floor', title: 'Visitor Activity by Floor', description: 'Visit counts grouped by floor.', takesDateRange: true },
+  { name: 'user-activity', title: 'Security User Activity', description: 'Actions per security user, from the audit trail.', takesDateRange: true },
+];
 
 let visitCounter = 1250;
 function nextVisitNumber(): string {

@@ -22,15 +22,8 @@ jobs:
       - name: Build
         run: dotnet build DI.Vms.sln --configuration Release --no-restore
 
-      # No test project exists yet; skip rather than fail the pipeline for it.
       - name: Test
-        run: |
-          if ls **/*Tests*.csproj >/dev/null 2>&1 || ls **/*.Tests/*.csproj >/dev/null 2>&1; then
-            dotnet test DI.Vms.sln --configuration Release --no-build --verbosity normal
-          else
-            echo "No test projects found; skipping."
-          fi
-        shell: bash
+        run: dotnet test DI.Vms.sln --configuration Release --no-build --verbosity normal
 
   web:
     runs-on: ubuntu-latest

@@ -155,3 +155,20 @@ public sealed record AuditEntryDto(
     string? DeviceId);
 
 public sealed record Paged<T>(IReadOnlyList<T> Items, int Page, int PageSize, int TotalCount);
+
+/* ------------------------------------------------------------------- reports */
+
+/// <summary>
+/// A report as a generic table. Reports differ only in their query, so one shape lets the
+/// portal render and export any of them without a bespoke screen each (BRD 20).
+/// </summary>
+public sealed record ReportResult(
+    string Name,
+    string Title,
+    IReadOnlyList<string> Columns,
+    IReadOnlyList<IReadOnlyList<string?>> Rows,
+    DateOnly? From,
+    DateOnly? To,
+    DateTimeOffset GeneratedAtUtc);
+
+public sealed record ReportDefinition(string Name, string Title, string Description, bool TakesDateRange);

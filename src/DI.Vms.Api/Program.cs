@@ -58,5 +58,6 @@ app.MapVisitEndpoints();
 app.MapVisitorEndpoints();
 app.MapDashboardEndpoints();
 app.MapMasterDataEndpoints();
+app.MapReportEndpoints();
 
 app.Run();

@@ -207,3 +207,22 @@ export interface CheckOutResponse {
   durationMinutes: number;
   status: string;
 }
+
+/* ------------------------------------------------------------------ reports */
+
+export interface ReportDefinition {
+  name: string;
+  title: string;
+  description: string;
+  takesDateRange: boolean;
+}
+
+export interface ReportResult {
+  name: string;
+  title: string;
+  columns: string[];
+  rows: (string | null)[][];
+  from: string | null;
+  to: string | null;
+  generatedAtUtc: string;
+}

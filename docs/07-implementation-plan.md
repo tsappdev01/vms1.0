@@ -70,6 +70,13 @@ is not yet proven end to end, and it depends on hardware that has not been chose
 | Architecture, data model, API spec, client designs, security | ✅ |
 | Domain model | ✅ `src/DI.Vms.Domain` |
 | SQL schema | ✅ `db/schema` |
-| Application / Infrastructure / API projects | ⬜ |
-| Reception app | ⬜ blocked on Phase 0 hardware |
-| Web portal | ⬜ |
+| Application / Infrastructure / API projects | ✅ 17 endpoints, running against UATWEB01 |
+| Reports (BRD §20, all 11) | ✅ API + portal, CSV export |
+| Domain tests | ✅ `tests/DI.Vms.Domain.Tests`, CI runs them |
+| Reception registration + check-out | ✅ portal, on the card-reader simulator |
+| Physical card read | ⬜ **blocked on ICP licence activation** - see SDK analysis §3b |
+| Web portal | ✅ 12 screens |
+| Authentication (Entra ID) | ⬜ blocked on an app registration |
+| Master-data create/edit | ⬜ |
+| Host notification, badge, pre-registration | ⬜ Phase 2 |
+| Nightly auto-close and retention jobs | ⬜ |

@@ -4,7 +4,7 @@
 import type { ApiClient } from './mock/mockClient';
 import type {
   CheckInResponse, CheckOutResponse, CreateVisitRequest, CreateVisitResponse,
-  IdentifyRequest, IdentifyResponse, VisitorSearchQuery,
+  IdentifyRequest, IdentifyResponse, ReportDefinition, ReportResult, VisitorSearchQuery,
 } from './types';
 
 const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api/v1';
@@ -84,4 +84,12 @@ export const httpClient: ApiClient = {
   checkIn: (id: string, signatureImage: string, deviceId: string) =>
     post<CheckInResponse>(`/visits/${id}/check-in`, { signatureImage, deviceId }),
   checkOut: (id: string) => post<CheckOutResponse>(`/visits/${id}/check-out`, {}),
+  getReports: () => get<ReportDefinition[]>('/reports'),
+  runReport: (name: string, from?: string, to?: string) => {
+    const p = new URLSearchParams();
+    if (from) p.set('from', from);
+    if (to) p.set('to', to);
+    const qs = p.toString();
+    return get<ReportResult>(`/reports/${name}${qs ? `?${qs}` : ''}`);
+  },
 };
