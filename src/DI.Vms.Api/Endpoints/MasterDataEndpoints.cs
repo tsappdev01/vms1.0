@@ -67,16 +67,22 @@ public static class MasterDataEndpoints
 
             var total = await query.CountAsync(ct);
 
+            /* Left join, not inner: an audit row whose user has since been removed - or
+               which was written by an identity not in the User table - must still appear.
+               An audit trail that silently drops rows is worse than none, because it
+               looks complete. */
             var rows = await query
                 .OrderByDescending(a => a.TimestampUtc)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Join(db.Users.AsNoTracking(), a => a.UserId, u => u.Id,
-                    (a, u) => new { Audit = a, UserName = u.Username })
+                .GroupJoin(db.Users.AsNoTracking(), a => a.UserId, u => u.Id,
+                    (a, users) => new { Audit = a, Users = users })
+                .SelectMany(x => x.Users.DefaultIfEmpty(),
+                    (x, u) => new { x.Audit, UserName = u != null ? u.Username : null })
                 .ToListAsync(ct);
 
             var items = rows.Select(x => new AuditEntryDto(
-                x.Audit.Id, x.UserName, x.Audit.Action, x.Audit.EntityName,
+                x.Audit.Id, x.UserName ?? x.Audit.UserId.ToString(), x.Audit.Action, x.Audit.EntityName,
                 x.Audit.RecordId?.ToString(), x.Audit.OldValue, x.Audit.NewValue,
                 x.Audit.TimestampUtc, x.Audit.IpAddress, x.Audit.DeviceId)).ToList();
 
