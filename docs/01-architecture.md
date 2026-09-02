@@ -42,13 +42,17 @@ constrained by the findings in [`00-sdk-analysis.md`](00-sdk-analysis.md).
 
 Dependencies point inward: `Api → Infrastructure → Application → Domain`.
 
-## Why native Android rather than MAUI
+## Reception client — decision pending the hardware spike
 
-BRD §23 recommends MAUI. The SDK makes that the wrong call for Phase 1 — `EIDAToolkit.aar`
-is a native Android library with 18 native hardware plugins, and **no iOS toolkit exists**,
-so MAUI's cross-platform benefit does not apply to the one feature that matters. Full
-reasoning in the SDK analysis, §3. A Windows/WPF reception client is a viable lower-risk
-alternative if reception is a fixed desk.
+Toolkits ship for Android, iOS and Windows, so BRD §23's MAUI recommendation is achievable.
+It costs a binding layer per mobile platform (a .NET for Android binding over the AAR, a
+.NET for iOS binding over the framework), sitting on the critical path of the riskiest
+feature. The Windows build is already an official .NET assembly and needs no binding at
+all, and on Windows **any PC/SC reader** works rather than a plugin-matched one.
+
+Settle this with the spike in SDK analysis §3a — read a real card with the shipped Windows
+sample — before committing to a client platform. The table above names Android because
+that is the current working assumption, not a closed decision.
 
 ## Where card reading happens
 

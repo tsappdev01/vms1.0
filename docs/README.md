@@ -16,8 +16,8 @@ Source requirements: the BRD (26 sections); each document cites the sections it 
 
 ## Headline findings
 
-1. Emirates ID is read **from the card's chip**, not by OCR — certified reader hardware is required.
-2. **No iOS toolkit exists**, so the BRD's "one MAUI app for Android and iOS" cannot cover ID reading on iOS.
+1. Emirates ID is read **from the card's chip**, not by OCR. On Windows **any PC/SC reader** works; on mobile the reader must match a shipped plugin.
+2. Toolkits exist for Android, iOS and Windows. MAUI is viable but needs a binding layer per mobile platform; the Windows .NET binding needs none.
 3. Every device must be **registered with the ICP Validation Gateway** against a Service Provider licence, which **expires**.
 4. The supplied configs are **QA**; production configs are needed from ICP.
 5. The SDK can prove a card is **genuine** and **not lost/stolen** — worth adopting in Phase 1.

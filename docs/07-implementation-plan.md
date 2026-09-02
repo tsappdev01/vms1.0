@@ -10,10 +10,11 @@ compliance items, not development, so they should start immediately and in paral
 | Item | Owner | Blocks |
 |---|---|---|
 | ICP **Service Provider licence** confirmed | DI / ICP | All chip reading |
-| **Reader hardware** selected; plugin identified | DI / vendor | Reception app |
+| **Reader spike**: read a real card with the Windows sample | DI | Everything downstream |
+| **Reader hardware** confirmed (PC/SC on Windows; plugin-matched on mobile) | DI / vendor | Reception app |
 | **Production** config bundle + production `vg_url` | ICP | Go-live |
 | VG reachable from DIP network (firewall) | DI IT | Verification calls |
-| **iOS toolkit exists?** | ICP | Whether iOS is ever in scope |
+| ~~iOS toolkit exists?~~ **Resolved: yes** | — | Client platform now an open choice, not a constraint |
 | **Retention period** defined | DI Legal | Retention job |
 
 ## Phase 1 — Core Visitor Management

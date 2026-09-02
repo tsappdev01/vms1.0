@@ -9,6 +9,7 @@ Android package root `ae.emiratesid.idcard.toolkit`; .NET namespace `AE.Emirates
 |---|---|---|---|
 | `id-card-toolkit-android-sdk-v3.1.6` | Android arm64-v8a + armeabi-v7a | `EIDAToolkit.aar` (native, Java/Kotlin) | Android tablet |
 | `id-card-toolkit-windows-sdk-v3.1.6` | Windows x86 + x64 | `IDCardToolkit.dll` (**official .NET binding**) + C, Java | Windows reception PC |
+| `id-card-toolkit-ios-sdk-v3.1.6` | iOS arm64, iOS 12+ | Swift + Objective-C `IDCardToolkit.framework` | iPad / iPhone |
 | `id-card-toolkit-windows-web-javascript-sdk-v3.1.6` | Windows browser | `eidatoolkit.js` + JNLP/Java Web Start + local Windows service | Browser at a Windows desk |
 | `IDCARDOFFLINE_config_2026-07-29` | — | 5 encrypted config blobs | Toolkit configuration |
 
@@ -55,16 +56,51 @@ The contact-reader flow has no such constraint: insert card, `ReadPublicData`, d
 
 `Toolkit.ParseMRZData(string mrz)` is provided to turn an MRZ string into those fields, so an MRZ scan feeding the NFC unlock is the intended pattern where NFC is required.
 
-## 3. .NET MAUI cannot consume this SDK as-is — and there is no iOS SDK
+## 3. Client platform: all three are supported, but each carries a binding cost
 
-BRD §23 recommends ".NET MAUI, one application supporting Android and iOS". Both halves have a problem:
+> **Corrected 2026-09-02.** An earlier revision of this document stated that no iOS
+> toolkit existed, because none was present in the first SDK commit. The iOS SDK has
+> since been added to the repository. The conclusion drawn from its absence — that iOS
+> could not be a Phase 1 target — was wrong and is withdrawn.
 
-- **iOS: there is no iOS toolkit in this bundle.** Android and Windows only. An iOS app cannot read an Emirates ID with what has been supplied. Unless ICP ships an iOS variant, **iOS cannot be a Phase 1 target**.
-- **Android via MAUI:** `EIDAToolkit.aar` is a native Android library. MAUI would need a .NET for Android **binding library** wrapping the AAR, plus bindings for whichever hardware plugin is chosen, plus the native `.so` payloads packaged correctly for both ABIs. That is real, ongoing integration work, and it sits on the critical path of the highest-risk feature.
+BRD §23 recommends ".NET MAUI, one application supporting Android and iOS". That is now
+achievable, at a cost worth stating plainly.
 
-**Recommendation:** build the tablet app as a **native Android (Kotlin)** application for Phase 1. The SDK's sample, documentation and 18 plugins are all Java/Kotlin; going native removes the binding layer from the riskiest part of the system. MAUI remains reasonable for a *later* iOS companion app that does everything **except** ID reading.
+| Target | Toolkit form | What MAUI would need |
+|---|---|---|
+| Android | `EIDAToolkit.aar`, Java/Kotlin | A .NET for Android **binding library** over the AAR, plus the chosen hardware plugin and its native `.so` for both ABIs |
+| iOS | `IDCardToolkit.framework`, Swift/ObjC | A .NET for iOS **binding project** over the framework, plus the chosen plugin framework |
+| Windows | `IDCardToolkit.dll` | Nothing — it is already an official .NET assembly |
 
-If a single cross-platform codebase is a hard requirement, the fallback is MAUI + a hand-written Android binding library — budget for it explicitly, and accept that iOS still cannot scan.
+So the choice is:
+
+- **MAUI, one codebase, two binding layers.** Legitimate, and it satisfies BRD §23. The
+  binding work sits on the critical path of the highest-risk feature, and binding
+  generators handle Objective-C frameworks better than Swift ones — check whether the
+  Objective-C variant is usable before committing.
+- **Native per platform.** No binding layer over the riskiest code; two codebases.
+- **Windows desk client.** No binding layer at all, and PC/SC means any standard reader
+  works (see §3a). Lowest risk by a wide margin if reception is a fixed desk.
+
+**Recommendation:** decide this only after the hardware spike in §3a. If a supported
+mobile reader is confirmed and tablets are a firm requirement, MAUI is defensible. If
+reception is a desk, the Windows client is finished work versus weeks of binding.
+
+## 3a. Reader hardware — the answer differs sharply by platform
+
+| Platform | Supported readers |
+|---|---|
+| **Windows** | **Any PC/SC-compliant reader.** `plugins/PCSC/` is generic; no vendor list applies. |
+| Android | Named plugins only: ACS, Telpo, Feitian, Grabba, GripID, Gen2Wave, IDScreen, Identos, OmaPos, PaySky, Morpho, Artisecure, DsapBioPOS, tech5 — or NFC |
+| iOS | Feitian iR301, Grabba, Tactivo — or NFC |
+
+The other Windows plugins (Morpho/Sagem MSO 1350, Secugen, Dermalog, NCR, DsapBioPos) are
+fingerprint scanners and specialist terminals, not card readers.
+
+**The spike to run first.** With a PC/SC reader attached to a Windows machine, insert an
+Emirates ID and run `quickstart/64/EIDAToolkitApp.exe`. It exercises `ListReaders`,
+`GetReaderWithEmiratesId` and `ReadPublicData` against the real card. This is the cheapest
+possible test of the project's riskiest assumption, and it needs no code.
 
 ### The overlooked third option: a Windows reception desk
 
@@ -145,7 +181,7 @@ Either way, a browser can only read a card on a Windows machine with that servic
 | BRD says | SDK reality | Action |
 |---|---|---|
 | §21 mechanism left open | Chip read over contact/NFC | Settled — specify reader hardware |
-| §23 MAUI for Android + iOS | Android AAR; **no iOS SDK** | Native Android Phase 1; iOS cannot scan |
+| §23 MAUI for Android + iOS | Frameworks exist for both; each needs a binding layer | Viable; decide after the hardware spike |
 | §3 "tablet camera/scanner will read the ID" | Camera cannot read the chip | Reader hardware required, not a camera |
 | §3 extract Name/ID/Expiry/Nationality/DOB/Photo | All available from `ReadPublicData` | Confirmed feasible |
 | §23 web portal | JS SDK is JNLP-legacy | Portal = management only, no scanning |
@@ -155,8 +191,9 @@ Either way, a browser can only read a card on a Windows machine with that servic
 
 ## Open items to confirm with ICP / the vendor
 
-1. Does an **iOS** ID Card Toolkit exist? This decides whether iOS is ever in scope.
-2. Which **reader hardware** is approved, and which of the 18 plugins matches it?
+1. ~~Does an iOS ID Card Toolkit exist?~~ **Resolved: yes**, `id-card-toolkit-ios-sdk-v3.1.6`.
+2. Which **reader hardware** is in use? On Windows any PC/SC reader qualifies; on mobile it
+   must match a shipped plugin. Run the §3a spike to confirm.
 3. Does DI hold a current **Service Provider licence**? What are its expiry and renewal terms?
 4. **Production** config bundle and production `vg_url`.
 5. Is the VG reachable from the DIP network, or is firewall/allowlisting needed?
