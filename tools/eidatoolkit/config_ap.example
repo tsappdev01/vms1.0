@@ -1,0 +1,6 @@
+{
+  "config_directory": "C:\\Claude.AI\\vms1.0\\IDCARDOFFLINE_config_2026-07-29\\IDCARDOFFLINE_config_2026-07-29",
+  "log_directory": "C:\\ProgramData\\EIDAToolkit\\logs",
+  "application_type": "APP_INPROC",
+  "read_publicdata_offline": true
+}
