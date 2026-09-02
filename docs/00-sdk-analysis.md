@@ -117,6 +117,73 @@ The Windows SDK ships `IDCardToolkit.dll`, an **official, documented .NET bindin
 
 The BRD assumes tablets. Worth confirming that assumption is a requirement and not an aesthetic preference — it is the single largest cost driver in the build.
 
+## 3b. BLOCKER: the licence is pre-production and the gateway rejects it
+
+Confirmed on 2026-09-02 by running the vendor sample against a real Emirates ID.
+Everything up to the licence works; the licence does not.
+
+**What works.** Toolkit 3.1.6 initialises, the ACS ACR39U is found through the PCSC
+plugin, the card connects over the contact interface and identifies itself as
+`UAE ID Card version 4, chip type 2`, and `GetCSN` returns a serial. The chip is
+readable. `read_publicdata_offline` is correctly applied (`Read public data offline
+[true]` in the log).
+
+**What fails.** `ReadPublicData` returns *Failed to get response from server*. The log
+gives the real reason:
+
+```
+License type PRE-PRODUCTION
+E [14:1310] The license provided is not authorized for this service.
+I [7:517]  Received response from Validation Gateway (VG) with status : ["HTTP/1.1 401 "]
+W [telemetry] POST rejected: HTTP 401 (enforced), response:
+    {"code":401,"message":"License not found or not active","status":"error"}
+E [33:1150] Failed to read public data
+```
+
+Three things follow, and the third is the one that matters for the architecture:
+
+1. The licence in `config_li` is **PRE-PRODUCTION**, and ICP's gateway reports it as
+   **not found or not active**. `GetDeviceId` fails the same way — *not authorized for
+   this service* — so device registration cannot proceed either. This is an entitlement
+   held by ICP; it cannot be fixed locally, by configuration or by code.
+2. Its expiry (2027-07-29) is not the problem. A licence can be unexpired and still
+   inactive, which is exactly what has happened.
+3. **`read_publicdata_offline` does not mean the read works offline.** The toolkit still
+   POSTs telemetry to the Validation Gateway, that POST is marked `(enforced)`, and a 401
+   there fails the whole read. So an unreachable or unlicensed VG breaks reception even
+   in "offline" mode.
+
+Point 3 invalidates the degraded-mode design in §6 and `01-architecture.md`. Reception
+cannot be assumed to keep working through a VG outage until this is tested against an
+active licence. **Confirm with ICP whether an activated licence permits a genuinely
+offline read**, and treat VG availability as a hard dependency for reception until it
+does. A single reception desk losing network would otherwise stop visitor registration
+entirely — which is a queue at the door, and a security problem in itself.
+
+### Also missing from the delivered bundle
+
+| Item | Status |
+|---|---|
+| `config_ap` | Absent; written locally, see `tools/eidatoolkit/` |
+| `config_ag` | Absent |
+| `config_pd` | Absent — `Failed to load config_pd data` |
+| `config_sb` | Absent — `config_sb file not loaded` |
+| Server TLS certificate in the licence | Absent — `LicenseType\LicenseDetail\ServerTLSCert` missing |
+| Face SDK licence | Absent — not needed for visitor management |
+
+### What to ask ICP for
+
+1. **Activate the Service Provider licence**, or issue one that the Validation Gateway
+   recognises. Quote the gateway's own reply: `401 License not found or not active`, and
+   the licence type `PRE-PRODUCTION`.
+2. Confirm which **environment** the licence is bound to, and whether the supplied `_qa`
+   configs are the matching set.
+3. The **complete** config bundle: `config_ap`, `config_ag`, `config_pd`, `config_sb`.
+4. The **Server TLS certificate** and chain for the licence.
+5. **Production** licence and configs for go-live, with lead time.
+6. Whether an activated licence allows `ReadPublicData` with **no** gateway call, given
+   that telemetry is enforced.
+
 ## 4. Device registration and licensing — absent from the BRD
 
 ```

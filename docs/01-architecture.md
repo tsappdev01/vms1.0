@@ -63,12 +63,21 @@ device. The API receives **already-extracted fields** plus the toolkit's verific
 This keeps the server free of native dependencies, and means a VG outage degrades one desk
 rather than the whole system.
 
-## Degraded mode
+## Degraded mode — intended, but not yet proven
 
-`read_publicdata_offline = true`, so the chip can be read with no network. When the VG is
-unreachable the client still registers the visitor and check-in proceeds, with the visit
-flagged `VerificationPending` for later reconciliation. Reception must never be blocked by
-a network fault — a queue at the door is itself a security problem.
+The design is that a VG outage never blocks reception: register the visitor from the chip,
+mark the visit `VerificationPending`, reconcile later. A queue at the door is itself a
+security problem.
+
+**This is not yet achievable, and may not be.** Testing on 2026-09-02 showed that with
+`read_publicdata_offline = true` the toolkit still POSTs telemetry to the Validation
+Gateway, that POST is enforced, and a 401 there fails the entire read — see SDK analysis
+§3b. Until an activated licence proves otherwise, treat **VG availability as a hard
+dependency for reception**, and confirm with ICP whether a genuinely offline read is
+permitted.
+
+If it is not, the mitigation is operational rather than architectural: a documented
+fallback to manual registration at the desk, reconciled once the gateway returns.
 
 ## Database
 

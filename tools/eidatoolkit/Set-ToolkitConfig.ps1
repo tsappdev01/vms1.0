@@ -40,16 +40,28 @@ $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
 # The config folder is nested: IDCARDOFFLINE_config_<date>\IDCARDOFFLINE_config_<date>\
 # Locate it by finding config_li rather than assuming the shape.
-$configLi = Get-ChildItem -Path $repo -Filter 'config_li' -Recurse -File -ErrorAction SilentlyContinue |
-            Select-Object -First 1
+$candidates = @(Get-ChildItem -Path $repo -Filter 'config_li' -Recurse -File -ErrorAction SilentlyContinue)
 
-if (-not $configLi) {
+if ($candidates.Count -eq 0) {
     Write-Host "Could not find config_li under $repo" -ForegroundColor Red
     Write-Host "Is the IDCARDOFFLINE_config folder present?" -ForegroundColor Red
     exit 1
 }
 
+# Prefer the delivered bundle over any copy someone has made into a sample folder,
+# so the source of truth stays the ICP-supplied directory.
+$preferred = $candidates | Where-Object { $_.FullName -like '*IDCARDOFFLINE*' } | Select-Object -First 1
+$configLi  = if ($preferred) { $preferred } else { $candidates[0] }
 $configDir = $configLi.Directory.FullName
+
+if ($candidates.Count -gt 1) {
+    Write-Host "Found $($candidates.Count) copies of config_li; using:" -ForegroundColor Yellow
+    foreach ($c in $candidates) {
+        $marker = if ($c.FullName -eq $configLi.FullName) { '->' } else { '  ' }
+        Write-Host "  $marker $($c.Directory.FullName)" -ForegroundColor DarkGray
+    }
+}
+
 Write-Host "Config directory : $configDir" -ForegroundColor Gray
 
 # The quickstart folder holds the runnable samples.

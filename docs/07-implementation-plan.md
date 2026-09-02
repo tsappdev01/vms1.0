@@ -9,8 +9,8 @@ compliance items, not development, so they should start immediately and in paral
 
 | Item | Owner | Blocks |
 |---|---|---|
-| ICP **Service Provider licence** confirmed | DI / ICP | All chip reading |
-| **Reader spike**: read a real card with the Windows sample | DI | Everything downstream |
+| **ICP licence activation** - gateway returns `401 License not found or not active`; licence type is PRE-PRODUCTION | DI / ICP | **All chip reading. Confirmed blocked 2026-09-02.** |
+| ~~Reader spike~~ **Done**: ACS ACR39U reads the card; chip confirmed | - | Cleared |
 | **Reader hardware** confirmed (PC/SC on Windows; plugin-matched on mobile) | DI / vendor | Reception app |
 | **Production** config bundle + production `vg_url` | ICP | Go-live |
 | VG reachable from DIP network (firewall) | DI IT | Verification calls |
