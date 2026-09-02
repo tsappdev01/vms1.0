@@ -2,7 +2,10 @@
    against one interface and the source is a configuration choice. */
 
 import type { ApiClient } from './mock/mockClient';
-import type { VisitorSearchQuery } from './types';
+import type {
+  CheckInResponse, CheckOutResponse, CreateVisitRequest, CreateVisitResponse,
+  IdentifyRequest, IdentifyResponse, VisitorSearchQuery,
+} from './types';
 
 const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api/v1';
 
@@ -18,6 +21,32 @@ async function get<T>(path: string): Promise<T> {
     try {
       const problem = await res.json();
       if (problem?.detail) detail = problem.detail;
+      else if (problem?.title) detail = problem.title;
+    } catch {
+      /* Non-JSON error body; keep the status line. */
+    }
+    throw new Error(detail);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    let detail = `${res.status} ${res.statusText}`;
+    try {
+      const problem = await res.json();
+      /* RFC 7807, plus the per-field errors ValidationProblem returns. */
+      if (problem?.errors) {
+        detail = Object.values(problem.errors as Record<string, string[]>).flat().join(' ');
+      } else if (problem?.detail) detail = problem.detail;
       else if (problem?.title) detail = problem.title;
     } catch {
       /* Non-JSON error body; keep the status line. */
@@ -50,4 +79,9 @@ export const httpClient: ApiClient = {
   getUsers: () => get('/users'),
   getAudit: () => get('/audit'),
   getCurrentUser: () => get('/me'),
+  identify: (r: IdentifyRequest) => post<IdentifyResponse>('/visits/identify', r),
+  createVisit: (r: CreateVisitRequest) => post<CreateVisitResponse>('/visits', r),
+  checkIn: (id: string, signatureImage: string, deviceId: string) =>
+    post<CheckInResponse>(`/visits/${id}/check-in`, { signatureImage, deviceId }),
+  checkOut: (id: string) => post<CheckOutResponse>(`/visits/${id}/check-out`, {}),
 };

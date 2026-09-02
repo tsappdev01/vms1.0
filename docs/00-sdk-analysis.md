@@ -168,11 +168,33 @@ The BRD treats ID scanning purely as a data-entry shortcut. The toolkit offers g
 
 Note also that the card **already holds the holder's signature image**. That does not replace BRD §7's acknowledgement signature — which is consent captured at the moment of entry, and must still be drawn on the tablet — but it is available for comparison if ever needed.
 
-## 8. The JavaScript SDK is a legacy path — do not build the portal on it
+## 8. The browser path is a local agent over WebSocket — and it is viable
 
-`samples/web/newica/IDCardToolkitService.jnlp` plus `lib/jws/IDCardToolkitService.jar` is **Java Web Start**, which no current browser supports. The modern route is `installer/ICAToolkitService/{32,64}/ICAToolkitService.msi` — a **local Windows service** that `eidatoolkit.js` talks to from the page (there is a `health-probe.js` for exactly that handshake).
+> **Corrected 2026-09-02.** An earlier revision dismissed this path as dead Java Web Start.
+> JNLP is only the legacy fallback; the modern samples use a local agent, and the
+> conclusion drawn from the JNLP reading — that the portal must not read cards — is
+> withdrawn.
 
-Either way, a browser can only read a card on a Windows machine with that service installed and a reader attached. **The web portal should therefore be a pure management/reporting surface with no card-reading responsibility** — which is what BRD §24 already describes. Card reading stays on the registration client.
+`samples/web/modern/` and `samples/web/console/` talk to a **local toolkit agent** over a
+WebSocket. `health-probe.js` probes `http://127.0.0.1:9006/health` and derives the socket
+options from the reply; the agent is installed by
+`installer/ICAToolkitService/{32,64}/ICAToolkitService.msi`. (`toolkitagent.emiratesid.ae`
+resolves to loopback, so the agent can present a real TLS certificate for a local socket.)
+
+`eidatoolkit.js` exposes the full surface this project needs — `initialize`,
+`listReaders`, `getReaderWithEmiratesId`, `readPublicData`, `isCardGenuine`,
+`checkCardStatus`, `registerDevice`, `getDeviceId`, `parseMRZ`, `getLicenseExpiryDate` —
+as callback-style calls over that socket. `samples/web/newica/*.jnlp` is the legacy path
+and should be ignored.
+
+**Consequence: a Windows reception desk needs no native client at all.** The browser
+portal, plus the agent installed locally and a PC/SC reader attached, covers the whole of
+BRD §24's registration flow. That removes MAUI, WPF and both binding layers from Phase 1.
+
+The constraint is that the machine must be **Windows with the agent installed** — this is
+not a route to reading cards from an arbitrary tablet. Android and iOS still need their
+native toolkits. So the honest framing is: the portal is a management surface *and*, on a
+properly provisioned Windows desk, a registration client.
 
 ---
 
@@ -184,7 +206,7 @@ Either way, a browser can only read a card on a Windows machine with that servic
 | §23 MAUI for Android + iOS | Frameworks exist for both; each needs a binding layer | Viable; decide after the hardware spike |
 | §3 "tablet camera/scanner will read the ID" | Camera cannot read the chip | Reader hardware required, not a camera |
 | §3 extract Name/ID/Expiry/Nationality/DOB/Photo | All available from `ReadPublicData` | Confirmed feasible |
-| §23 web portal | JS SDK is JNLP-legacy | Portal = management only, no scanning |
+| §23 web portal | JS SDK talks to a local agent over WebSocket | Portal can also be the Windows registration client |
 | (not mentioned) | SP licence + per-device registration + expiries | Add to scope, procurement and monitoring |
 | (not mentioned) | `IsCardGenuine`, `CheckCardStatus` | Recommend adding to Phase 1 |
 | §22 privacy | Chip read avoids storing document images | Reinforces §3's minimal-data recommendation |

@@ -3,8 +3,9 @@
    client is a configuration change, not a rewrite. */
 
 import type {
-  AuditEntry, DashboardSummary, DiEntityDto, EmployeeDto, OccupancyPerson,
-  Paged, UserDto, VisitListItem, VisitorProfile, VisitorSearchQuery,
+  AuditEntry, CheckInResponse, CheckOutResponse, CreateVisitRequest, CreateVisitResponse,
+  DashboardSummary, DiEntityDto, EmployeeDto, IdentifyRequest, IdentifyResponse,
+  OccupancyPerson, Paged, UserDto, VisitListItem, VisitorProfile, VisitorSearchQuery,
 } from '../types';
 import {
   auditEntries, currentUser, entities, employees, occupancy, users, visits,
@@ -125,6 +126,150 @@ export const mockClient = {
     return [...auditEntries].sort((a, b) => b.timestampUtc.localeCompare(a.timestampUtc));
   },
   async getCurrentUser(): Promise<UserDto> { await delay(60); return currentUser; },
+
+  /* ------------------------------------------------------------- write side */
+
+  async identify(request: IdentifyRequest): Promise<IdentifyResponse> {
+    await delay(400);
+    const digits = request.idNumber.replace(/\D/g, '');
+    const existing = visits.find((v) => v.idNumberMasked.endsWith(digits.slice(-1)) && digits.length === 15);
+
+    if (!existing) return { found: false, visitor: null };
+
+    return {
+      found: true,
+      visitor: {
+        id: existing.id,
+        name: existing.visitorName,
+        company: existing.company,
+        idNumberMasked: existing.idNumberMasked,
+        idExpiryDate: '2028-04-15',
+        idExpired: existing.idExpired,
+        totalVisits: visits.filter((v) => v.visitorName === existing.visitorName).length,
+        lastVisitDate: (existing.inTimeUtc ?? '').slice(0, 10) || null,
+      },
+    };
+  },
+
+  async createVisit(request: CreateVisitRequest): Promise<CreateVisitResponse> {
+    await delay(400);
+
+    const host = employees.find((e) => e.id === request.hostEmployeeId);
+    const entity = entities.find((e) => e.id === request.diEntityId);
+    if (!host) throw new Error('No employee matches hostEmployeeId.');
+    if (!entity) throw new Error('No entity matches diEntityId.');
+
+    const id = `v${Date.now()}`;
+    visits.push({
+      id,
+      visitNumber: '',
+      visitorName: request.visitor?.name ?? 'Unknown',
+      company: request.visitor?.company ?? null,
+      idType: request.visitor?.idType ?? 'EmiratesId',
+      idNumberMasked: maskEmiratesId(request.visitor?.idNumber ?? ''),
+      idExpired: false,
+      hostName: host.name,
+      entityName: entity.entityName,
+      /* Snapshotted from the host, exactly as the API does it. */
+      department: host.department,
+      floor: host.floor,
+      office: host.office,
+      purpose: request.purpose,
+      visitType: request.visitType,
+      inTimeUtc: null,
+      outTimeUtc: null,
+      expectedDate: request.expectedDate,
+      expectedTime: request.expectedTime,
+      status: 'Expected',
+      verification: 'Verified',
+    });
+
+    return { id, status: 'Expected' };
+  },
+
+  async checkIn(id: string, _signatureImage: string, deviceId: string): Promise<CheckInResponse> {
+    await delay(400);
+    const visit = visits.find((v) => v.id === id);
+    if (!visit) throw new Error('Visit not found.');
+    if (visit.status === 'Inside') throw new Error(`Visit ${visit.visitNumber} is already checked in.`);
+
+    visit.visitNumber = visit.visitNumber || nextVisitNumber();
+    visit.inTimeUtc = new Date().toISOString();
+    visit.status = 'Inside';
+    occupancy.push({
+      name: visit.visitorName,
+      company: visit.company,
+      hostName: visit.hostName,
+      floor: visit.floor,
+      category: visit.visitType === 'Contractor' ? 'Contractor' : 'Visitor',
+      inTimeUtc: visit.inTimeUtc,
+      visitNumber: visit.visitNumber,
+    });
+
+    auditEntries.unshift({
+      id: Math.max(...auditEntries.map((a) => a.id)) + 1,
+      userName: currentUser.username,
+      action: 'CHECK-IN',
+      entityName: 'Visit',
+      recordRef: visit.visitNumber,
+      oldValue: null,
+      newValue: 'Inside',
+      timestampUtc: visit.inTimeUtc,
+      ipAddress: '10.20.4.9',
+      deviceId,
+    });
+
+    return {
+      visitNumber: visit.visitNumber,
+      inTimeUtc: visit.inTimeUtc,
+      status: 'Inside',
+      host: { name: visit.hostName, notified: false },
+    };
+  },
+
+  async checkOut(id: string): Promise<CheckOutResponse> {
+    await delay(400);
+    const visit = visits.find((v) => v.id === id);
+    if (!visit) throw new Error('Visit not found.');
+    if (visit.status !== 'Inside') throw new Error(`Visit ${visit.visitNumber} is ${visit.status}.`);
+
+    visit.outTimeUtc = new Date().toISOString();
+    visit.status = 'CheckedOut';
+    const i = occupancy.findIndex((p) => p.visitNumber === visit.visitNumber);
+    if (i >= 0) occupancy.splice(i, 1);
+
+    auditEntries.unshift({
+      id: Math.max(...auditEntries.map((a) => a.id)) + 1,
+      userName: currentUser.username,
+      action: 'CHECK-OUT',
+      entityName: 'Visit',
+      recordRef: visit.visitNumber,
+      oldValue: 'Inside',
+      newValue: 'CheckedOut',
+      timestampUtc: visit.outTimeUtc,
+      ipAddress: '10.20.4.9',
+      deviceId: 'PORTAL',
+    });
+
+    return {
+      outTimeUtc: visit.outTimeUtc,
+      durationMinutes: Math.round(
+        (Date.parse(visit.outTimeUtc) - Date.parse(visit.inTimeUtc ?? visit.outTimeUtc)) / 60000),
+      status: 'CheckedOut',
+    };
+  },
 };
+
+let visitCounter = 1250;
+function nextVisitNumber(): string {
+  visitCounter += 1;
+  return `VIS-${new Date().getFullYear()}-${String(visitCounter).padStart(8, '0')}`;
+}
+
+/** Mirrors the server's masking so the mock shows what the API would return. */
+function maskEmiratesId(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  return digits.length === 15 ? `${digits.slice(0, 3)}-XXXX-XXXXXXX-${digits.slice(-1)}` : 'XXXXXXXXXXX';
+}
 
 export type ApiClient = typeof mockClient;

@@ -6,6 +6,13 @@ import { titleCase } from '../lib/format';
 
 const NAV = [
   {
+    group: 'Reception',
+    items: [
+      { to: '/register', label: 'New Visitor' },
+      { to: '/checkout', label: 'Check Out' },
+    ],
+  },
+  {
     group: 'Monitoring',
     items: [
       { to: '/', label: 'Dashboard', end: true },
@@ -83,8 +90,8 @@ export function AppLayout() {
             <div className="banner warn no-print">
               <strong>Sample data.</strong>
               <span>
-                DI.Vms.Api does not exist yet, so these screens are served from in-memory
-                fixtures. Set <code>VITE_USE_MOCK=false</code> once the API is running.
+                These screens are served from in-memory fixtures, not the database. Set{' '}
+                <code>VITE_USE_MOCK=false</code> to use DI.Vms.Api.
               </span>
             </div>
           )}

@@ -143,3 +143,67 @@ export interface VisitorSearchQuery {
   page?: number;
   pageSize?: number;
 }
+
+/* ---------------------------------------------------------------- write side */
+
+export interface IdentifyRequest {
+  idType: IdType;
+  idNumber: string;
+  captureMethod: 'Manual' | 'Ocr' | 'Mrz' | 'Nfc' | 'BarcodeOrQr' | 'CardReader';
+  cardVerification: {
+    isGenuine: boolean | null;
+    cardStatus: string;
+    verifiedAtUtc: string | null;
+    vgAvailable: boolean;
+  } | null;
+}
+
+export interface IdentifyResponse {
+  found: boolean;
+  visitor: {
+    id: string;
+    name: string;
+    company: string | null;
+    idNumberMasked: string;
+    idExpiryDate: string | null;
+    idExpired: boolean;
+    totalVisits: number;
+    lastVisitDate: string | null;
+  } | null;
+}
+
+export interface CreateVisitRequest {
+  visitor: {
+    name: string;
+    company: string | null;
+    idType: IdType;
+    idNumber: string;
+    idExpiryDate: string | null;
+    nationality: string | null;
+    dateOfBirth: string | null;
+    photo: string | null;
+    captureMethod: IdentifyRequest['captureMethod'];
+  } | null;
+  visitorId: string | null;
+  diEntityId: string;
+  hostEmployeeId: string;
+  purpose: string | null;
+  visitType: VisitorType;
+  expectedDate: string | null;
+  expectedTime: string | null;
+}
+
+export interface CreateVisitResponse { id: string; status: VisitStatus; }
+
+export interface CheckInResponse {
+  visitNumber: string;
+  inTimeUtc: string;
+  status: string;
+  host: { name: string; notified: boolean };
+}
+
+export interface CheckOutResponse {
+  outTimeUtc: string;
+  durationMinutes: number;
+  status: string;
+}
