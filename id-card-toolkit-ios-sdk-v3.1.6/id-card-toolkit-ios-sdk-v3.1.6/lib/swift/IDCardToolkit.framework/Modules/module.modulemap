@@ -1,0 +1,5 @@
+framework module IDCardToolkit {
+    umbrella header "IDCardToolkit.h"
+    export *
+    module * { export * }
+}

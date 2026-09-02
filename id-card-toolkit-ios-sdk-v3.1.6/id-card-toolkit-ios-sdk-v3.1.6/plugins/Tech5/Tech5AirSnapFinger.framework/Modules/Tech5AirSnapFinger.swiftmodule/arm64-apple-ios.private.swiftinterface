@@ -1,0 +1,22 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.3.2 effective-5.10 (swiftlang-6.3.2.1.108 clang-2100.1.1.101)
+// swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -O -module-name Tech5AirSnapFinger
+// swift-module-flags-ignorable:  -formal-cxx-interoperability-mode=off -interface-compiler-version 6.3.2
+import AirSnapFingerUI
+import Foundation
+import Swift
+import T5AirSnapFramework
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public typealias Tech5CaptureCompletion = (Foundation.Data?, Swift.Int32) -> Swift.Void
+@_inheritsConvenienceInitializers @objc public class Tech5CaptureBridge : ObjectiveC.NSObject, AirSnapFingerUI.FingersCapturedProtocol {
+  @objc public static func captureFingerprint(fingerIndex: Swift.Int, timeoutSeconds: Swift.Int, modelsDir: Swift.String, viewController: UIKit.UIViewController, completion: @escaping Tech5AirSnapFinger.Tech5CaptureCompletion)
+  public func onFingersCaptured(result: AirSnapFingerUI.FingerCaptureResult)
+  public func onFingerCaptureFailed(errorMsg: Swift.String)
+  public func onFingerCaptureCancelled(errorMsg: Swift.String)
+  public func onTimedout(lastCapturedImage: Foundation.Data)
+  @objc override dynamic public init()
+  @objc deinit
+}

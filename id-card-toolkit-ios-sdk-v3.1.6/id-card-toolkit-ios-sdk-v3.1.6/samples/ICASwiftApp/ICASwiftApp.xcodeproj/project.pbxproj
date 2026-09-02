@@ -1,0 +1,1062 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 55;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4E1B49512FE1803700B96654 /* AirSnapFingerUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49452FE1803000B96654 /* AirSnapFingerUI.framework */; };
+		4E1B49522FE1803700B96654 /* AirSnapFingerUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49452FE1803000B96654 /* AirSnapFingerUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4E1B49532FE1803D00B96654 /* ncnn.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49462FE1803000B96654 /* ncnn.framework */; };
+		4E1B49542FE1803D00B96654 /* ncnn.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49462FE1803000B96654 /* ncnn.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4E1B49552FE1803F00B96654 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49472FE1803000B96654 /* opencv2.framework */; };
+		4E1B49562FE1803F00B96654 /* opencv2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49472FE1803000B96654 /* opencv2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4E1B49572FE1804000B96654 /* OpenSSL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49482FE1803000B96654 /* OpenSSL.framework */; };
+		4E1B49582FE1804000B96654 /* OpenSSL.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49482FE1803000B96654 /* OpenSSL.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4E1B49592FE1804200B96654 /* T5AirSnapFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49492FE1803000B96654 /* T5AirSnapFramework.framework */; };
+		4E1B495A2FE1804200B96654 /* T5AirSnapFramework.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B49492FE1803000B96654 /* T5AirSnapFramework.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4E1B495B2FE1804400B96654 /* Tech5AirSnapFinger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B494A2FE1803000B96654 /* Tech5AirSnapFinger.framework */; };
+		4E1B495C2FE1804400B96654 /* Tech5AirSnapFinger.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1B494A2FE1803000B96654 /* Tech5AirSnapFinger.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4E1B495E2FE180CA00B96654 /* NFCFetchFingerData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1B495D2FE180CA00B96654 /* NFCFetchFingerData.swift */; };
+		4E3077B52FAF4243007B1E62 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4E3077B42FAF4243007B1E62 /* Localizable.strings */; };
+		64357AB348B098F68C750A6B /* Pods_ICASwiftApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69CF816334D3C21EBC5276DF /* Pods_ICASwiftApp.framework */; };
+		C9442D5F21DD2579C2A6A915 /* XMLParserHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = A81FD8E833E84F677405B516 /* XMLParserHelper.m */; };
+		CC2B708329BB1B4D009ED0BA /* libxmlsec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2B708229BB1B4D009ED0BA /* libxmlsec.a */; };
+		CC2B708829BB1B57009ED0BA /* IDCardToolkit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2B707629BB1B0F009ED0BA /* IDCardToolkit.framework */; };
+		CC2B708929BB1B57009ED0BA /* IDCardToolkit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CC2B707629BB1B0F009ED0BA /* IDCardToolkit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CC2B708A29BB1B59009ED0BA /* iOSNfcPlugin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2B708029BB1B3C009ED0BA /* iOSNfcPlugin.framework */; };
+		CC2B708B29BB1B59009ED0BA /* iOSNfcPlugin.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CC2B708029BB1B3C009ED0BA /* iOSNfcPlugin.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CC6D1198283E429C00F6507B /* Loggly.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6D1197283E429C00F6507B /* Loggly.swift */; };
+		CC6D119E283E5A9100F6507B /* ImageDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6D119D283E5A9000F6507B /* ImageDetection.swift */; };
+		CC7C9C9929AE06E00011E978 /* CheckCardStatusOffCardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7C9C9829AE06E00011E978 /* CheckCardStatusOffCardViewController.swift */; };
+		CC8207C7292CC7620091B56D /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC8207C6292CC7620091B56D /* CoreBluetooth.framework */; };
+		CCA158F0283BB09300BA7CDA /* HomePageCollectionview.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA158EF283BB09300BA7CDA /* HomePageCollectionview.swift */; };
+		CCFB451529BA02C500B3CE31 /* Customs.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFB451429BA02C500B3CE31 /* Customs.swift */; };
+		D844249B2BD0E4C500DBB0AA /* ResultsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D84424992BD0E4C500DBB0AA /* ResultsVC.swift */; };
+		D844249C2BD0E4C500DBB0AA /* ResultImgViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D844249A2BD0E4C500DBB0AA /* ResultImgViewModel.swift */; };
+		D869BCC92BE96F750042309E /* ToolkitFace.swift in Sources */ = {isa = PBXBuildFile; fileRef = D869BCC82BE96F750042309E /* ToolkitFace.swift */; };
+		D8A1A50A2B5D3C6300192C7A /* FaceAuthenticationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A5082B5D3C6300192C7A /* FaceAuthenticationViewController.swift */; };
+		D8A1A50B2B5D3C6300192C7A /* FaceVerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A5092B5D3C6300192C7A /* FaceVerificationViewController.swift */; };
+		D8A1A54B2B5E3CEC00192C7A /* FaceAutoCaptureSampleResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A5492B5E3CEC00192C7A /* FaceAutoCaptureSampleResult.swift */; };
+		D8A1A54C2B5E3CEC00192C7A /* DetectedFaceEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A54A2B5E3CEC00192C7A /* DetectedFaceEvaluator.swift */; };
+		D8A1A54E2B5E3D5200192C7A /* FaceAutoCapture+Encodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A54D2B5E3D5200192C7A /* FaceAutoCapture+Encodable.swift */; };
+		D8EBBCA42BA2DC2300CF083A /* DotDocument in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCA32BA2DC2300CF083A /* DotDocument */; };
+		D8EBBCA62BA2DC2300CF083A /* DotFaceBackgroundUniformity in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCA52BA2DC2300CF083A /* DotFaceBackgroundUniformity */; };
+		D8EBBCA82BA2DC2300CF083A /* DotFaceDetectionBalanced in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCA72BA2DC2300CF083A /* DotFaceDetectionBalanced */; };
+		D8EBBCAA2BA2DC2300CF083A /* DotFaceDetectionFast in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCA92BA2DC2300CF083A /* DotFaceDetectionFast */; };
+		D8EBBCAC2BA2DC2300CF083A /* DotFaceExpressionNeutral in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCAB2BA2DC2300CF083A /* DotFaceExpressionNeutral */; };
+		D8EBBCAE2BA2DC2300CF083A /* DotFaceEyeGazeLiveness in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCAD2BA2DC2300CF083A /* DotFaceEyeGazeLiveness */; };
+		D8EBBCB02BA2DC2300CF083A /* DotFaceLite in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCAF2BA2DC2300CF083A /* DotFaceLite */; };
+		D8EBBCB22BA2DC2300CF083A /* DotFacePassiveLiveness in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCB12BA2DC2300CF083A /* DotFacePassiveLiveness */; };
+		D8EBBCB42BA2DC2300CF083A /* DotFaceVerification in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCB32BA2DC2300CF083A /* DotFaceVerification */; };
+		D8EBBCB62BA2DC2300CF083A /* DotNfc in Frameworks */ = {isa = PBXBuildFile; productRef = D8EBBCB52BA2DC2300CF083A /* DotNfc */; };
+		D8EBBCC22BA2DD8C00CF083A /* libTactivo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8EBBCC12BA2DD8C00CF083A /* libTactivo.framework */; };
+		D8EBBCC32BA2DD8C00CF083A /* libTactivo.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D8EBBCC12BA2DD8C00CF083A /* libTactivo.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D8EBBCC52BA2DFC400CF083A /* Feitian.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8EBBCC42BA2DFC400CF083A /* Feitian.framework */; };
+		D8EBBCC62BA2DFC400CF083A /* Feitian.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D8EBBCC42BA2DFC400CF083A /* Feitian.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F24D05712825274C0056748C /* NFCPublicDataEFViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F24D05702825274C0056748C /* NFCPublicDataEFViewController.swift */; };
+		F25CE7FC2823938800625352 /* CustomTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25CE7FB2823938800625352 /* CustomTableViewCell.swift */; };
+		F25CE8002823A46000625352 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25CE7FF2823A46000625352 /* Toast.swift */; };
+		F27617A82822815300791310 /* ListReadersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F27617A72822815300791310 /* ListReadersViewController.swift */; };
+		F27617AA2822879600791310 /* PublicDataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F27617A92822879600791310 /* PublicDataViewController.swift */; };
+		F285DB042812A73A0065212A /* RegisterDeviceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F285DB032812A73A0065212A /* RegisterDeviceViewController.swift */; };
+		F285DB0A2812B2E50065212A /* VerifyBiometricViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F285DB092812B2E50065212A /* VerifyBiometricViewController.swift */; };
+		F286C849281130DD00DEB48F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F286C848281130DD00DEB48F /* AppDelegate.swift */; };
+		F286C84B281130DD00DEB48F /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F286C84A281130DD00DEB48F /* SceneDelegate.swift */; };
+		F286C850281130DD00DEB48F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F286C84E281130DD00DEB48F /* Main.storyboard */; };
+		F286C852281130E000DEB48F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F286C851281130E000DEB48F /* Assets.xcassets */; };
+		F286C855281130E000DEB48F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F286C853281130E000DEB48F /* LaunchScreen.storyboard */; };
+		F286C85D28113AF700DEB48F /* ShadowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F286C85C28113AF600DEB48F /* ShadowView.swift */; };
+		F286C85F28113BB100DEB48F /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F286C85E28113BB100DEB48F /* MainViewController.swift */; };
+		F286C86128115A2B00DEB48F /* ConfigurationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F286C86028115A2B00DEB48F /* ConfigurationViewController.swift */; };
+		F286C86328117B4800DEB48F /* HomePageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F286C86228117B4700DEB48F /* HomePageViewController.swift */; };
+		F28A5D3D282B94CD009F7E36 /* PassportMRZScanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D3C282B94CD009F7E36 /* PassportMRZScanViewController.swift */; };
+		F28A5D52282B9578009F7E36 /* QKMRZResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D3F282B9578009F7E36 /* QKMRZResult.swift */; };
+		F28A5D53282B9578009F7E36 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D40282B9578009F7E36 /* PreviewView.swift */; };
+		F28A5D54282B9578009F7E36 /* StringUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D41282B9578009F7E36 /* StringUtils.swift */; };
+		F28A5D55282B9578009F7E36 /* QKCutoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D43282B9578009F7E36 /* QKCutoutView.swift */; };
+		F28A5D56282B9578009F7E36 /* CIContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D44282B9578009F7E36 /* CIContext.swift */; };
+		F28A5D57282B9578009F7E36 /* LuminanceThresholdFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D45282B9578009F7E36 /* LuminanceThresholdFilter.swift */; };
+		F28A5D58282B9578009F7E36 /* QKMRZScanResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D46282B9578009F7E36 /* QKMRZScanResult.swift */; };
+		F28A5D59282B9578009F7E36 /* CIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D47282B9578009F7E36 /* CIImage.swift */; };
+		F28A5D5A282B9578009F7E36 /* CVImageBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D48282B9578009F7E36 /* CVImageBuffer.swift */; };
+		F28A5D5B282B9578009F7E36 /* QKMRZScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D49282B9578009F7E36 /* QKMRZScannerView.swift */; };
+		F28A5D5C282B9578009F7E36 /* AVCaptureVideoOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D4A282B9578009F7E36 /* AVCaptureVideoOrientation.swift */; };
+		F28A5D5D282B9578009F7E36 /* QKMRZParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D4B282B9578009F7E36 /* QKMRZParser.swift */; };
+		F28A5D5E282B9578009F7E36 /* TD3.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D4C282B9578009F7E36 /* TD3.swift */; };
+		F28A5D5F282B9578009F7E36 /* MRZFieldFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D4D282B9578009F7E36 /* MRZFieldFormatter.swift */; };
+		F28A5D60282B9578009F7E36 /* TD1.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D4E282B9578009F7E36 /* TD1.swift */; };
+		F28A5D61282B9578009F7E36 /* String-Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D4F282B9578009F7E36 /* String-Ext.swift */; };
+		F28A5D62282B9578009F7E36 /* MRZField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D50282B9578009F7E36 /* MRZField.swift */; };
+		F28A5D63282B9578009F7E36 /* TD2.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28A5D51282B9578009F7E36 /* TD2.swift */; };
+		F28A5D7E282BB470009F7E36 /* tessdata in Resources */ = {isa = PBXBuildFile; fileRef = F28A5D7D282BB470009F7E36 /* tessdata */; };
+		F2A4B60F2824F642004D574F /* PublicDataListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A4B60E2824F642004D574F /* PublicDataListViewController.swift */; };
+		F2A4B6112824FB17004D574F /* PublicDataEFViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A4B6102824FB17004D574F /* PublicDataEFViewController.swift */; };
+		F2A4B61328250383004D574F /* SetNFCdetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A4B61228250383004D574F /* SetNFCdetailsViewController.swift */; };
+		F2A4B61528252346004D574F /* NFCPublicDataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A4B61428252346004D574F /* NFCPublicDataViewController.swift */; };
+		F2C4E125281A6C0900A28E32 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2C4E124281A6C0900A28E32 /* UIKit.framework */; };
+		F2C4E127281A6C2F00A28E32 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2C4E126281A6C2F00A28E32 /* Foundation.framework */; };
+		F2C4E129281A6C7D00A28E32 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2C4E128281A6C7D00A28E32 /* CoreNFC.framework */; };
+		F2C4E12B281A6D4100A28E32 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2C4E12A281A6D4100A28E32 /* QuartzCore.framework */; };
+		F2C4E12D281A6D5000A28E32 /* ExternalAccessory.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2C4E12C281A6D5000A28E32 /* ExternalAccessory.framework */; };
+		F2C4E144281A714100A28E32 /* FamilyBookParse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E13F281A714100A28E32 /* FamilyBookParse.swift */; };
+		F2C4E145281A714100A28E32 /* PublicDataParse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E140281A714100A28E32 /* PublicDataParse.swift */; };
+		F2C4E147281A714100A28E32 /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E143281A714100A28E32 /* Utils.m */; };
+		F2C4E14B281A923700A28E32 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E14A281A923700A28E32 /* MBProgressHUD.m */; };
+		F2C4E15F281ABC6000A28E32 /* AlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E15C281ABC6000A28E32 /* AlertView.swift */; };
+		F2C4E160281ABC6000A28E32 /* Global.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E15D281ABC6000A28E32 /* Global.swift */; };
+		F2C4E4A52828EBAC009A08AF /* FingerDataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E4A42828EBAC009A08AF /* FingerDataViewController.swift */; };
+		F2C4E4A728291104009A08AF /* UnblockPINViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E4A628291104009A08AF /* UnblockPINViewController.swift */; };
+		F2C4E4A928291F85009A08AF /* SignDataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E4A828291F85009A08AF /* SignDataViewController.swift */; };
+		F2C4E4AB2829231C009A08AF /* CleanUpViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C4E4AA2829231C009A08AF /* CleanUpViewController.swift */; };
+		F2DA402528166DB70015DF0B /* ConnectReaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA402428166DB70015DF0B /* ConnectReaderViewController.swift */; };
+		F2DA402728166EAA0015DF0B /* CardSerialNumberViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA402628166EAA0015DF0B /* CardSerialNumberViewController.swift */; };
+		F2DA402928166F940015DF0B /* VerifyCardAndBiometricViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA402828166F940015DF0B /* VerifyCardAndBiometricViewController.swift */; };
+		F2DA402B2816713E0015DF0B /* PINAuthenticationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA402A2816713E0015DF0B /* PINAuthenticationViewController.swift */; };
+		F2DA402D2816733B0015DF0B /* PinResetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA402C2816733B0015DF0B /* PinResetViewController.swift */; };
+		F2DA4033281679540015DF0B /* FamilyBookViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA4032281679540015DF0B /* FamilyBookViewController.swift */; };
+		F2DA403728167AB30015DF0B /* DisconnectReaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA403628167AB30015DF0B /* DisconnectReaderViewController.swift */; };
+		F2DA403B28167D7F0015DF0B /* DeviceIDViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA403A28167D7F0015DF0B /* DeviceIDViewController.swift */; };
+		F2E43EC6282A38AB000D40C1 /* InterfaceTypeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E43EC5282A38AB000D40C1 /* InterfaceTypeViewController.swift */; };
+		F2E43EC8282A3BF6000D40C1 /* ConfigCertExpiryDateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E43EC7282A3BF6000D40C1 /* ConfigCertExpiryDateViewController.swift */; };
+		F2E43ECA282A3D98000D40C1 /* LicenseExpiryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E43EC9282A3D98000D40C1 /* LicenseExpiryViewController.swift */; };
+		F2E43ECC282A49C3000D40C1 /* PkiCertificatesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E43ECB282A49C3000D40C1 /* PkiCertificatesViewController.swift */; };
+		F2E43ECE282A626A000D40C1 /* ReaderEmiratesIDViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E43ECD282A626A000D40C1 /* ReaderEmiratesIDViewController.swift */; };
+		F2E43ED0282A6692000D40C1 /* ToolkitVersionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E43ECF282A6692000D40C1 /* ToolkitVersionViewController.swift */; };
+		F2E43ED2282A7938000D40C1 /* CheckCardStatusViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E43ED1282A7938000D40C1 /* CheckCardStatusViewController.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F2C4E14E281A931B00A28E32 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D8EBBCC62BA2DFC400CF083A /* Feitian.framework in Embed Frameworks */,
+				4E1B49582FE1804000B96654 /* OpenSSL.framework in Embed Frameworks */,
+				4E1B49562FE1803F00B96654 /* opencv2.framework in Embed Frameworks */,
+				D8EBBCC32BA2DD8C00CF083A /* libTactivo.framework in Embed Frameworks */,
+				CC2B708929BB1B57009ED0BA /* IDCardToolkit.framework in Embed Frameworks */,
+				4E1B49542FE1803D00B96654 /* ncnn.framework in Embed Frameworks */,
+				4E1B49522FE1803700B96654 /* AirSnapFingerUI.framework in Embed Frameworks */,
+				CC2B708B29BB1B59009ED0BA /* iOSNfcPlugin.framework in Embed Frameworks */,
+				4E1B495C2FE1804400B96654 /* Tech5AirSnapFinger.framework in Embed Frameworks */,
+				4E1B495A2FE1804200B96654 /* T5AirSnapFramework.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		2C529D44062D3320E94B5312 /* Pods-ICASwiftApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ICASwiftApp.debug.xcconfig"; path = "Target Support Files/Pods-ICASwiftApp/Pods-ICASwiftApp.debug.xcconfig"; sourceTree = "<group>"; };
+		4E1B49452FE1803000B96654 /* AirSnapFingerUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AirSnapFingerUI.framework; path = "/Users/prabhakar/Documents/Work/ICP ToolKit/Distribution/iPhone/id-card-toolkit-ios-sdk-v3.1.6 4/plugins/Tech5/AirSnapFingerUI.framework"; sourceTree = "<absolute>"; };
+		4E1B49462FE1803000B96654 /* ncnn.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ncnn.framework; path = "/Users/prabhakar/Documents/Work/ICP ToolKit/Distribution/iPhone/id-card-toolkit-ios-sdk-v3.1.6 4/plugins/Tech5/ncnn.framework"; sourceTree = "<absolute>"; };
+		4E1B49472FE1803000B96654 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = opencv2.framework; path = "/Users/prabhakar/Documents/Work/ICP ToolKit/Distribution/iPhone/id-card-toolkit-ios-sdk-v3.1.6 4/plugins/Tech5/opencv2.framework"; sourceTree = "<absolute>"; };
+		4E1B49482FE1803000B96654 /* OpenSSL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenSSL.framework; path = "/Users/prabhakar/Documents/Work/ICP ToolKit/Distribution/iPhone/id-card-toolkit-ios-sdk-v3.1.6 4/plugins/Tech5/OpenSSL.framework"; sourceTree = "<absolute>"; };
+		4E1B49492FE1803000B96654 /* T5AirSnapFramework.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = T5AirSnapFramework.framework; path = "/Users/prabhakar/Documents/Work/ICP ToolKit/Distribution/iPhone/id-card-toolkit-ios-sdk-v3.1.6 4/plugins/Tech5/T5AirSnapFramework.framework"; sourceTree = "<absolute>"; };
+		4E1B494A2FE1803000B96654 /* Tech5AirSnapFinger.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Tech5AirSnapFinger.framework; path = "/Users/prabhakar/Documents/Work/ICP ToolKit/Distribution/iPhone/id-card-toolkit-ios-sdk-v3.1.6 4/plugins/Tech5/Tech5AirSnapFinger.framework"; sourceTree = "<absolute>"; };
+		4E1B495D2FE180CA00B96654 /* NFCFetchFingerData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCFetchFingerData.swift; sourceTree = "<group>"; };
+		4E3077B32FAF4243007B1E62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		69CF816334D3C21EBC5276DF /* Pods_ICASwiftApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ICASwiftApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		86FDDC627E2021CD1046C723 /* XMLParserHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMLParserHelper.h; sourceTree = "<group>"; };
+		A81FD8E833E84F677405B516 /* XMLParserHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMLParserHelper.m; sourceTree = "<group>"; };
+		CC2B707629BB1B0F009ED0BA /* IDCardToolkit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IDCardToolkit.framework; path = ../../lib/swift/IDCardToolkit.framework; sourceTree = "<group>"; };
+		CC2B708029BB1B3C009ED0BA /* iOSNfcPlugin.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iOSNfcPlugin.framework; path = ../../plugins/NFC/iOSNfcPlugin.framework; sourceTree = "<group>"; };
+		CC2B708229BB1B4D009ED0BA /* libxmlsec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxmlsec.a; path = ../../ext/xmlsec/lib/iOS/libxmlsec.a; sourceTree = "<group>"; };
+		CC6D1197283E429C00F6507B /* Loggly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loggly.swift; sourceTree = "<group>"; };
+		CC6D119D283E5A9000F6507B /* ImageDetection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageDetection.swift; sourceTree = "<group>"; };
+		CC7C9C9829AE06E00011E978 /* CheckCardStatusOffCardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCardStatusOffCardViewController.swift; sourceTree = "<group>"; };
+		CC8207C6292CC7620091B56D /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		CCA158EF283BB09300BA7CDA /* HomePageCollectionview.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomePageCollectionview.swift; sourceTree = "<group>"; };
+		CCFB451429BA02C500B3CE31 /* Customs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Customs.swift; sourceTree = "<group>"; };
+		D84424992BD0E4C500DBB0AA /* ResultsVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultsVC.swift; sourceTree = "<group>"; };
+		D844249A2BD0E4C500DBB0AA /* ResultImgViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultImgViewModel.swift; sourceTree = "<group>"; };
+		D869BCC82BE96F750042309E /* ToolkitFace.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolkitFace.swift; sourceTree = "<group>"; };
+		D8A1A5082B5D3C6300192C7A /* FaceAuthenticationViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FaceAuthenticationViewController.swift; sourceTree = "<group>"; };
+		D8A1A5092B5D3C6300192C7A /* FaceVerificationViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FaceVerificationViewController.swift; sourceTree = "<group>"; };
+		D8A1A5492B5E3CEC00192C7A /* FaceAutoCaptureSampleResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FaceAutoCaptureSampleResult.swift; sourceTree = "<group>"; };
+		D8A1A54A2B5E3CEC00192C7A /* DetectedFaceEvaluator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetectedFaceEvaluator.swift; sourceTree = "<group>"; };
+		D8A1A54D2B5E3D5200192C7A /* FaceAutoCapture+Encodable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FaceAutoCapture+Encodable.swift"; sourceTree = "<group>"; };
+		D8EBBCC12BA2DD8C00CF083A /* libTactivo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libTactivo.framework; path = ../../plugins/Tactivo/libTactivo.framework; sourceTree = "<group>"; };
+		D8EBBCC42BA2DFC400CF083A /* Feitian.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Feitian.framework; path = ../../plugins/Feitian/Feitian.framework; sourceTree = "<group>"; };
+		F24D05702825274C0056748C /* NFCPublicDataEFViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCPublicDataEFViewController.swift; sourceTree = "<group>"; };
+		F25CE7FB2823938800625352 /* CustomTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTableViewCell.swift; sourceTree = "<group>"; };
+		F25CE7FF2823A46000625352 /* Toast.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		F25CE8012823E9B400625352 /* ICASwiftApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ICASwiftApp.entitlements; sourceTree = "<group>"; };
+		F27617A72822815300791310 /* ListReadersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListReadersViewController.swift; sourceTree = "<group>"; };
+		F27617A92822879600791310 /* PublicDataViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicDataViewController.swift; sourceTree = "<group>"; };
+		F285DB032812A73A0065212A /* RegisterDeviceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterDeviceViewController.swift; sourceTree = "<group>"; };
+		F285DB092812B2E50065212A /* VerifyBiometricViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyBiometricViewController.swift; sourceTree = "<group>"; };
+		F286C845281130DD00DEB48F /* ICASwiftApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ICASwiftApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F286C848281130DD00DEB48F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F286C84A281130DD00DEB48F /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		F286C84F281130DD00DEB48F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		F286C851281130E000DEB48F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F286C854281130E000DEB48F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		F286C856281130E000DEB48F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F286C85C28113AF600DEB48F /* ShadowView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShadowView.swift; sourceTree = "<group>"; };
+		F286C85E28113BB100DEB48F /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		F286C86028115A2B00DEB48F /* ConfigurationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationViewController.swift; sourceTree = "<group>"; };
+		F286C86228117B4700DEB48F /* HomePageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageViewController.swift; sourceTree = "<group>"; };
+		F28A5D3C282B94CD009F7E36 /* PassportMRZScanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassportMRZScanViewController.swift; sourceTree = "<group>"; };
+		F28A5D3F282B9578009F7E36 /* QKMRZResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QKMRZResult.swift; sourceTree = "<group>"; };
+		F28A5D40282B9578009F7E36 /* PreviewView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		F28A5D41282B9578009F7E36 /* StringUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringUtils.swift; sourceTree = "<group>"; };
+		F28A5D43282B9578009F7E36 /* QKCutoutView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QKCutoutView.swift; sourceTree = "<group>"; };
+		F28A5D44282B9578009F7E36 /* CIContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CIContext.swift; sourceTree = "<group>"; };
+		F28A5D45282B9578009F7E36 /* LuminanceThresholdFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LuminanceThresholdFilter.swift; sourceTree = "<group>"; };
+		F28A5D46282B9578009F7E36 /* QKMRZScanResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QKMRZScanResult.swift; sourceTree = "<group>"; };
+		F28A5D47282B9578009F7E36 /* CIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CIImage.swift; sourceTree = "<group>"; };
+		F28A5D48282B9578009F7E36 /* CVImageBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVImageBuffer.swift; sourceTree = "<group>"; };
+		F28A5D49282B9578009F7E36 /* QKMRZScannerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QKMRZScannerView.swift; sourceTree = "<group>"; };
+		F28A5D4A282B9578009F7E36 /* AVCaptureVideoOrientation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AVCaptureVideoOrientation.swift; sourceTree = "<group>"; };
+		F28A5D4B282B9578009F7E36 /* QKMRZParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QKMRZParser.swift; sourceTree = "<group>"; };
+		F28A5D4C282B9578009F7E36 /* TD3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TD3.swift; sourceTree = "<group>"; };
+		F28A5D4D282B9578009F7E36 /* MRZFieldFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MRZFieldFormatter.swift; sourceTree = "<group>"; };
+		F28A5D4E282B9578009F7E36 /* TD1.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TD1.swift; sourceTree = "<group>"; };
+		F28A5D4F282B9578009F7E36 /* String-Ext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String-Ext.swift"; sourceTree = "<group>"; };
+		F28A5D50282B9578009F7E36 /* MRZField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MRZField.swift; sourceTree = "<group>"; };
+		F28A5D51282B9578009F7E36 /* TD2.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TD2.swift; sourceTree = "<group>"; };
+		F28A5D7D282BB470009F7E36 /* tessdata */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tessdata; sourceTree = "<group>"; };
+		F2A4B60E2824F642004D574F /* PublicDataListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicDataListViewController.swift; sourceTree = "<group>"; };
+		F2A4B6102824FB17004D574F /* PublicDataEFViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicDataEFViewController.swift; sourceTree = "<group>"; };
+		F2A4B61228250383004D574F /* SetNFCdetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetNFCdetailsViewController.swift; sourceTree = "<group>"; };
+		F2A4B61428252346004D574F /* NFCPublicDataViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCPublicDataViewController.swift; sourceTree = "<group>"; };
+		F2C4E124281A6C0900A28E32 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		F2C4E126281A6C2F00A28E32 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		F2C4E128281A6C7D00A28E32 /* CoreNFC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreNFC.framework; path = System/Library/Frameworks/CoreNFC.framework; sourceTree = SDKROOT; };
+		F2C4E12A281A6D4100A28E32 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		F2C4E12C281A6D5000A28E32 /* ExternalAccessory.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExternalAccessory.framework; path = System/Library/Frameworks/ExternalAccessory.framework; sourceTree = SDKROOT; };
+		F2C4E13E281A714100A28E32 /* ICASwiftApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ICASwiftApp-Bridging-Header.h"; sourceTree = "<group>"; };
+		F2C4E13F281A714100A28E32 /* FamilyBookParse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FamilyBookParse.swift; sourceTree = "<group>"; };
+		F2C4E140281A714100A28E32 /* PublicDataParse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicDataParse.swift; sourceTree = "<group>"; };
+		F2C4E142281A714100A28E32 /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
+		F2C4E143281A714100A28E32 /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
+		F2C4E149281A923700A28E32 /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
+		F2C4E14A281A923700A28E32 /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
+		F2C4E15C281ABC6000A28E32 /* AlertView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlertView.swift; sourceTree = "<group>"; };
+		F2C4E15D281ABC6000A28E32 /* Global.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Global.swift; sourceTree = "<group>"; };
+		F2C4E4A42828EBAC009A08AF /* FingerDataViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FingerDataViewController.swift; sourceTree = "<group>"; };
+		F2C4E4A628291104009A08AF /* UnblockPINViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnblockPINViewController.swift; sourceTree = "<group>"; };
+		F2C4E4A828291F85009A08AF /* SignDataViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignDataViewController.swift; sourceTree = "<group>"; };
+		F2C4E4AA2829231C009A08AF /* CleanUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanUpViewController.swift; sourceTree = "<group>"; };
+		F2DA402428166DB70015DF0B /* ConnectReaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectReaderViewController.swift; sourceTree = "<group>"; };
+		F2DA402628166EAA0015DF0B /* CardSerialNumberViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardSerialNumberViewController.swift; sourceTree = "<group>"; };
+		F2DA402828166F940015DF0B /* VerifyCardAndBiometricViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyCardAndBiometricViewController.swift; sourceTree = "<group>"; };
+		F2DA402A2816713E0015DF0B /* PINAuthenticationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PINAuthenticationViewController.swift; sourceTree = "<group>"; };
+		F2DA402C2816733B0015DF0B /* PinResetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinResetViewController.swift; sourceTree = "<group>"; };
+		F2DA4032281679540015DF0B /* FamilyBookViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyBookViewController.swift; sourceTree = "<group>"; };
+		F2DA403628167AB30015DF0B /* DisconnectReaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisconnectReaderViewController.swift; sourceTree = "<group>"; };
+		F2DA403A28167D7F0015DF0B /* DeviceIDViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceIDViewController.swift; sourceTree = "<group>"; };
+		F2E43EC5282A38AB000D40C1 /* InterfaceTypeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceTypeViewController.swift; sourceTree = "<group>"; };
+		F2E43EC7282A3BF6000D40C1 /* ConfigCertExpiryDateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigCertExpiryDateViewController.swift; sourceTree = "<group>"; };
+		F2E43EC9282A3D98000D40C1 /* LicenseExpiryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseExpiryViewController.swift; sourceTree = "<group>"; };
+		F2E43ECB282A49C3000D40C1 /* PkiCertificatesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PkiCertificatesViewController.swift; sourceTree = "<group>"; };
+		F2E43ECD282A626A000D40C1 /* ReaderEmiratesIDViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderEmiratesIDViewController.swift; sourceTree = "<group>"; };
+		F2E43ECF282A6692000D40C1 /* ToolkitVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolkitVersionViewController.swift; sourceTree = "<group>"; };
+		F2E43ED1282A7938000D40C1 /* CheckCardStatusViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCardStatusViewController.swift; sourceTree = "<group>"; };
+		F69826D297715CC1D8076491 /* Pods-ICASwiftApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ICASwiftApp.release.xcconfig"; path = "Target Support Files/Pods-ICASwiftApp/Pods-ICASwiftApp.release.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F286C842281130DD00DEB48F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D8EBBCA62BA2DC2300CF083A /* DotFaceBackgroundUniformity in Frameworks */,
+				D8EBBCAA2BA2DC2300CF083A /* DotFaceDetectionFast in Frameworks */,
+				CC2B708329BB1B4D009ED0BA /* libxmlsec.a in Frameworks */,
+				CC2B708A29BB1B59009ED0BA /* iOSNfcPlugin.framework in Frameworks */,
+				D8EBBCB02BA2DC2300CF083A /* DotFaceLite in Frameworks */,
+				4E1B49592FE1804200B96654 /* T5AirSnapFramework.framework in Frameworks */,
+				4E1B49572FE1804000B96654 /* OpenSSL.framework in Frameworks */,
+				CC8207C7292CC7620091B56D /* CoreBluetooth.framework in Frameworks */,
+				D8EBBCB62BA2DC2300CF083A /* DotNfc in Frameworks */,
+				D8EBBCC52BA2DFC400CF083A /* Feitian.framework in Frameworks */,
+				F2C4E12D281A6D5000A28E32 /* ExternalAccessory.framework in Frameworks */,
+				D8EBBCC22BA2DD8C00CF083A /* libTactivo.framework in Frameworks */,
+				D8EBBCA42BA2DC2300CF083A /* DotDocument in Frameworks */,
+				D8EBBCA82BA2DC2300CF083A /* DotFaceDetectionBalanced in Frameworks */,
+				4E1B495B2FE1804400B96654 /* Tech5AirSnapFinger.framework in Frameworks */,
+				D8EBBCAC2BA2DC2300CF083A /* DotFaceExpressionNeutral in Frameworks */,
+				F2C4E12B281A6D4100A28E32 /* QuartzCore.framework in Frameworks */,
+				4E1B49512FE1803700B96654 /* AirSnapFingerUI.framework in Frameworks */,
+				F2C4E129281A6C7D00A28E32 /* CoreNFC.framework in Frameworks */,
+				F2C4E127281A6C2F00A28E32 /* Foundation.framework in Frameworks */,
+				F2C4E125281A6C0900A28E32 /* UIKit.framework in Frameworks */,
+				CC2B708829BB1B57009ED0BA /* IDCardToolkit.framework in Frameworks */,
+				4E1B49552FE1803F00B96654 /* opencv2.framework in Frameworks */,
+				D8EBBCB42BA2DC2300CF083A /* DotFaceVerification in Frameworks */,
+				64357AB348B098F68C750A6B /* Pods_ICASwiftApp.framework in Frameworks */,
+				D8EBBCAE2BA2DC2300CF083A /* DotFaceEyeGazeLiveness in Frameworks */,
+				D8EBBCB22BA2DC2300CF083A /* DotFacePassiveLiveness in Frameworks */,
+				4E1B49532FE1803D00B96654 /* ncnn.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4E1B493A2FE17FD900B96654 /* Document */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Document;
+			sourceTree = "<group>";
+		};
+		CBD5DC7082D3B1C0353B6415 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				2C529D44062D3320E94B5312 /* Pods-ICASwiftApp.debug.xcconfig */,
+				F69826D297715CC1D8076491 /* Pods-ICASwiftApp.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		D869BCCA2BE96F870042309E /* ToolkitFace */ = {
+			isa = PBXGroup;
+			children = (
+				D869BCC82BE96F750042309E /* ToolkitFace.swift */,
+			);
+			path = ToolkitFace;
+			sourceTree = "<group>";
+		};
+		F286C83C281130DD00DEB48F = {
+			isa = PBXGroup;
+			children = (
+				F28A5D7D282BB470009F7E36 /* tessdata */,
+				F286C847281130DD00DEB48F /* ICASwiftApp */,
+				F286C846281130DD00DEB48F /* Products */,
+				F2C4E123281A6C0900A28E32 /* Frameworks */,
+				CBD5DC7082D3B1C0353B6415 /* Pods */,
+			);
+			sourceTree = "<group>";
+		};
+		F286C846281130DD00DEB48F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F286C845281130DD00DEB48F /* ICASwiftApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F286C847281130DD00DEB48F /* ICASwiftApp */ = {
+			isa = PBXGroup;
+			children = (
+				4E1B493A2FE17FD900B96654 /* Document */,
+				F25CE8012823E9B400625352 /* ICASwiftApp.entitlements */,
+				F286C848281130DD00DEB48F /* AppDelegate.swift */,
+				F2C4E148281A714700A28E32 /* ConversionClass */,
+				F286C84A281130DD00DEB48F /* SceneDelegate.swift */,
+				F28A5D3E282B9578009F7E36 /* MrzScan */,
+				F286C85E28113BB100DEB48F /* MainViewController.swift */,
+				F286C86028115A2B00DEB48F /* ConfigurationViewController.swift */,
+				CCA158EF283BB09300BA7CDA /* HomePageCollectionview.swift */,
+				F286C86228117B4700DEB48F /* HomePageViewController.swift */,
+				F285DB032812A73A0065212A /* RegisterDeviceViewController.swift */,
+				F27617A72822815300791310 /* ListReadersViewController.swift */,
+				F2DA402428166DB70015DF0B /* ConnectReaderViewController.swift */,
+				F2DA403628167AB30015DF0B /* DisconnectReaderViewController.swift */,
+				F2DA402628166EAA0015DF0B /* CardSerialNumberViewController.swift */,
+				F2A4B60E2824F642004D574F /* PublicDataListViewController.swift */,
+				F27617A92822879600791310 /* PublicDataViewController.swift */,
+				F2A4B6102824FB17004D574F /* PublicDataEFViewController.swift */,
+				F2A4B61228250383004D574F /* SetNFCdetailsViewController.swift */,
+				F2A4B61428252346004D574F /* NFCPublicDataViewController.swift */,
+				F24D05702825274C0056748C /* NFCPublicDataEFViewController.swift */,
+				F2E43ED1282A7938000D40C1 /* CheckCardStatusViewController.swift */,
+				CC7C9C9829AE06E00011E978 /* CheckCardStatusOffCardViewController.swift */,
+				F285DB092812B2E50065212A /* VerifyBiometricViewController.swift */,
+				F2DA402828166F940015DF0B /* VerifyCardAndBiometricViewController.swift */,
+				F2DA402A2816713E0015DF0B /* PINAuthenticationViewController.swift */,
+				F2C4E4A628291104009A08AF /* UnblockPINViewController.swift */,
+				F2DA402C2816733B0015DF0B /* PinResetViewController.swift */,
+				F2E43ECB282A49C3000D40C1 /* PkiCertificatesViewController.swift */,
+				F2C4E4A828291F85009A08AF /* SignDataViewController.swift */,
+				F2DA4032281679540015DF0B /* FamilyBookViewController.swift */,
+				D8A1A5082B5D3C6300192C7A /* FaceAuthenticationViewController.swift */,
+				D8A1A5092B5D3C6300192C7A /* FaceVerificationViewController.swift */,
+				D844249A2BD0E4C500DBB0AA /* ResultImgViewModel.swift */,
+				D84424992BD0E4C500DBB0AA /* ResultsVC.swift */,
+				F2DA403A28167D7F0015DF0B /* DeviceIDViewController.swift */,
+				F2C4E4A42828EBAC009A08AF /* FingerDataViewController.swift */,
+				F2E43EC5282A38AB000D40C1 /* InterfaceTypeViewController.swift */,
+				F2E43EC7282A3BF6000D40C1 /* ConfigCertExpiryDateViewController.swift */,
+				F2E43EC9282A3D98000D40C1 /* LicenseExpiryViewController.swift */,
+				F2E43ECD282A626A000D40C1 /* ReaderEmiratesIDViewController.swift */,
+				F2E43ECF282A6692000D40C1 /* ToolkitVersionViewController.swift */,
+				F28A5D3C282B94CD009F7E36 /* PassportMRZScanViewController.swift */,
+				F2C4E4AA2829231C009A08AF /* CleanUpViewController.swift */,
+				F25CE7FB2823938800625352 /* CustomTableViewCell.swift */,
+				F286C85C28113AF600DEB48F /* ShadowView.swift */,
+				F25CE7FF2823A46000625352 /* Toast.swift */,
+				D8A1A54A2B5E3CEC00192C7A /* DetectedFaceEvaluator.swift */,
+				D8A1A54D2B5E3D5200192C7A /* FaceAutoCapture+Encodable.swift */,
+				D869BCCA2BE96F870042309E /* ToolkitFace */,
+				D8A1A5492B5E3CEC00192C7A /* FaceAutoCaptureSampleResult.swift */,
+				F286C84E281130DD00DEB48F /* Main.storyboard */,
+				F286C851281130E000DEB48F /* Assets.xcassets */,
+				F286C853281130E000DEB48F /* LaunchScreen.storyboard */,
+				F286C856281130E000DEB48F /* Info.plist */,
+				F2C4E13E281A714100A28E32 /* ICASwiftApp-Bridging-Header.h */,
+				4E3077B42FAF4243007B1E62 /* Localizable.strings */,
+			);
+			path = ICASwiftApp;
+			sourceTree = "<group>";
+		};
+		F28A5D3E282B9578009F7E36 /* MrzScan */ = {
+			isa = PBXGroup;
+			children = (
+				F28A5D3F282B9578009F7E36 /* QKMRZResult.swift */,
+				F28A5D40282B9578009F7E36 /* PreviewView.swift */,
+				F28A5D41282B9578009F7E36 /* StringUtils.swift */,
+				F28A5D42282B9578009F7E36 /* PassportScan */,
+				F28A5D4B282B9578009F7E36 /* QKMRZParser.swift */,
+				F28A5D4C282B9578009F7E36 /* TD3.swift */,
+				F28A5D4D282B9578009F7E36 /* MRZFieldFormatter.swift */,
+				F28A5D4E282B9578009F7E36 /* TD1.swift */,
+				F28A5D4F282B9578009F7E36 /* String-Ext.swift */,
+				F28A5D50282B9578009F7E36 /* MRZField.swift */,
+				F28A5D51282B9578009F7E36 /* TD2.swift */,
+			);
+			path = MrzScan;
+			sourceTree = "<group>";
+		};
+		F28A5D42282B9578009F7E36 /* PassportScan */ = {
+			isa = PBXGroup;
+			children = (
+				F28A5D43282B9578009F7E36 /* QKCutoutView.swift */,
+				F28A5D44282B9578009F7E36 /* CIContext.swift */,
+				F28A5D45282B9578009F7E36 /* LuminanceThresholdFilter.swift */,
+				F28A5D46282B9578009F7E36 /* QKMRZScanResult.swift */,
+				F28A5D47282B9578009F7E36 /* CIImage.swift */,
+				F28A5D48282B9578009F7E36 /* CVImageBuffer.swift */,
+				F28A5D49282B9578009F7E36 /* QKMRZScannerView.swift */,
+				F28A5D4A282B9578009F7E36 /* AVCaptureVideoOrientation.swift */,
+			);
+			path = PassportScan;
+			sourceTree = "<group>";
+		};
+		F2C4E123281A6C0900A28E32 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4E1B49452FE1803000B96654 /* AirSnapFingerUI.framework */,
+				4E1B49462FE1803000B96654 /* ncnn.framework */,
+				4E1B49472FE1803000B96654 /* opencv2.framework */,
+				4E1B49482FE1803000B96654 /* OpenSSL.framework */,
+				4E1B49492FE1803000B96654 /* T5AirSnapFramework.framework */,
+				4E1B494A2FE1803000B96654 /* Tech5AirSnapFinger.framework */,
+				D8EBBCC42BA2DFC400CF083A /* Feitian.framework */,
+				D8EBBCC12BA2DD8C00CF083A /* libTactivo.framework */,
+				CC2B708229BB1B4D009ED0BA /* libxmlsec.a */,
+				CC2B708029BB1B3C009ED0BA /* iOSNfcPlugin.framework */,
+				CC2B707629BB1B0F009ED0BA /* IDCardToolkit.framework */,
+				CC8207C6292CC7620091B56D /* CoreBluetooth.framework */,
+				F2C4E12C281A6D5000A28E32 /* ExternalAccessory.framework */,
+				F2C4E12A281A6D4100A28E32 /* QuartzCore.framework */,
+				F2C4E128281A6C7D00A28E32 /* CoreNFC.framework */,
+				F2C4E126281A6C2F00A28E32 /* Foundation.framework */,
+				F2C4E124281A6C0900A28E32 /* UIKit.framework */,
+				69CF816334D3C21EBC5276DF /* Pods_ICASwiftApp.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F2C4E148281A714700A28E32 /* ConversionClass */ = {
+			isa = PBXGroup;
+			children = (
+				F2C4E13F281A714100A28E32 /* FamilyBookParse.swift */,
+				F2C4E140281A714100A28E32 /* PublicDataParse.swift */,
+				F2C4E142281A714100A28E32 /* Utils.h */,
+				F2C4E143281A714100A28E32 /* Utils.m */,
+				86FDDC627E2021CD1046C723 /* XMLParserHelper.h */,
+				A81FD8E833E84F677405B516 /* XMLParserHelper.m */,
+				F2C4E149281A923700A28E32 /* MBProgressHUD.h */,
+				F2C4E14A281A923700A28E32 /* MBProgressHUD.m */,
+				F2C4E15C281ABC6000A28E32 /* AlertView.swift */,
+				CCFB451429BA02C500B3CE31 /* Customs.swift */,
+				F2C4E15D281ABC6000A28E32 /* Global.swift */,
+				CC6D1197283E429C00F6507B /* Loggly.swift */,
+				CC6D119D283E5A9000F6507B /* ImageDetection.swift */,
+				4E1B495D2FE180CA00B96654 /* NFCFetchFingerData.swift */,
+			);
+			path = ConversionClass;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F286C844281130DD00DEB48F /* ICASwiftApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F286C859281130E000DEB48F /* Build configuration list for PBXNativeTarget "ICASwiftApp" */;
+			buildPhases = (
+				5CBFBCF19299D9E9D9D5196C /* [CP] Check Pods Manifest.lock */,
+				F286C841281130DD00DEB48F /* Sources */,
+				F286C842281130DD00DEB48F /* Frameworks */,
+				F286C843281130DD00DEB48F /* Resources */,
+				F2C4E14E281A931B00A28E32 /* Embed Frameworks */,
+				611DB63D722293AB28232E5C /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ICASwiftApp;
+			packageProductDependencies = (
+				D8EBBCA32BA2DC2300CF083A /* DotDocument */,
+				D8EBBCA52BA2DC2300CF083A /* DotFaceBackgroundUniformity */,
+				D8EBBCA72BA2DC2300CF083A /* DotFaceDetectionBalanced */,
+				D8EBBCA92BA2DC2300CF083A /* DotFaceDetectionFast */,
+				D8EBBCAB2BA2DC2300CF083A /* DotFaceExpressionNeutral */,
+				D8EBBCAD2BA2DC2300CF083A /* DotFaceEyeGazeLiveness */,
+				D8EBBCAF2BA2DC2300CF083A /* DotFaceLite */,
+				D8EBBCB12BA2DC2300CF083A /* DotFacePassiveLiveness */,
+				D8EBBCB32BA2DC2300CF083A /* DotFaceVerification */,
+				D8EBBCB52BA2DC2300CF083A /* DotNfc */,
+			);
+			productName = ICASwiftApp;
+			productReference = F286C845281130DD00DEB48F /* ICASwiftApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F286C83D281130DD00DEB48F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1330;
+				LastUpgradeCheck = 1330;
+				TargetAttributes = {
+					F286C844281130DD00DEB48F = {
+						CreatedOnToolsVersion = 13.3;
+						LastSwiftMigration = 1330;
+					};
+				};
+			};
+			buildConfigurationList = F286C840281130DD00DEB48F /* Build configuration list for PBXProject "ICASwiftApp" */;
+			compatibilityVersion = "Xcode 13.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F286C83C281130DD00DEB48F;
+			packageReferences = (
+				D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */,
+			);
+			productRefGroup = F286C846281130DD00DEB48F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F286C844281130DD00DEB48F /* ICASwiftApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F286C843281130DD00DEB48F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E3077B52FAF4243007B1E62 /* Localizable.strings in Resources */,
+				F286C855281130E000DEB48F /* LaunchScreen.storyboard in Resources */,
+				F286C852281130E000DEB48F /* Assets.xcassets in Resources */,
+				F286C850281130DD00DEB48F /* Main.storyboard in Resources */,
+				F28A5D7E282BB470009F7E36 /* tessdata in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5CBFBCF19299D9E9D9D5196C /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ICASwiftApp-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		611DB63D722293AB28232E5C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ICASwiftApp/Pods-ICASwiftApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ICASwiftApp/Pods-ICASwiftApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ICASwiftApp/Pods-ICASwiftApp-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F286C841281130DD00DEB48F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F2C4E4A728291104009A08AF /* UnblockPINViewController.swift in Sources */,
+				F286C86128115A2B00DEB48F /* ConfigurationViewController.swift in Sources */,
+				F25CE7FC2823938800625352 /* CustomTableViewCell.swift in Sources */,
+				F28A5D63282B9578009F7E36 /* TD2.swift in Sources */,
+				F28A5D5A282B9578009F7E36 /* CVImageBuffer.swift in Sources */,
+				F28A5D5B282B9578009F7E36 /* QKMRZScannerView.swift in Sources */,
+				D8A1A54B2B5E3CEC00192C7A /* FaceAutoCaptureSampleResult.swift in Sources */,
+				F25CE8002823A46000625352 /* Toast.swift in Sources */,
+				F2E43EC8282A3BF6000D40C1 /* ConfigCertExpiryDateViewController.swift in Sources */,
+				CCA158F0283BB09300BA7CDA /* HomePageCollectionview.swift in Sources */,
+				F2A4B61328250383004D574F /* SetNFCdetailsViewController.swift in Sources */,
+				F2C4E147281A714100A28E32 /* Utils.m in Sources */,
+				C9442D5F21DD2579C2A6A915 /* XMLParserHelper.m in Sources */,
+				F286C86328117B4800DEB48F /* HomePageViewController.swift in Sources */,
+				D869BCC92BE96F750042309E /* ToolkitFace.swift in Sources */,
+				F286C85D28113AF700DEB48F /* ShadowView.swift in Sources */,
+				F28A5D61282B9578009F7E36 /* String-Ext.swift in Sources */,
+				F2DA402928166F940015DF0B /* VerifyCardAndBiometricViewController.swift in Sources */,
+				F28A5D54282B9578009F7E36 /* StringUtils.swift in Sources */,
+				F2E43ED0282A6692000D40C1 /* ToolkitVersionViewController.swift in Sources */,
+				F2DA402D2816733B0015DF0B /* PinResetViewController.swift in Sources */,
+				F27617AA2822879600791310 /* PublicDataViewController.swift in Sources */,
+				F28A5D5E282B9578009F7E36 /* TD3.swift in Sources */,
+				CC6D1198283E429C00F6507B /* Loggly.swift in Sources */,
+				F24D05712825274C0056748C /* NFCPublicDataEFViewController.swift in Sources */,
+				CC6D119E283E5A9100F6507B /* ImageDetection.swift in Sources */,
+				D8A1A54C2B5E3CEC00192C7A /* DetectedFaceEvaluator.swift in Sources */,
+				F2E43ED2282A7938000D40C1 /* CheckCardStatusViewController.swift in Sources */,
+				F2A4B61528252346004D574F /* NFCPublicDataViewController.swift in Sources */,
+				F2C4E4A52828EBAC009A08AF /* FingerDataViewController.swift in Sources */,
+				F2A4B60F2824F642004D574F /* PublicDataListViewController.swift in Sources */,
+				D8A1A54E2B5E3D5200192C7A /* FaceAutoCapture+Encodable.swift in Sources */,
+				F2DA403728167AB30015DF0B /* DisconnectReaderViewController.swift in Sources */,
+				D8A1A50B2B5D3C6300192C7A /* FaceVerificationViewController.swift in Sources */,
+				F28A5D53282B9578009F7E36 /* PreviewView.swift in Sources */,
+				F2E43ECE282A626A000D40C1 /* ReaderEmiratesIDViewController.swift in Sources */,
+				F28A5D55282B9578009F7E36 /* QKCutoutView.swift in Sources */,
+				F2C4E15F281ABC6000A28E32 /* AlertView.swift in Sources */,
+				F2C4E4AB2829231C009A08AF /* CleanUpViewController.swift in Sources */,
+				D844249B2BD0E4C500DBB0AA /* ResultsVC.swift in Sources */,
+				F2E43ECC282A49C3000D40C1 /* PkiCertificatesViewController.swift in Sources */,
+				F285DB042812A73A0065212A /* RegisterDeviceViewController.swift in Sources */,
+				F2A4B6112824FB17004D574F /* PublicDataEFViewController.swift in Sources */,
+				F2C4E160281ABC6000A28E32 /* Global.swift in Sources */,
+				F2C4E4A928291F85009A08AF /* SignDataViewController.swift in Sources */,
+				F2C4E144281A714100A28E32 /* FamilyBookParse.swift in Sources */,
+				F28A5D59282B9578009F7E36 /* CIImage.swift in Sources */,
+				CCFB451529BA02C500B3CE31 /* Customs.swift in Sources */,
+				F28A5D5D282B9578009F7E36 /* QKMRZParser.swift in Sources */,
+				F28A5D57282B9578009F7E36 /* LuminanceThresholdFilter.swift in Sources */,
+				F2C4E145281A714100A28E32 /* PublicDataParse.swift in Sources */,
+				F27617A82822815300791310 /* ListReadersViewController.swift in Sources */,
+				F2DA402528166DB70015DF0B /* ConnectReaderViewController.swift in Sources */,
+				F28A5D52282B9578009F7E36 /* QKMRZResult.swift in Sources */,
+				F28A5D5C282B9578009F7E36 /* AVCaptureVideoOrientation.swift in Sources */,
+				CC7C9C9929AE06E00011E978 /* CheckCardStatusOffCardViewController.swift in Sources */,
+				F2DA403B28167D7F0015DF0B /* DeviceIDViewController.swift in Sources */,
+				D844249C2BD0E4C500DBB0AA /* ResultImgViewModel.swift in Sources */,
+				F28A5D5F282B9578009F7E36 /* MRZFieldFormatter.swift in Sources */,
+				F28A5D62282B9578009F7E36 /* MRZField.swift in Sources */,
+				F28A5D60282B9578009F7E36 /* TD1.swift in Sources */,
+				F28A5D3D282B94CD009F7E36 /* PassportMRZScanViewController.swift in Sources */,
+				F2C4E14B281A923700A28E32 /* MBProgressHUD.m in Sources */,
+				D8A1A50A2B5D3C6300192C7A /* FaceAuthenticationViewController.swift in Sources */,
+				F285DB0A2812B2E50065212A /* VerifyBiometricViewController.swift in Sources */,
+				F2E43ECA282A3D98000D40C1 /* LicenseExpiryViewController.swift in Sources */,
+				F286C849281130DD00DEB48F /* AppDelegate.swift in Sources */,
+				F28A5D58282B9578009F7E36 /* QKMRZScanResult.swift in Sources */,
+				F286C84B281130DD00DEB48F /* SceneDelegate.swift in Sources */,
+				F2E43EC6282A38AB000D40C1 /* InterfaceTypeViewController.swift in Sources */,
+				F2DA402728166EAA0015DF0B /* CardSerialNumberViewController.swift in Sources */,
+				F28A5D56282B9578009F7E36 /* CIContext.swift in Sources */,
+				F286C85F28113BB100DEB48F /* MainViewController.swift in Sources */,
+				4E1B495E2FE180CA00B96654 /* NFCFetchFingerData.swift in Sources */,
+				F2DA402B2816713E0015DF0B /* PINAuthenticationViewController.swift in Sources */,
+				F2DA4033281679540015DF0B /* FamilyBookViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		4E3077B42FAF4243007B1E62 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				4E3077B32FAF4243007B1E62 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		F286C84E281130DD00DEB48F /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F286C84F281130DD00DEB48F /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		F286C853281130E000DEB48F /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F286C854281130E000DEB48F /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		F286C857281130E000DEB48F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F286C858281130E000DEB48F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F286C85A281130E000DEB48F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2C529D44062D3320E94B5312 /* Pods-ICASwiftApp.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ICASwiftApp/ICASwiftApp.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8X4HL3UFV8;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					../../lib/swift,
+					../../plugins/DTTFaceSDK,
+					../../plugins/Feitian,
+					../../plugins/Nefcom,
+					../../plugins/NFC,
+					../../plugins/Tactivo,
+					../../plugins/Tech5,
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../ext/openssl/include/iOS,
+					../../ext/xmlsec/include/MacOSX,
+				);
+				INFOPLIST_FILE = ICASwiftApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "ICP SwiftApp";
+				INFOPLIST_KEY_NFCReaderUsageDescription = "App Requires NFC to read the card details";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App need your approval to access to the bluetooth";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "App need your approval to access to the bluetooth";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera is required to capture the card details";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					../../ext/xmlsec/lib/iOS,
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ae.emiratesid.idcard.toolkit.sample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ICASwiftApp/ICASwiftApp-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F286C85B281130E000DEB48F /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F69826D297715CC1D8076491 /* Pods-ICASwiftApp.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ICASwiftApp/ICASwiftApp.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8X4HL3UFV8;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					../../lib/swift,
+					../../plugins/DTTFaceSDK,
+					../../plugins/Feitian,
+					../../plugins/Nefcom,
+					../../plugins/NFC,
+					../../plugins/Tactivo,
+					../../plugins/Tech5,
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../ext/openssl/include/iOS,
+					../../ext/xmlsec/include/MacOSX,
+				);
+				INFOPLIST_FILE = ICASwiftApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "ICP SwiftApp";
+				INFOPLIST_KEY_NFCReaderUsageDescription = "App Requires NFC to read the card details";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App need your approval to access to the bluetooth";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "App need your approval to access to the bluetooth";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera is required to capture the card details";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					../../ext/xmlsec/lib/iOS,
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ae.emiratesid.idcard.toolkit.sample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ICASwiftApp/ICASwiftApp-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F286C840281130DD00DEB48F /* Build configuration list for PBXProject "ICASwiftApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F286C857281130E000DEB48F /* Debug */,
+				F286C858281130E000DEB48F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F286C859281130E000DEB48F /* Build configuration list for PBXNativeTarget "ICASwiftApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F286C85A281130E000DEB48F /* Debug */,
+				F286C85B281130E000DEB48F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/innovatrics/dot-ios-sdk-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D8EBBCA32BA2DC2300CF083A /* DotDocument */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotDocument;
+		};
+		D8EBBCA52BA2DC2300CF083A /* DotFaceBackgroundUniformity */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotFaceBackgroundUniformity;
+		};
+		D8EBBCA72BA2DC2300CF083A /* DotFaceDetectionBalanced */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotFaceDetectionBalanced;
+		};
+		D8EBBCA92BA2DC2300CF083A /* DotFaceDetectionFast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotFaceDetectionFast;
+		};
+		D8EBBCAB2BA2DC2300CF083A /* DotFaceExpressionNeutral */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotFaceExpressionNeutral;
+		};
+		D8EBBCAD2BA2DC2300CF083A /* DotFaceEyeGazeLiveness */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotFaceEyeGazeLiveness;
+		};
+		D8EBBCAF2BA2DC2300CF083A /* DotFaceLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotFaceLite;
+		};
+		D8EBBCB12BA2DC2300CF083A /* DotFacePassiveLiveness */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotFacePassiveLiveness;
+		};
+		D8EBBCB32BA2DC2300CF083A /* DotFaceVerification */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotFaceVerification;
+		};
+		D8EBBCB52BA2DC2300CF083A /* DotNfc */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8EBBCA22BA2DC2300CF083A /* XCRemoteSwiftPackageReference "dot-ios-sdk-spm" */;
+			productName = DotNfc;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F286C83D281130DD00DEB48F /* Project object */;
+}

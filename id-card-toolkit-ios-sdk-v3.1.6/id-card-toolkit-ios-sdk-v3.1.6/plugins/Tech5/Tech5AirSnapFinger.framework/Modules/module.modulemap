@@ -1,0 +1,10 @@
+framework module Tech5AirSnapFinger {
+    umbrella header "Tech5AirSnapFinger.h"
+    export *
+    module * { export * }
+}
+
+module Tech5AirSnapFinger.Swift {
+    header "Tech5AirSnapFinger-Swift.h"
+    requires objc
+}

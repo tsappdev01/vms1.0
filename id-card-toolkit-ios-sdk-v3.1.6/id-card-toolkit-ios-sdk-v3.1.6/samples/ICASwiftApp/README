@@ -1,0 +1,4 @@
+From the Project directory, install the dependency libraries from podfile
+
+from the terminal go to the project directory where the podfile exists and run the following command
+pod install

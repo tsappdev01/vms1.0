@@ -1,0 +1,9 @@
+Tactivo Toolkit iOS Smartcard Reader Plugin :
+
+Following are the settings required to be kept in info.plist of the integrated application under UISupportedExternalAccessoryProtocols key
+
+<string>com.precisebiometrics.sensor</string>
+<string>com.precisebiometrics.manager</string>
+<string>com.precisebiometrics.ccidbulk</string>
+<string>com.precisebiometrics.ccidinterrupt</string>
+<string>com.precisebiometrics.ccidcontrol</string>

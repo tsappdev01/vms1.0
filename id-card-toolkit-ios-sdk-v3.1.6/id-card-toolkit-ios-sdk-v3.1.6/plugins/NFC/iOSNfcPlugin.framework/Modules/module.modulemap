@@ -1,0 +1,5 @@
+framework module iOSNfcPlugin {
+    umbrella header "iOSNfcPlugin.h"
+    export *
+    module * { export * }
+}

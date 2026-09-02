@@ -1,0 +1,6 @@
+framework module ncnn {
+    umbrella header "net.h"
+    
+    export *
+    module * { export * }
+}

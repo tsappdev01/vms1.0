@@ -1,0 +1,542 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.3.2 effective-5.10 (swiftlang-6.3.2.1.108 clang-2100.1.1.101)
+// swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -O -module-name IDCardToolkit
+// swift-module-flags-ignorable:  -formal-cxx-interoperability-mode=off -interface-compiler-version 6.3.2
+import Foundation
+@_exported import IDCardToolkit
+import Swift
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+@_inheritsConvenienceInitializers @objc public class CardReader : ObjectiveC.NSObject {
+  @objc override dynamic public init()
+  @objc public init(cardReaderName: Swift.String) throws
+  @objc public func getName() -> Swift.String
+  @objc public func isConnected() -> Swift.Bool
+  @objc public func connect() throws
+  @objc public func disconnect() throws
+  @objc public func setNfcAuthenticationParameters(_ mrzdata: Swift.String) throws
+  @objc public func setNfcAuthenticationParameters(_ cardNumber: Swift.String, dateOfBirth: Swift.String, expiryDate: Swift.String) throws
+  @objc public func checkCardStatus(_ requestId: Swift.String) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func readPublicData(_ requestId: Swift.String, readNonModifiableData: Swift.Bool, readModifiableData: Swift.Bool, readPhotography: Swift.Bool, readSignatueImage: Swift.Bool, readAddress: Swift.Bool) throws -> IDCardToolkit.CardPublicData
+  @objc public func prepareRequest(_ requestId: Swift.String) throws -> Swift.String
+  @objc public func getPkiCertificates(_ encodedPin: Swift.String) throws -> IDCardToolkit.CardCertificates
+  @objc public func authenticatePki(_ encodedPin: Swift.String) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func signData(_ input: Swift.String, inputLength: Swift.UInt32, isInputHash: Swift.Bool, encodedPin: Swift.String) throws -> IDCardToolkit.SignatureResponse
+  @objc public func signChallenge(_ input: Swift.String, inputLength: Swift.UInt32, isInputHash: Swift.Bool, encodedPin: Swift.String) throws -> IDCardToolkit.SignatureResponse
+  @objc public func getFingerData() throws -> Foundation.NSArray
+  @objc public func authenticateBiometricOnServer(_ requestId: Swift.String, fingerIndex: IDCardToolkit.FingerIndex, sensorTimeout: Swift.Int32) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func resetPin(_ encodedPin: Swift.String, fingerData: IDCardToolkit.FingerData?, sensorTimeout: Swift.Int32) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func unblockPin(_ encodedPin: Swift.String, fingerData: IDCardToolkit.FingerData?, sensorTimeout: Swift.Int32) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func readFamilyBookData(_ encodedPin: Swift.String) throws -> IDCardToolkit.CardFamilyBookData
+  @objc public func verifySignature(_ input: Swift.String, inputLength: Swift.UInt32, isInputHash: Swift.Bool, signature: Swift.UnsafeMutablePointer<Swift.UInt8>!, signatureLength: Swift.UInt32, certificate: Swift.UnsafeMutablePointer<Swift.UInt8>!, certificateLength: Swift.UInt32) throws
+  @objc public func getInterfaceType() throws -> Swift.String
+  @objc public func authenticateCardAndBiometric(_ requestId: Swift.String, fingerIndex: IDCardToolkit.FingerIndex, sensorTimeout: Swift.Int32) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func readPublicDataEF(_ publicDataEFType: IDCardToolkit.PUBLIC_DATA_EF_TYPE, validateSignature: Swift.Int32) throws
+  @objc public func getreadPublicDataEFByte() -> Swift.UnsafeMutablePointer<Swift.UInt8>!
+  @objc public func getreadPublicDataEFLength() -> Swift.Int
+  @objc public func getCSN() throws -> Swift.String
+  @objc public func getCardversion() throws -> Swift.String
+  @objc public func updateData(_ fileType: IDCardToolkit.DF_TYPE, requestId: Swift.String) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func readData(_ fileType: IDCardToolkit.FILE_TYPE, requestId: Swift.String) throws -> IDCardToolkit.DataContainer
+  @objc public func resetPinWithoutAuthenticateBiometric(_ encodedPin: Swift.String) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func parseEFData(efData: Swift.UnsafeMutablePointer<Swift.UInt8>!, efDatalength: Swift.UInt32) throws -> Swift.String
+  @objc public func cadesSign(_ ctx: IDCardToolkit.SigningContext) throws -> IDCardToolkit.SignatureResponse
+  @objc public func xadesSign(_ ctx: IDCardToolkit.SigningContext) throws -> IDCardToolkit.SignatureResponse
+  @objc public func padesSign(_ ctx: IDCardToolkit.PadesSigningContext) throws -> IDCardToolkit.SignatureResponse
+  @objc public func cadesVerify(_ ctx: IDCardToolkit.VerificationContext) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func xadesVerify(_ ctx: IDCardToolkit.VerificationContext) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func padesVerify(_ ctx: IDCardToolkit.VerificationContext) throws -> IDCardToolkit.ToolkitResponse
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers public class Toolkit : ObjectiveC.NSObject {
+  @objc public init(_ inProcessMode: Swift.Bool, configParams: Swift.String) throws
+  @objc public func getToolkitVersion() throws -> Swift.String
+  @objc public func prepareRequest(_ requestId: Swift.String) throws -> Swift.String
+  @objc public func registerDevice(_ encodedUserId: Swift.String, encodedPassword: Swift.String, deviceReferenceId: Swift.String) throws -> IDCardToolkit.RegisterDeviceResponse
+  @objc public func listReaders() throws -> Foundation.NSArray
+  @objc public func getReaderWithEmiratesId() throws -> IDCardToolkit.CardReader
+  @objc public func getDeviceId() throws -> Swift.String
+  @objc public func getstatusMessage(_ statusValue: Swift.Int) throws -> Swift.String
+  @objc public func freeMemory(_ buffer: Swift.UnsafeMutableRawPointer) throws
+  @objc public func cleanup() throws
+  @objc public func setNfcTag(_ session: Any?, tag: Any?) throws
+  @objc public func getDataProtectionKey() throws -> IDCardToolkit.DataProtectionKey
+  @objc public func parseMRZData(_ mrz: Swift.String) throws
+  @objc public func getLicenseExpiryDate() throws -> Swift.String
+  @objc public func getMrzDocument_type() -> Swift.String
+  @objc public func getMrzIssued_country() -> Swift.String
+  @objc public func getMrzCardnumber() -> Swift.String
+  @objc public func getMrzIdnumber() -> Swift.String
+  @objc public func getMrzDate_of_birth() -> Swift.String
+  @objc public func getMrzGender() -> Swift.String
+  @objc public func getMrzCard_expiry_date() -> Swift.String
+  @objc public func getMrzNationality() -> Swift.String
+  @objc public func getMrzFullname() -> Swift.String
+  @objc public func getConfigCertificateExpiryDate() throws
+  @objc public func getConfig_vg_cert_expiry() -> Swift.String
+  @objc public func getConfig_lv_cert_expiry() -> Swift.String
+  @objc public func getServer_tls_cert_expiry() -> Swift.String
+  @objc public func getConfig_ag_cert_expiry() -> Swift.String
+  @objc public func getLicense_expiry() -> Swift.String
+  @objc public func verifyFaceOnServerUsingID(_ handle: Swift.Int32, idn: Swift.String, base64Image: Swift.String, isdigitalDocs: Swift.Bool) throws -> IDCardToolkit.CardPublicData
+  @objc public func verifyFaceOnServerUsingPassport(_ handle: Swift.Int32, passportNumber: Swift.String, passportCountry: Swift.String, passportExpiryDate: Swift.String, dateOfBirth: Swift.String, base64Image: Swift.String, isdigitalDocs: Swift.Bool) throws -> IDCardToolkit.CardPublicData
+  @objc public func verifyFaceOnServerUsingIDEx(_ handle: Swift.Int32, idn: Swift.String, base64Image: Swift.String, raw_data: Swift.String, live_mode: Swift.UInt32, isdigitalDocs: Swift.Bool) throws -> IDCardToolkit.CardPublicData
+  @objc public func verifyFaceOnServerUsingPassportEx(_ handle: Swift.Int32, passportNumber: Swift.String, passportCountry: Swift.String, passportExpiryDate: Swift.String, dateOfBirth: Swift.String, base64Image: Swift.String, raw_data: Swift.String, live_mode: Swift.UInt32, isdigitalDocs: Swift.Bool) throws -> IDCardToolkit.CardPublicData
+  @objc public func checkCardStatusOffCard(_ requestId: Swift.String, cardNumber: Swift.String, idn: Swift.String) throws -> IDCardToolkit.ToolkitResponse
+  @objc public func getFaceSDkLicense(applicationId: Swift.String) throws -> Swift.String
+  @objc public func initFaceSDK(applicationId: Swift.String) throws -> IDCardToolkit.FaceSDKData
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class ToolkitError : Foundation.NSError {
+  @objc public class func errorWithDomainName(domain: Swift.String, reason: Swift.String, code: Swift.Int, userInfo: [Swift.String : Any]) throws
+  @objc public class func errorWithName(errorName: Swift.String, code: Swift.Int) throws
+  @objc public class func foundexception(_ err: Foundation.NSError) throws
+  @objc public class func errorCode(_ code: Swift.Int) throws
+  @objc public class func errorWithDomainCode(_ errorCode: Swift.Int) throws
+  @objc public class func errorWithDomainCode(_ errorCode: Swift.Int, response: Swift.String) throws
+  @objc public class func errorWithDomainCode(_ errorCode: Swift.Int, attemptsLeft: Swift.Int8) throws
+  @objc public class func errorWithDomainCode(_ errorCode: Swift.Int, attemptsLeft: Swift.Int8, response: Swift.String) throws
+  @objc override dynamic public init(domain: Swift.String, code: Swift.Int, userInfo dict: [Swift.String : Any]? = nil)
+  @objc required dynamic public init?(coder: Foundation.NSCoder)
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class AllergyResource : IDCardToolkit.ToolkitXmlDataObject {
+  @objc override dynamic public init()
+  @objc public init(_ allergyResource: [Swift.AnyHashable : Any])
+  @objc public func getResourceType() -> Swift.String
+  @objc public func getAllergyDisplay() -> Swift.String
+  @objc public func getAllergyRecordedDate() -> Swift.String
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class BloodGroupResource : IDCardToolkit.ToolkitXmlDataObject {
+  @objc override dynamic public init()
+  @objc public init(_ bloodGroupResource: [Swift.AnyHashable : Any])
+  @objc public func getResourceType() -> Swift.String
+  @objc public func getBloodGroup() -> Swift.String
+  @objc public func getRecordedDate() -> Swift.String
+  @objc deinit
+}
+@objc @_hasMissingDesignatedInitializers public class CardCertificates : IDCardToolkit.ToolkitResponse {
+  @objc override public init(_ xmlString: Swift.String)
+  @objc public func getAuthenticationCertificate() -> Swift.UnsafeMutablePointer<Swift.UInt8>!
+  @objc public func getSigningCertificate() -> Swift.UnsafeMutablePointer<Swift.UInt8>!
+  @objc public func getAuthenticationCertificateLength() -> Swift.UInt32
+  @objc public func getSigningCertificateLength() -> Swift.UInt32
+  @objc deinit
+}
+@objc @_hasMissingDesignatedInitializers public class CardFamilyBookData : IDCardToolkit.ToolkitResponse {
+  @objc override public init(_ xmlString: Swift.String)
+  @objc public func getHeadOfFamily() -> IDCardToolkit.HeadOfFamily?
+  @objc public func getWives() -> Foundation.NSArray
+  @objc public func getChildren() -> Foundation.NSArray
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers public class CardPublicData : IDCardToolkit.ToolkitResponse {
+  @objc override public init(_ xmlString: Swift.String)
+  @objc public func getCardHolderPhoto() -> Swift.UnsafeMutablePointer<Swift.UInt8>!
+  @objc public func getCardHolderPhotoLength() -> Swift.UInt32
+  @objc public func getHolderSignatureImage() -> Swift.UnsafeMutablePointer<Swift.UInt8>!
+  @objc public func getHolderSignatureImageLength() -> Swift.UInt32
+  @objc override public func getIdNumber() -> Swift.String
+  @objc override public func getCardNumber() -> Swift.String
+  @objc public func getModifiablePublicData() -> IDCardToolkit.ModifiablePublicData?
+  @objc public func getNonModifiablePublicData() -> IDCardToolkit.NonModifiablePublicData?
+  @objc public func getHomeAddress() -> IDCardToolkit.HomeAddress?
+  @objc public func getWorkAddress() -> IDCardToolkit.WorkAddress?
+  @objc public func getHolderEmiratesIdImage() -> Swift.String
+  @objc public func getHolderResidenceImage() -> Swift.String
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class Child : IDCardToolkit.ToolkitXmlDataObject {
+  @objc override dynamic public init()
+  @objc public init(_ ChildElement: [Swift.AnyHashable : Any])
+  @objc public func getChildIdn() -> Swift.String
+  @objc public func getFirstNameArabic() -> Swift.String
+  @objc public func getFirstNameEnglish() -> Swift.String
+  @objc public func getGender() -> Swift.String
+  @objc public func getDateOfBirth() -> Swift.String
+  @objc public func getPlaceOfBirthArabic() -> Swift.String
+  @objc public func getPlaceOfBirthEnglish() -> Swift.String
+  @objc public func getMotherIdn() -> Swift.String
+  @objc public func getMotherFullNameArabic() -> Swift.String
+  @objc public func getMotherFullNameEnglish() -> Swift.String
+  @objc deinit
+}
+@objc @_hasMissingDesignatedInitializers public class DataContainer : IDCardToolkit.ToolkitResponse {
+  @objc override public init(_ xmlString: Swift.String)
+  @objc public func getHealthDataContainer() -> IDCardToolkit.HealthDataContainer?
+  @objc deinit
+}
+@objc public class DataProtectionKey : ObjectiveC.NSObject {
+  @objc public init(_ publicKey: Swift.UnsafeMutablePointer<Swift.UInt8>?, keyLength: Swift.UInt32, modulus: Swift.String, modulusLength: Swift.UInt32, exponent: Swift.String, exponentLength: Swift.UInt32)
+  @objc public func getPublicKey() -> Swift.UnsafeMutablePointer<Swift.UInt8>!
+  @objc public func getKeyLength() -> Swift.UInt32
+  @objc public func getModulus() -> Swift.String
+  @objc public func getModulusLength() -> Swift.UInt32
+  @objc public func getExponent() -> Swift.String
+  @objc public func getExponentLength() -> Swift.UInt32
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class DiagnosisResource : IDCardToolkit.ToolkitXmlDataObject {
+  @objc override dynamic public init()
+  @objc public init(_ diagnosisResource: [Swift.AnyHashable : Any])
+  @objc public func getResourceType() -> Swift.String
+  @objc public func getDiagnosisCode() -> Swift.String
+  @objc public func getDiagnosisDescription() -> Swift.String
+  @objc public func getDiagnosisRecordedDate() -> Swift.String
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers public class FaceSDKData : IDCardToolkit.ToolkitXmlDataObject {
+  @objc public init(_ handle: Swift.Int32, license: Swift.String)
+  @objc public func getHandle() -> Swift.Int32
+  @objc public func getLicense() -> Swift.String
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class FingerData : ObjectiveC.NSObject {
+  @objc override dynamic public init()
+  @objc public init(_ fingerId: Swift.Int, fingerIndex: Swift.Int)
+  @objc public func getFingerId() -> Swift.Int
+  @objc public func getFingerIndex() -> IDCardToolkit.FingerIndex
+  @objc deinit
+}
+@objc public enum FingerIndex : Swift.Int {
+  case none = 0
+  case noMeaning = 3
+  case rightThumb = 5
+  case rightIndex = 9
+  case rightMiddle = 13
+  case rightRing = 17
+  case rightLittle = 21
+  case leftThumb = 6
+  case leftIndex = 10
+  case leftMiddle = 14
+  case leftRing = 18
+  case leftLittle = 22
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public class HeadOfFamily : IDCardToolkit.ToolkitXmlDataObject {
+  @objc public init(_ headOfFamily: [Swift.AnyHashable : Any])
+  @objc public func getHolderIdNumber() -> Swift.String
+  @objc public func getFamilyId() -> Swift.String
+  @objc public func getEmirateNameArabic() -> Swift.String
+  @objc public func getEmirateNameEnglish() -> Swift.String
+  @objc public func getFirstNameArabic() -> Swift.String
+  @objc public func getFirstNameEnglish() -> Swift.String
+  @objc public func getFatherNameArabic() -> Swift.String
+  @objc public func getFatherNameEnglish() -> Swift.String
+  @objc public func getGrandFatherNameArabic() -> Swift.String
+  @objc public func getGrandFatherNameEnglish() -> Swift.String
+  @objc public func getTribeArabic() -> Swift.String
+  @objc public func getTribeEnglish() -> Swift.String
+  @objc public func getClanArabic() -> Swift.String
+  @objc public func getClanEnglish() -> Swift.String
+  @objc public func getNationalityCode() -> Swift.String
+  @objc public func getNationalityArabic() -> Swift.String
+  @objc public func getNationalityEnglish() -> Swift.String
+  @objc public func getGender() -> Swift.String
+  @objc public func getDateOfBirth() -> Swift.String
+  @objc public func getPlaceOfBirthArabic() -> Swift.String
+  @objc public func getPlaceOfBirthEnglish() -> Swift.String
+  @objc public func getMotherFullNameArabic() -> Swift.String
+  @objc public func getMotherFullNameEnglish() -> Swift.String
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class HealthDataContainer : IDCardToolkit.ToolkitXmlDataObject {
+  @objc override dynamic public init()
+  @objc public init(_ healthData: Any)
+  @objc public func getAllergyResource() -> Foundation.NSArray
+  @objc public func getDiagnosisResource() -> Foundation.NSArray
+  @objc public func getBloodGroupResource() -> IDCardToolkit.BloodGroupResource?
+  @objc public func getInsuranceResource() -> IDCardToolkit.InsuranceResource?
+  @objc public func getOrganDonor() -> Swift.String
+  @objc deinit
+}
+@objc public class HomeAddress : IDCardToolkit.ToolkitXmlDataObject {
+  @objc public init(_ homeAddressDataElement: [Swift.AnyHashable : Any])
+  @objc public func getAddressTypeCode() -> Swift.String
+  @objc public func getLocationCode() -> Swift.String
+  @objc public func getEmiratesCode() -> Swift.String
+  @objc public func getEmiratesArabic() -> Swift.String
+  @objc public func getEmiratesEnglish() -> Swift.String
+  @objc public func getCityCode() -> Swift.String
+  @objc public func getCityArabic() -> Swift.String
+  @objc public func getCityEnglish() -> Swift.String
+  @objc public func getStreetArabic() -> Swift.String
+  @objc public func getStreetEnglish() -> Swift.String
+  @objc public func getPobox() -> Swift.String
+  @objc public func getAreaCode() -> Swift.String
+  @objc public func getAreaArabic() -> Swift.String
+  @objc public func getAreaEnglish() -> Swift.String
+  @objc public func getBuildingNameArabic() -> Swift.String
+  @objc public func getBuildingNameEnglish() -> Swift.String
+  @objc public func getFlatNumber() -> Swift.String
+  @objc public func getLandPhoneNumber() -> Swift.String
+  @objc public func getMobilePhoneNumber() -> Swift.String
+  @objc public func getEmail() -> Swift.String
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class InsuranceResource : IDCardToolkit.ToolkitXmlDataObject {
+  @objc override dynamic public init()
+  @objc public init(_ insuranceResource: [Swift.AnyHashable : Any])
+  @objc public func getResourceType() -> Swift.String
+  @objc public func getInsuranceName() -> Swift.String
+  @objc public func getInsuranceNumber() -> Swift.String
+  @objc public func getInsuranceValidityStartDate() -> Swift.String
+  @objc public func getInsuranceValidityEndDate() -> Swift.String
+  @objc deinit
+}
+@objc public class ModifiablePublicData : IDCardToolkit.ToolkitXmlDataObject {
+  @objc public init(_ modifiableDataElement: [Swift.AnyHashable : Any])
+  @objc public func getOccupationCode() -> Swift.String
+  @objc public func getOccupationArabic() -> Swift.String
+  @objc public func getOccupationEnglish() -> Swift.String
+  @objc public func getFamilyId() -> Swift.String
+  @objc public func getOccupationTypeArabic() -> Swift.String
+  @objc public func getOccupationTypeEnglish() -> Swift.String
+  @objc public func getOccupationFieldCode() -> Swift.String
+  @objc public func getCompanyNameArabic() -> Swift.String
+  @objc public func getCompanyNameEnglish() -> Swift.String
+  @objc public func getMaritalStatusCode() -> Swift.String
+  @objc public func getHusbandIdnNumber() -> Swift.String
+  @objc public func getSponsorTypeCode() -> Swift.String
+  @objc public func getSponsorUnifiedNumber() -> Swift.String
+  @objc public func getSponsorName() -> Swift.String
+  @objc public func getResidencyTypeCode() -> Swift.String
+  @objc public func getResidencyNumber() -> Swift.String
+  @objc public func getResidencyExpiryDate() -> Swift.String
+  @objc public func getPassportNumber() -> Swift.String
+  @objc public func getPassportTypeCode() -> Swift.String
+  @objc public func getPassportCountryCode() -> Swift.String
+  @objc public func getPassportCountryArabic() -> Swift.String
+  @objc public func getPassportCountryEnglish() -> Swift.String
+  @objc public func getPassportIssueDate() -> Swift.String
+  @objc public func getPassportExpiryDate() -> Swift.String
+  @objc public func getQualificationLevelCode() -> Swift.String
+  @objc public func getQualificationLevelArabic() -> Swift.String
+  @objc public func getQualificationLevelEnglish() -> Swift.String
+  @objc public func getDegreeDescArabic() -> Swift.String
+  @objc public func getDegreeDescEnglish() -> Swift.String
+  @objc public func getFieldOfStudyCode() -> Swift.String
+  @objc public func getFieldOfStudyArabic() -> Swift.String
+  @objc public func getFieldOfStudyEnglish() -> Swift.String
+  @objc public func getPlaceOfStudyArabic() -> Swift.String
+  @objc public func getPlaceOfStudyEnglish() -> Swift.String
+  @objc public func getDateOfGraduation() -> Swift.String
+  @objc public func getMotherFullNameArabic() -> Swift.String
+  @objc public func getMotherFullNameEnglish() -> Swift.String
+  @objc deinit
+}
+@objc public class NonModifiablePublicData : IDCardToolkit.ToolkitXmlDataObject {
+  @objc public init(_ nonModifiableDataElement: [Swift.AnyHashable : Any])
+  @objc public func getIDType() -> Swift.String
+  @objc public func getIssueDate() -> Swift.String
+  @objc public func getExpiryDate() -> Swift.String
+  @objc public func getTitleArabic() -> Swift.String
+  @objc public func getFullNameArabic() -> Swift.String
+  @objc public func getTitleEnglish() -> Swift.String
+  @objc public func getFullNameEnglish() -> Swift.String
+  @objc public func getGender() -> Swift.String
+  @objc public func getNationalityArabic() -> Swift.String
+  @objc public func getNationalityEnglish() -> Swift.String
+  @objc public func getNationalityCode() -> Swift.String
+  @objc public func getDateOfBirth() -> Swift.String
+  @objc public func getPlaceOfBirthArabic() -> Swift.String
+  @objc public func getPlaceOfBirthEnglish() -> Swift.String
+  @objc deinit
+}
+@objc public enum SignerNamePosition : Swift.Int32 {
+  case left = 1
+  case right = 2
+  case top = 3
+  case bottom = 4
+  public init?(rawValue: Swift.Int32)
+  public typealias RawValue = Swift.Int32
+  public var rawValue: Swift.Int32 {
+    get
+  }
+}
+@_inheritsConvenienceInitializers @objc public class PadesSigningContext : IDCardToolkit.SigningContext {
+  @objc public var signReason: Swift.String
+  @objc public var signerLocation: Swift.String
+  @objc public var signerContactInfo: Swift.String
+  @objc public var signatureImagePath: Swift.String
+  @objc public var signatureText: Swift.String
+  @objc public var fontName: Swift.String
+  @objc public var fontColor: Swift.String
+  @objc public var backgroundColor: Swift.String
+  @objc public var signatureXAxis: Swift.Int32
+  @objc public var signatureYAxis: Swift.Int32
+  @objc public var fontSize: Swift.Int32
+  @objc public var pageNumber: Swift.Int32
+  @objc public var signVisible: Swift.Bool
+  @objc public var namePosition: IDCardToolkit.SignerNamePosition
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers public class RegisterDeviceResponse : IDCardToolkit.ToolkitResponse {
+  @objc override public init(_ xmlString: Swift.String)
+  @objc public func getDeviceRegistrationId() -> Swift.String
+  @objc deinit
+}
+@objc @_hasMissingDesignatedInitializers public class SignatureResponse : IDCardToolkit.ToolkitResponse {
+  @objc override public init(_ xmlString: Swift.String)
+  @objc public func getSignature() -> Swift.UnsafeMutablePointer<Swift.UInt8>!
+  @objc public func getSignatureLength() -> Swift.UInt32
+  @objc deinit
+}
+@objc public class SignatureValidator : ObjectiveC.NSObject {
+  @objc public init(_ certificateData: Swift.UnsafeMutablePointer<Swift.UInt8>!, certificateDataLength: Swift.UInt32, certificateChain: Swift.UnsafeMutablePointer<Swift.UInt8>!, certificateChainLength: Swift.UInt32) throws
+  @objc public func ValidateToolkitResponse(_ toolkitResponse: Swift.String) throws
+  @objc public func getService() -> Swift.String
+  @objc public func getAction() -> Swift.String
+  @objc public func getRequest_id() -> Swift.String
+  @objc public func getNonce() -> Swift.String
+  @objc public func getCorrelation_id() -> Swift.String
+  @objc public func getCsn() -> Swift.String
+  @objc public func getCardnumber() -> Swift.String
+  @objc public func getIdnumber() -> Swift.String
+  @objc public func getTime_stamp() -> Swift.String
+  @objc public func getValidity_interval() -> Swift.String
+  @objc deinit
+}
+@objc public enum SignatureLevel : Swift.Int32 {
+  case baselineB = 1
+  case baselineLT = 2
+  case baselineLTA = 3
+  case baselineT = 4
+  public init?(rawValue: Swift.Int32)
+  public typealias RawValue = Swift.Int32
+  public var rawValue: Swift.Int32 {
+    get
+  }
+}
+@objc public enum PackagingMode : Swift.Int32 {
+  case enveloped = 1
+  case enveloping = 2
+  case detached = 3
+  public init?(rawValue: Swift.Int32)
+  public typealias RawValue = Swift.Int32
+  public var rawValue: Swift.Int32 {
+    get
+  }
+}
+@_inheritsConvenienceInitializers @objc public class SigningContext : ObjectiveC.NSObject {
+  @objc public var signatureLevel: IDCardToolkit.SignatureLevel
+  @objc public var packagingMode: IDCardToolkit.PackagingMode
+  @objc public var encodedPin: Swift.String
+  @objc public var tsaUrl: Swift.String
+  @objc public var ocspUrl: Swift.String
+  @objc public var certPath: Swift.String
+  @objc public var inputFilePath: Swift.String
+  @objc public var signedFilePath: Swift.String
+  @objc public var countryCode: Swift.String
+  @objc public var stateOrProvince: Swift.String
+  @objc public var postalCode: Swift.String
+  @objc public var locality: Swift.String
+  @objc public var street: Swift.String
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers public class ToolkitResponse : IDCardToolkit.ToolkitXmlDataObject {
+  @objc public func initWithToolkitResponseByte(_ detachedSignature: Swift.UnsafeMutablePointer<Swift.UInt8>!, detachedSignatureLength: Swift.UInt32)
+  @objc public func initWithToolkitResponse(_ xmlString: Swift.String, detachedSignature: Swift.UnsafeMutablePointer<Swift.UInt8>!, detachedSignatureLength: Swift.UInt32)
+  @objc public init(_ xmlString: Swift.String)
+  @objc public func getXmlString() -> Swift.String
+  @objc public func getResponseStatus() -> Swift.String
+  @objc public func getResponseDataElement() -> Foundation.NSDictionary
+  @objc public func getStatus() -> Swift.String
+  @objc public func getService() -> Swift.String
+  @objc public func getAction() -> Swift.String
+  @objc public func getRequestId() -> Swift.String
+  @objc public func getNonce() -> Swift.String
+  @objc public func getCorrelationId() -> Swift.String
+  @objc public func getCardSerialNumber() -> Swift.String
+  @objc public func getCardNumber() -> Swift.String
+  @objc public func getIdNumber() -> Swift.String
+  @objc public func getTimeStamp() -> Swift.String
+  @objc public func getValidityInterval() -> Swift.String
+  @objc public func getDetachedSignature() -> Swift.UnsafeMutablePointer<Swift.UInt8>!
+  @objc public func getDetachedSignatureLength() -> Swift.UInt32
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class ToolkitXmlDataObject : ObjectiveC.NSObject {
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public enum ReportType : Swift.Int32 {
+  case detailed = 1
+  case diagnostic = 2
+  case simple = 3
+  public init?(rawValue: Swift.Int32)
+  public typealias RawValue = Swift.Int32
+  public var rawValue: Swift.Int32 {
+    get
+  }
+}
+@_inheritsConvenienceInitializers @objc public class VerificationContext : ObjectiveC.NSObject {
+  @objc public var certPath: Swift.String
+  @objc public var ocspUrl: Swift.String
+  @objc public var reportType: IDCardToolkit.ReportType
+  @objc public var isDetached: Swift.Bool
+  @objc public var inputFilePath: Swift.String
+  @objc public var signatureBase64: Swift.String
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class Wife : IDCardToolkit.ToolkitXmlDataObject {
+  @objc override dynamic public init()
+  @objc public init(_ wifeData: [Swift.AnyHashable : Any])
+  @objc public func getWifeIdn() -> Swift.String
+  @objc public func getFullNameArabic() -> Swift.String
+  @objc public func getFullNameEnglish() -> Swift.String
+  @objc public func getNationalityCode() -> Swift.String
+  @objc public func getNationalityArabic() -> Swift.String
+  @objc public func getNationalityEnglish() -> Swift.String
+  @objc deinit
+}
+@objc public class WorkAddress : ObjectiveC.NSObject {
+  @objc public init(_ workAddressDataElement: [Swift.AnyHashable : Any])
+  @objc public func getAddressTypeCode() -> Swift.String
+  @objc public func getLocationCode() -> Swift.String
+  @objc public func getCompanyNameArabic() -> Swift.String
+  @objc public func getCompanyNameEnglish() -> Swift.String
+  @objc public func getEmiratesCode() -> Swift.String
+  @objc public func getEmiratesArabic() -> Swift.String
+  @objc public func getEmiratesEnglish() -> Swift.String
+  @objc public func getCityCode() -> Swift.String
+  @objc public func getCityArabic() -> Swift.String
+  @objc public func getCityEnglish() -> Swift.String
+  @objc public func getPoBox() -> Swift.String
+  @objc public func getStreetArabic() -> Swift.String
+  @objc public func getStreetEnglish() -> Swift.String
+  @objc public func getAreaCode() -> Swift.String
+  @objc public func getAreaArabic() -> Swift.String
+  @objc public func getAreaEnglish() -> Swift.String
+  @objc public func getBuildingNameArabic() -> Swift.String
+  @objc public func getBuildingNameEnglish() -> Swift.String
+  @objc public func getLandPhoneNumber() -> Swift.String
+  @objc public func getMobilePhoneNumber() -> Swift.String
+  @objc public func getEmail() -> Swift.String
+  @objc deinit
+}
+extension IDCardToolkit.FingerIndex : Swift.Equatable {}
+extension IDCardToolkit.FingerIndex : Swift.Hashable {}
+extension IDCardToolkit.FingerIndex : Swift.RawRepresentable {}
+extension IDCardToolkit.SignerNamePosition : Swift.Equatable {}
+extension IDCardToolkit.SignerNamePosition : Swift.Hashable {}
+extension IDCardToolkit.SignerNamePosition : Swift.RawRepresentable {}
+extension IDCardToolkit.SignatureLevel : Swift.Equatable {}
+extension IDCardToolkit.SignatureLevel : Swift.Hashable {}
+extension IDCardToolkit.SignatureLevel : Swift.RawRepresentable {}
+extension IDCardToolkit.PackagingMode : Swift.Equatable {}
+extension IDCardToolkit.PackagingMode : Swift.Hashable {}
+extension IDCardToolkit.PackagingMode : Swift.RawRepresentable {}
+extension IDCardToolkit.ReportType : Swift.Equatable {}
+extension IDCardToolkit.ReportType : Swift.Hashable {}
+extension IDCardToolkit.ReportType : Swift.RawRepresentable {}

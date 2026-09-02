@@ -1,0 +1,361 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "Tech5AirSnapFinger",
+    "printedName": "Tech5AirSnapFinger",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "Tech5AirSnapFinger",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "Tech5AirSnapFinger"
+      },
+      {
+        "kind": "Import",
+        "name": "AirSnapFingerUI",
+        "printedName": "AirSnapFingerUI",
+        "declKind": "Import",
+        "moduleName": "Tech5AirSnapFinger"
+      },
+      {
+        "kind": "Import",
+        "name": "T5AirSnapFramework",
+        "printedName": "T5AirSnapFramework",
+        "declKind": "Import",
+        "moduleName": "Tech5AirSnapFinger"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Tech5CaptureBridge",
+        "printedName": "Tech5CaptureBridge",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "captureFingerprint",
+            "printedName": "captureFingerprint(fingerIndex:timeoutSeconds:modelsDir:viewController:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UIViewController",
+                "printedName": "UIKit.UIViewController",
+                "usr": "c:objc(cs)UIViewController"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Foundation.Data?, Swift.Int32) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Tuple",
+                    "printedName": "(Foundation.Data?, Swift.Int32)",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Optional",
+                        "printedName": "Foundation.Data?",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Data",
+                            "printedName": "Foundation.Data",
+                            "usr": "s:10Foundation4DataV"
+                          }
+                        ],
+                        "usr": "s:Sq"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Int32",
+                        "printedName": "Swift.Int32",
+                        "usr": "s:s5Int32V"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "c:@M@Tech5AirSnapFinger@objc(cs)Tech5CaptureBridge(cm)captureFingerprintWithFingerIndex:timeoutSeconds:modelsDir:viewController:completion:",
+            "mangledName": "$s18Tech5AirSnapFinger0A13CaptureBridgeC18captureFingerprint11fingerIndex14timeoutSeconds9modelsDir14viewController10completionySi_SiSSSo06UIViewP0Cy10Foundation4DataVSg_s5Int32VtctFZ",
+            "moduleName": "Tech5AirSnapFinger",
+            "static": true,
+            "objc_name": "captureFingerprintWithFingerIndex:timeoutSeconds:modelsDir:viewController:completion:",
+            "declAttributes": [
+              "Final",
+              "AccessControl",
+              "ObjC",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "onFingersCaptured",
+            "printedName": "onFingersCaptured(result:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "FingerCaptureResult",
+                "printedName": "AirSnapFingerUI.FingerCaptureResult",
+                "usr": "c:@M@AirSnapFingerUI@objc(cs)FingerCaptureResult"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:18Tech5AirSnapFinger0A13CaptureBridgeC17onFingersCaptured6resulty0bcD2UI0dE6ResultC_tF",
+            "mangledName": "$s18Tech5AirSnapFinger0A13CaptureBridgeC17onFingersCaptured6resulty0bcD2UI0dE6ResultC_tF",
+            "moduleName": "Tech5AirSnapFinger",
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "onFingerCaptureFailed",
+            "printedName": "onFingerCaptureFailed(errorMsg:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:18Tech5AirSnapFinger0A13CaptureBridgeC02ondE6Failed8errorMsgySS_tF",
+            "mangledName": "$s18Tech5AirSnapFinger0A13CaptureBridgeC02ondE6Failed8errorMsgySS_tF",
+            "moduleName": "Tech5AirSnapFinger",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "onFingerCaptureCancelled",
+            "printedName": "onFingerCaptureCancelled(errorMsg:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:18Tech5AirSnapFinger0A13CaptureBridgeC02ondE9Cancelled8errorMsgySS_tF",
+            "mangledName": "$s18Tech5AirSnapFinger0A13CaptureBridgeC02ondE9Cancelled8errorMsgySS_tF",
+            "moduleName": "Tech5AirSnapFinger",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "onTimedout",
+            "printedName": "onTimedout(lastCapturedImage:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Data",
+                "printedName": "Foundation.Data",
+                "usr": "s:10Foundation4DataV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:18Tech5AirSnapFinger0A13CaptureBridgeC10onTimedout17lastCapturedImagey10Foundation4DataV_tF",
+            "mangledName": "$s18Tech5AirSnapFinger0A13CaptureBridgeC10onTimedout17lastCapturedImagey10Foundation4DataV_tF",
+            "moduleName": "Tech5AirSnapFinger",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Tech5CaptureBridge",
+                "printedName": "Tech5AirSnapFinger.Tech5CaptureBridge",
+                "usr": "c:@M@Tech5AirSnapFinger@objc(cs)Tech5CaptureBridge"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "c:@M@Tech5AirSnapFinger@objc(cs)Tech5CaptureBridge(im)init",
+            "mangledName": "$s18Tech5AirSnapFinger0A13CaptureBridgeCACycfc",
+            "moduleName": "Tech5AirSnapFinger",
+            "overriding": true,
+            "implicit": true,
+            "objc_name": "init",
+            "declAttributes": [
+              "Dynamic",
+              "ObjC",
+              "Override"
+            ],
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Class",
+        "usr": "c:@M@Tech5AirSnapFinger@objc(cs)Tech5CaptureBridge",
+        "mangledName": "$s18Tech5AirSnapFinger0A13CaptureBridgeC",
+        "moduleName": "Tech5AirSnapFinger",
+        "declAttributes": [
+          "AccessControl",
+          "ObjC"
+        ],
+        "superclassUsr": "c:objc(cs)NSObject",
+        "inheritsConvenienceInitializers": true,
+        "superclassNames": [
+          "ObjectiveC.NSObject"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "FingersCapturedProtocol",
+            "printedName": "FingersCapturedProtocol",
+            "usr": "s:15AirSnapFingerUI23FingersCapturedProtocolP",
+            "mangledName": "$s15AirSnapFingerUI23FingersCapturedProtocolP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_KeyValueCodingAndObserving",
+            "printedName": "_KeyValueCodingAndObserving",
+            "usr": "s:10Foundation27_KeyValueCodingAndObservingP",
+            "mangledName": "$s10Foundation27_KeyValueCodingAndObservingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_KeyValueCodingAndObservingPublishing",
+            "printedName": "_KeyValueCodingAndObservingPublishing",
+            "usr": "s:10Foundation37_KeyValueCodingAndObservingPublishingP",
+            "mangledName": "$s10Foundation37_KeyValueCodingAndObservingPublishingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CVarArg",
+            "printedName": "CVarArg",
+            "usr": "s:s7CVarArgP",
+            "mangledName": "$ss7CVarArgP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomDebugStringConvertible",
+            "printedName": "CustomDebugStringConvertible",
+            "usr": "s:s28CustomDebugStringConvertibleP",
+            "mangledName": "$ss28CustomDebugStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomStringConvertible",
+            "printedName": "CustomStringConvertible",
+            "usr": "s:s23CustomStringConvertibleP",
+            "mangledName": "$ss23CustomStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          }
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/prabhakar\/Documents\/ICP\/new_build\/ICPToolkit\/src\/plugins\/ios\/Tech5AirSnapFinger\/Tech5CaptureBridge.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1950,
+      "length": 1,
+      "value": "0"
+    }
+  ]
+}

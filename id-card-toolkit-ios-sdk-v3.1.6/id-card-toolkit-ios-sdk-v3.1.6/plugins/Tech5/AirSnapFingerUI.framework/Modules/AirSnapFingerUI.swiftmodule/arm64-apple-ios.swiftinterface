@@ -1,0 +1,249 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.3.2 effective-5.10 (swiftlang-6.3.2.1.108 clang-2100.1.1.101)
+// swift-module-flags: -target arm64-apple-ios13.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name AirSnapFingerUI
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -formal-cxx-interoperability-mode=off -interface-compiler-version 6.3.2
+import AVFoundation
+@_exported import AirSnapFingerUI
+import CoreGraphics
+import Foundation
+import Swift
+import SystemConfiguration
+import T5AirSnapFramework
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public enum CaptureSpeed : Swift.Int {
+  case CAPTURE_SPEED_LOW, CAPTURE_SPEED_NORMAL, CAPTURE_SPEED_HIGH
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum FingerLocalization {
+}
+@objc @_inheritsConvenienceInitializers public class UIConfigurations : ObjectiveC.NSObject {
+  public var border_color_error: UIKit.UIColor
+  public var border_color_info: UIKit.UIColor
+  public var border_color_pass: UIKit.UIColor
+  public var bounding_box_color: UIKit.UIColor
+  public var bounding_box_line_width: Swift.Float
+  public var overlay_color: UIKit.UIColor
+  public var statusTextColor: UIKit.UIColor
+  public var strokeImageColor: UIKit.UIColor
+  public var header_background_color: UIKit.UIColor
+  public var enableBackButton: Swift.Bool
+  public var back_button_image: UIKit.UIImage?
+  public var showHeaderView: Swift.Bool
+  public var overlayBorderWidth: CoreFoundation.CGFloat
+  public var setHeaderTitle: Swift.String
+  public var label_background_color: UIKit.UIColor
+  public var labelCornerRadius: CoreFoundation.CGFloat
+  public var labelFont: UIKit.UIFont
+  @objc override dynamic public init()
+  @objc deinit
+}
+public enum FingerZoomFactor : Swift.Double {
+  case standard
+  case medium
+  case mediumPlus
+  case high
+  case higher
+  case ultra
+  case ultraPlus
+  case extreme
+  case extremePlus
+  case maximum
+  public init?(rawValue: Swift.Double)
+  public typealias RawValue = Swift.Double
+  public var rawValue: Swift.Double {
+    get
+  }
+}
+public enum CaptureMode : Swift.Int {
+  case CAPTURE_MODE_SELF, CAPTURE_MODE_OPERATOR
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public enum ImageResize : Swift.Int {
+  case NO_RESIZE, CROP_TO_512_512, RESIZE_500_500, RESIZE_1600_1500
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum SegmentationMode : Swift.Int {
+  case SEGMENTATION_MODE_LEFT_SLAP, SEGMENTATION_MODE_RIGHT_SLAP, SEGMENTATION_MODE_LEFT_AND_RIGHT_THUMBS, SEGMENTATION_MODE_RIGHT_THUMB, SEGMENTATION_MODE_RIGHT_INDEX, SEGMENTATION_MODE_RIGHT_MIDDLE, SEGMENTATION_MODE_RIGHT_RING, SEGMENTATION_MODE_RIGHT_LITTLE, SEGMENTATION_MODE_RIGHT_INDEX_MIDDLE, SEGMENTATION_MODE_RIGHT_RING_LITTLE, SEGMENTATION_MODE_LEFT_THUMB, SEGMENTATION_MODE_LEFT_INDEX, SEGMENTATION_MODE_LEFT_MIDDLE, SEGMENTATION_MODE_LEFT_RING, SEGMENTATION_MODE_LEFT_LITTLE, SEGMENTATION_MODE_LEFT_INDEX_MIDDLE, SEGMENTATION_MODE_LEFT_RING_LITTLE
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc @_inheritsConvenienceInitializers public class Slap : ObjectiveC.NSObject {
+  public var pos: Swift.UInt32
+  public var primaryImageType: AirSnapFingerUI.ImageType
+  public var primaryImage: Foundation.Data?
+  public var displayImageType: AirSnapFingerUI.ImageType
+  public var displayImage: Foundation.Data?
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class T5FingerCaptureController : ObjectiveC.NSObject {
+  @objc override dynamic public init()
+  public func setCaptureID(captureid: Swift.String)
+  public func setCropParameter(cropParameter: AirSnapFingerUI.CropParameters)
+  public func setWsqCompressionRatio(compression: Swift.Float32)
+  public func setPNGCompressionRatio(compression: Swift.UInt8)
+  public func setImageFormat(format: AirSnapFingerUI.FingerImageFormat)
+  public func setGuidenceScreen(showScreen: Swift.Bool)
+  public func setModelsDir(directory path: Swift.String)
+  public func setSegmentationMode(segmentationModes: [AirSnapFingerUI.SegmentationMode])
+  public func setMissingFingers(positions: [Swift.Int])
+  public func setPropDenoise(propDenoise: Swift.Bool)
+  public func setZoomFactor(zoom: AirSnapFingerUI.FingerZoomFactor)
+  public func setLicense(license: Swift.String)
+  public func setLivenessCheck(livnessCheck: Swift.Bool)
+  public func getQuality(getQuality: Swift.Bool)
+  public func getNist2Quality(getQuality: Swift.Bool)
+  public func setCaptureMode(captureMode: AirSnapFingerUI.CaptureMode)
+  public func setCaptureTimeoutInSecs(timeout: Swift.Int)
+  public func setUIConfigurations(uiConfig: AirSnapFingerUI.UIConfigurations)
+  public func setDetectorThreshold(threshold: Swift.Float)
+  public func setLivenessThreshold(threshold: Swift.Float)
+  public func setGoodFramesWait(threshold: Swift.Int)
+  public func setIsShowElipses(showElipses: Swift.Bool)
+  public func setAppLanguage(lang: Swift.String)
+  public func setCaptureSpeed(speed: AirSnapFingerUI.CaptureSpeed)
+  public func setCleanFingersPrints(clean: Swift.Bool)
+  public func setOutsideCaptureFlag(outside: Swift.Bool)
+  public func setLuxThreshold(threshold: Swift.Float)
+  public func startCapture(viewController: UIKit.UIViewController, delegate: any AirSnapFingerUI.FingersCapturedProtocol)
+  public func deactivate() -> Swift.Bool
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class Finger : ObjectiveC.NSObject {
+  public var pos: Swift.UInt32
+  public var nistQuality: Swift.UInt8
+  public var quality: Swift.UInt8
+  public var nist2Quality: Swift.UInt8
+  public var minutiaesNumber: Swift.UInt32
+  public var primaryImageType: AirSnapFingerUI.ImageType
+  public var primaryImage: Foundation.Data?
+  public var displayImageType: AirSnapFingerUI.ImageType
+  public var displayImage: Foundation.Data?
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class FingerCaptureResult : ObjectiveC.NSObject {
+  public var fingers: [AirSnapFingerUI.Finger]?
+  public var slapImages: [AirSnapFingerUI.Slap]?
+  public var livenessScores: [AirSnapFingerUI.LivenessScore]?
+  public var exposureValue: Swift.Float?
+  public var ambientValue: Swift.Float?
+  @objc override dynamic public init()
+  @objc deinit
+}
+public enum ImageType : Swift.Int {
+  case IMAGE_TYPE_WSQ, IMAGE_TYPE_BMP, IMAGE_TYPE_PNG
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum FingerImageFormat : Swift.Int32, Swift.CaseIterable {
+  case raw
+  case wsq
+  case bmp
+  case png
+  public init?(rawValue: Swift.Int32)
+  public typealias AllCases = [AirSnapFingerUI.FingerImageFormat]
+  public typealias RawValue = Swift.Int32
+  nonisolated public static var allCases: [AirSnapFingerUI.FingerImageFormat] {
+    get
+  }
+  public var rawValue: Swift.Int32 {
+    get
+  }
+}
+@objc @_inheritsConvenienceInitializers public class CropParameters : ObjectiveC.NSObject {
+  public var cropImage: Swift.Bool
+  public var croppedImageWidth: Swift.Int32
+  public var croppedImageHeight: Swift.Int32
+  public var paddingColor: Swift.UInt8
+  @objc override dynamic public init()
+  @objc deinit
+}
+public enum FingerPosition : Swift.Int {
+  case LEFT_SLAP, RIGHT_SLAP, LEFT_THUMB, RIGHT_THUMB, LEFT_INDEX, RIGHT_INDEX, TWO_THUMBS
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public protocol FingersCapturedProtocol {
+  func onFingersCaptured(result: AirSnapFingerUI.FingerCaptureResult)
+  func onFingerCaptureFailed(errorMsg: Swift.String)
+  func onFingerCaptureCancelled(errorMsg: Swift.String)
+  func onTimedout(lastCapturedImage: Foundation.Data)
+}
+@_hasMissingDesignatedInitializers public class ImageProvider {
+  public static func imageFromMain(named: Swift.String) -> UIKit.UIImage?
+  public static func image(named: Swift.String) -> UIKit.UIImage?
+  @objc deinit
+}
+extension UIKit.UIColor {
+  convenience public init?(hex: Swift.String)
+}
+public enum Model : Swift.String {
+  case simulator, iPod1, iPod2, iPod3, iPod4, iPod5, iPod6, iPod7, iPad2, iPad3, iPad4, iPadAir, iPadAir2, iPadAir3, iPadAir4, iPadAir5, iPad5, iPad6, iPad7, iPad8, iPad9, iPad10, iPadMini, iPadMini2, iPadMini3, iPadMini4, iPadMini5, iPadMini6, iPadPro9_7, iPadPro10_5, iPadPro11, iPadPro2_11, iPadPro3_11, iPadPro12_9, iPadPro2_12_9, iPadPro3_12_9, iPadPro4_12_9, iPadPro5_12_9, iPhone4, iPhone4S, iPhone5, iPhone5S, iPhone5C, iPhone6, iPhone6Plus, iPhone6S, iPhone6SPlus, iPhoneSE, iPhone7, iPhone7Plus, iPhone8, iPhone8Plus, iPhoneX, iPhoneXS, iPhoneXSMax, iPhoneXR, iPhone11, iPhone11Pro, iPhone11ProMax, iPhoneSE2, iPhone12Mini, iPhone12, iPhone12Pro, iPhone12ProMax, iPhone13Mini, iPhone13, iPhone13Pro, iPhone13ProMax, iPhoneSE3, iPhone14, iPhone14Plus, iPhone14Pro, iPhone14ProMax, iPhone15, iPhone15Plus, iPhone15Pro, iPhone15ProMax, iPhone16, iPhone16Plus, iPhone16Pro, iPhone16ProMax, iPhone16e, iPhone17, iPhoneAir, iPhone17Pro, iPhone17ProMax, AppleWatch1, AppleWatchS1, AppleWatchS2, AppleWatchS3, AppleWatchS4, AppleWatchS5, AppleWatchSE, AppleWatchS6, AppleWatchS7, AppleTV1, AppleTV2, AppleTV3, AppleTV4, AppleTV_4K, AppleTV2_4K, unrecognized
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+extension UIKit.UIDevice {
+  @_Concurrency.MainActor @preconcurrency public var type: AirSnapFingerUI.Model {
+    get
+  }
+}
+@objc @_inheritsConvenienceInitializers public class LivenessScore : ObjectiveC.NSObject {
+  public var score: Swift.Float?
+  @objc override dynamic public init()
+  @objc deinit
+}
+extension AirSnapFingerUI.CaptureSpeed : Swift.Equatable {}
+extension AirSnapFingerUI.CaptureSpeed : Swift.Hashable {}
+extension AirSnapFingerUI.CaptureSpeed : Swift.RawRepresentable {}
+extension AirSnapFingerUI.FingerZoomFactor : Swift.Equatable {}
+extension AirSnapFingerUI.FingerZoomFactor : Swift.Hashable {}
+extension AirSnapFingerUI.FingerZoomFactor : Swift.RawRepresentable {}
+extension AirSnapFingerUI.CaptureMode : Swift.Equatable {}
+extension AirSnapFingerUI.CaptureMode : Swift.Hashable {}
+extension AirSnapFingerUI.CaptureMode : Swift.RawRepresentable {}
+extension AirSnapFingerUI.ImageResize : Swift.Equatable {}
+extension AirSnapFingerUI.ImageResize : Swift.Hashable {}
+extension AirSnapFingerUI.ImageResize : Swift.RawRepresentable {}
+extension AirSnapFingerUI.SegmentationMode : Swift.Equatable {}
+extension AirSnapFingerUI.SegmentationMode : Swift.Hashable {}
+extension AirSnapFingerUI.SegmentationMode : Swift.RawRepresentable {}
+extension AirSnapFingerUI.ImageType : Swift.Equatable {}
+extension AirSnapFingerUI.ImageType : Swift.Hashable {}
+extension AirSnapFingerUI.ImageType : Swift.RawRepresentable {}
+extension AirSnapFingerUI.FingerImageFormat : Swift.Equatable {}
+extension AirSnapFingerUI.FingerImageFormat : Swift.Hashable {}
+extension AirSnapFingerUI.FingerImageFormat : Swift.RawRepresentable {}
+extension AirSnapFingerUI.FingerPosition : Swift.Equatable {}
+extension AirSnapFingerUI.FingerPosition : Swift.Hashable {}
+extension AirSnapFingerUI.FingerPosition : Swift.RawRepresentable {}
+extension AirSnapFingerUI.Model : Swift.Equatable {}
+extension AirSnapFingerUI.Model : Swift.Hashable {}
+extension AirSnapFingerUI.Model : Swift.RawRepresentable {}

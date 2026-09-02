@@ -1,0 +1,6 @@
+framework module libTactivo {
+  umbrella header "libTactivo.h"
+
+  export *
+  module * { export * }
+}

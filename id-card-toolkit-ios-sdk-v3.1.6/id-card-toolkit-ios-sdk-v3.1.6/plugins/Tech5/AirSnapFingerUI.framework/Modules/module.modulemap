@@ -1,0 +1,10 @@
+framework module AirSnapFingerUI {
+  umbrella header "AirSnapFingerUI.h"
+  export *
+
+  module * { export * }
+}
+
+module AirSnapFingerUI.Swift {
+  header "AirSnapFingerUI-Swift.h"
+}

@@ -1,0 +1,26 @@
+//
+//  module.modulemap
+//  cpp
+//
+//  Created by Dmitry Chirkin on 10/01/21.
+//  Copyright © 2020-2021 Condor LLC. All rights reserved.
+//
+
+framework module T5AirSnapFramework {
+    header "T5AirSnapFramework.h"
+    
+    private header "T5AirSnap.h"
+    private header "T5NistLibrary.h"
+    private header "common.h"
+    private header "win2lin.h"
+    private header "ansi_nist_itl_1.h"
+    private header "licenseChecker.hpp"
+    private header "DeviceInfo.h"
+    
+    export *
+}
+
+module T5AirSnapFramework.Swift {
+  header "T5AirSnapFramework-Swift.h"
+  requires objc
+}

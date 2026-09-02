@@ -1,0 +1,56 @@
+EIDAToolkit iOS SDK
+===================
+
+Version: 3.1.6
+Device target: iOS arm64 (no simulator slice)
+Minimum deployment target: iOS 12.0
+
+Directory layout
+----------------
+  lib/
+    objective-c/IDCardToolkit.framework  Objective-C dynamic framework
+    swift/IDCardToolkit.framework        Swift dynamic framework
+    swift/ToolkitFace/                   Face authentication Swift source module
+  plugins/
+    Feitian/Feitian.framework            Feitian iR301 smart card plugin
+    Grabba/Grabba.framework              Grabba reader plugin (binary-only)
+    NFC/iOSNfcPlugin.framework           NFC reader plugin
+    Tactivo/libTactivo.framework         Tactivo reader plugin (binary-only)
+  ext/
+    openssl/
+      include/iOS/openssl/               OpenSSL 1.1.x headers (58 files)
+      lib/iOS/                           libcrypto.a + libssl.a (arm64 device)
+    xmlsec/
+      include/MacOSX/{libxml,libxslt,libexslt}/
+      lib/iOS/                           libxmlsec1.a + libxmlsec1-openssl.a
+  samples/                                Swift + ObjC sample apps
+  doc/                                    Developer PDFs
+
+Typical usage (Xcode project)
+-----------------------------
+Most apps use lib/objective-c/IDCardToolkit.framework or
+lib/swift/IDCardToolkit.framework directly. These frameworks are
+**self-contained** — OpenSSL and xmlsec are statically linked in. Add the
+framework to your target and you're done.
+
+Advanced: linking libxmlsec.a directly
+--------------------------------------
+If you build a custom iOS tool that reuses ext/xmlsec/lib/iOS/libxmlsec1.a
+without going through the framework, you must also link against the OpenSSL
+static libs shipped in ext/openssl/lib/iOS/. Otherwise the linker will fail
+with undefined symbols for every OpenSSL function referenced by xmlsec
+(EVP_*, X509_*, PKCS12_*, RSA_*, EC_*, etc.).
+
+  OTHER_LDFLAGS = -L$(SRCROOT)/.../ext/openssl/lib/iOS \\
+                  -L$(SRCROOT)/.../ext/xmlsec/lib/iOS \\
+                  -lxmlsec1-openssl -lxmlsec1 -lssl -lcrypto
+
+Link order matters: xmlsec must come before openssl (symbols from xmlsec
+resolve against openssl, not the other way around). GNU ld and lld are
+order-sensitive for static archives, so reversing the order yields
+undefined-symbol errors that look unrelated to the root cause.
+
+Note: earlier releases of this SDK shipped ext/openssl/ with headers only
+(no static libs). If you previously worked around that by pulling OpenSSL
+from CocoaPods or building from source, you can now link directly against
+the libs in ext/openssl/lib/iOS/ instead.

@@ -1,0 +1,5 @@
+framework module Feitian {
+    umbrella header "Feitian.h"
+    export *
+    module * { export * }
+}

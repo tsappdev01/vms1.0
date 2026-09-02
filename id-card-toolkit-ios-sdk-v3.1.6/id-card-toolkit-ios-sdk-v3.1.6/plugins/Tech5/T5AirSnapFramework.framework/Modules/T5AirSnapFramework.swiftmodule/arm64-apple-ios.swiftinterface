@@ -1,0 +1,216 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.2.4 effective-5.10 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)
+// swift-module-flags: -target arm64-apple-ios13.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name T5AirSnapFramework
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -formal-cxx-interoperability-mode=off -interface-compiler-version 6.2.4
+import AVFoundation
+import Foundation
+import Swift
+@_exported import T5AirSnapFramework
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+@_inheritsConvenienceInitializers @objc public class CaptureStatus_ : ObjectiveC.NSObject {
+  public var tooFewFingers: Swift.Int
+  public var tooManyFingers: Swift.Int
+  public var wrongAngle: Swift.Int
+  public var wrongHand: Swift.Int
+  public var tooFar: Swift.Int
+  public var tooClose: Swift.Int
+  public var lowFocus: Swift.Int
+  public var goodFocus: Swift.Int
+  public var bestFrameChosen: Swift.Int
+  public var frameSkipped: Swift.Int
+  public var wrongFingerPositionCode: Swift.Int
+  public var turnOnFlashlight: Swift.Int
+  public var set1xZoom: Swift.Int
+  public var turnOffFlashlight: Swift.Int
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class FINGER_IMAGE_FORMAT_ : ObjectiveC.NSObject {
+  public var RAW: Swift.Int
+  public var WSQ: Swift.Int
+  public var BMP: Swift.Int
+  public var PNG: Swift.Int
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class Type1 : ObjectiveC.NSObject {
+  public var LogicalRecordLength: Swift.String
+  public var VersionNumber: Swift.String
+  public var FileContent: Swift.String
+  public var TypeOfTransaction: Swift.String
+  public var DateOfTransaction: Swift.String
+  public var Priority: Swift.String
+  public var DestinationAgencyIdentifier: Swift.String
+  public var OriginatingAgencyIdentifier: Swift.String
+  public var TransactionControlNumber: Swift.String
+  public var TransactionControlResponse: Swift.String
+  public var NativeScanningResolution: Swift.String
+  public var NominalTransmittingResolution: Swift.String
+  public var DomainName: Swift.String
+  public var GMT: Swift.String
+  public var DirectoryOfCharacterSets: Swift.String
+  public var ApplicationPofileSpecification: Swift.String
+  public var AgensyNames: Swift.String
+  public var GeographicNameSet: Swift.String
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class Type2 : ObjectiveC.NSObject {
+  @objc override dynamic public init()
+  public func insert(source: Swift.Dictionary<Swift.Int, Swift.String>)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class Type4 : ObjectiveC.NSObject {
+  public var LogicalRecordLength: Swift.String
+  public var ImageDesignationCharacter: Swift.String
+  public var ImpressionType: Swift.String
+  public var FingerPosition: Swift.String
+  public var ImageScanningResolution: Swift.String
+  public var HorizontalLineLength: Swift.String
+  public var VerticalLineLength: Swift.String
+  public var GrayScaleCompressionAlgorithm: Swift.String
+  public var TheImage: Swift.UnsafeMutablePointer<Swift.UInt8>?
+  @objc override dynamic public init()
+  public func insert(segmentedRect: T5AirSnapFramework.SgmRectImage)
+  public init(m_type4: T5AirSnapFramework.Type4)
+  public func Clean()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class Type10 : ObjectiveC.NSObject {
+  public var LogicalRecordLength: Swift.String
+  public var ImageDesignationCharacter: Swift.String
+  public var ImageType: Swift.String
+  public var SourceAgency_ORI: Swift.String
+  public var PhotoDate: Swift.String
+  public var HorizontalLineLength: Swift.String
+  public var VerticalLineLength: Swift.String
+  public var ScaleUnits: Swift.String
+  public var HorizontalPixelScale: Swift.String
+  public var VerticalPixelScale: Swift.String
+  public var CompressionAlgorithm: Swift.String
+  public var Colorspace: Swift.String
+  public var SubjectAcquisitionProfile: Swift.String
+  public var fields: Swift.Dictionary<Swift.Int, Swift.String>?
+  public var bodyPartImage: Swift.UnsafeMutablePointer<Swift.UInt8>?
+  @objc override dynamic public init()
+  public func insertFaceImage(typeFace: Swift.String, imageData: T5AirSnapFramework.ImageData_, udfields: Swift.Dictionary<Swift.Int, Swift.String>)
+  public func insertSmtImage(typeFace: Swift.String, imageData: T5AirSnapFramework.ImageData_, udfields: Swift.Dictionary<Swift.Int, Swift.String>)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class Type14 : ObjectiveC.NSObject {
+  public var LogicalRecordLength: Swift.String
+  public var ImageDesignationCharacter: Swift.String
+  public var ImpressionType: Swift.String
+  public var SourceAgency_ORI: Swift.String
+  public var TenprintCaptureDate: Swift.String
+  public var HorizontalLineLength: Swift.String
+  public var VerticalLineLength: Swift.String
+  public var ScaleUnits: Swift.String
+  public var HorizontalPixelScale: Swift.String
+  public var VerticalPixelScale: Swift.String
+  public var CompressionAlgorithm: Swift.String
+  public var BitsPerPixel: Swift.String
+  public var FingerPosition: Swift.String
+  public var fields: Swift.Dictionary<Swift.Int, Swift.String>?
+  public var tenprintImage: Swift.UnsafeMutablePointer<Swift.UInt8>?
+  @objc override dynamic public init()
+  public init(m_type14: T5AirSnapFramework.Type14)
+  public init(rectImage: T5AirSnapFramework.SgmRectImage)
+  public func Clean()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class T5NistType : ObjectiveC.NSObject {
+  @objc override dynamic public init()
+  @objc deinit
+  public func readNistFile(filePath: Swift.String) -> Swift.Int32
+  public func readNistBuffer(buffer: Swift.UnsafeMutablePointer<Swift.UInt8>, bufferSize: Swift.Int32) -> Swift.Int32
+  public func getType1() -> T5AirSnapFramework.Type1
+  public func getType2() -> [T5AirSnapFramework.Type2]
+  public func getType4() -> [T5AirSnapFramework.Type4]
+  public func getType10() -> [T5AirSnapFramework.Type10]
+  public func getType14() -> [T5AirSnapFramework.Type14]
+  public func appendType2(newObjecet: Swift.Dictionary<Swift.Int, Swift.String>)
+  public func appendType4(newObject: T5AirSnapFramework.SgmRectImage)
+}
+@_inheritsConvenienceInitializers @objc public class SgmRectImage : ObjectiveC.NSObject {
+  public var width: Swift.UInt32
+  public var height: Swift.UInt32
+  public var pos: T5AirSnapFramework.NIST_POS_CODE
+  public var focused: Swift.Bool
+  public var distance: Swift.Float
+  public var focusDistance: Swift.Float
+  public var image: Swift.UnsafeMutablePointer<Swift.UInt8>?
+  public var compressedImage: Swift.UnsafeMutablePointer<Swift.UInt8>?
+  public var compressedImageSize: Swift.UInt32
+  public var coords: [[Swift.Int32]]
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class ImageData_ : ObjectiveC.NSObject {
+  public var m_format: T5AirSnapFramework.IMAGE_FORMAT
+  public var m_image: Swift.UnsafeMutablePointer<Swift.UInt8>?
+  public var m_imageSize: Swift.UInt32
+  public var m_ppi: Swift.UInt16
+  public var m_fingerPos: T5AirSnapFramework.FINGERS
+  public var m_impression_type: T5AirSnapFramework.NIST_IMP_TYPE
+  public var m_personAge: Swift.UInt8
+  @objc deinit
+  @objc override dynamic public init()
+  public init(data: T5AirSnapFramework.ImageData_)
+}
+@_inheritsConvenienceInitializers @objc public class T5AirSnap : ObjectiveC.NSObject {
+  @objc public func getDeviceIdentifier() -> Swift.String
+  @objc public func getVersion() -> Swift.String
+  @objc public func getZoomFactor() -> Swift.Float
+  @objc public func getExposureCompensation() -> Swift.Float
+  @objc public func getLicenseData() -> Swift.String
+  @objc public func setLicenseURL(url: Swift.UnsafePointer<Swift.UInt8>)
+  @objc public func setOutsideCaptureFlag(outsideCapture: Swift.Bool)
+  @objc public func setFingerImageFormat(fingerImageFormat: Swift.Int32)
+  @objc public func setWsqCompressionRatio(compressionRatio: Swift.Float32)
+  @objc public func setPngCompressionLevel(compressionLevel: Swift.UInt8)
+  @objc public func setCropParameters(enabled: Swift.Bool, width: Swift.Int32, height: Swift.Int32, paddingColor: Swift.UInt8)
+  @objc public func setCaptureMetadata(metadata: Swift.UnsafePointer<Swift.UInt8>)
+  @objc public func deregisterDevice() -> Swift.Bool
+  @objc public func initSDK(license: Swift.UnsafePointer<Swift.UInt8>, ret: Swift.UnsafeMutablePointer<Swift.Int32>) -> Swift.String
+  @objc public func initNfiq2() -> Swift.Int32
+  @objc public func initLivenessDetector() -> Swift.Int32
+  @objc public func initReverseDetector() -> Swift.Int32
+  @objc public func initThumbDetector() -> Swift.Int32
+  @objc public func shutdownSDK() -> Swift.Int32
+  @objc public func setOrientationCheck(orientationCheck: Swift.Bool)
+  @objc public func setOperatorMode(operatorMode: Swift.Bool)
+  @objc public func setLivenessCheck(livenessCheck: Swift.Bool)
+  @objc public func setLivenessThreshold(livenessThreshold: Swift.Float)
+  @objc public func setPositionCode(positionCode: Swift.Int)
+  @objc public func setDetectorThreshold(detectorThreshold: Swift.Float) -> Swift.Int32
+  @objc public func setCacheDir(cacheDir: Swift.String)
+  @objc public func setModelsDir(modelsDir: Swift.String)
+  @objc public func setCaptureId(captureId: Swift.String)
+  @objc public func setDeviceInfo(manufacturer: Swift.String, model: Swift.String, osVersion: Swift.String)
+  @objc public func setSaveSdkLogFlag(saveSdkLog: Swift.Bool)
+  @objc public func setSaveFramesFlag(saveFrames: Swift.Bool)
+  @objc public func setPropDenoiseFlag(propDenoise: Swift.Bool)
+  @objc public func setCaptureSpeed(captureSpeed: Swift.Float32)
+  @objc public func initBorder(frameWidth: Swift.Int32, frameHeight: Swift.Int32, viewWidth: Swift.Int32, viewHeight: Swift.Int32)
+  @objc public func getBorderRectangle(left: Swift.UnsafeMutablePointer<Swift.Int32>, top: Swift.UnsafeMutablePointer<Swift.Int32>, right: Swift.UnsafeMutablePointer<Swift.Int32>, bottom: Swift.UnsafeMutablePointer<Swift.Int32>) -> Swift.Int32
+  @objc public func analyzeImage(yBuffer: Swift.UnsafeMutablePointer<Swift.UInt8>, vuBuffer: Swift.UnsafeMutablePointer<Swift.UInt8>, rotationDegrees: Swift.Int32, width: Swift.Int32, height: Swift.Int32, rects: Swift.Array<T5AirSnapFramework.SgmRectImage>, rectsCount: Swift.UnsafeMutablePointer<Swift.Int32>) -> Swift.Int
+  @objc public func checkReverse(reverseFlag: Swift.UnsafeMutablePointer<Swift.Bool>) -> Swift.Int32
+  @objc public func checkThumb(wrongThumb: Swift.UnsafeMutablePointer<Swift.Bool>) -> Swift.Int32
+  @available(*, deprecated, message: "use getSegmentedFingers instead")
+  @objc public func segmentFingers(grayBuffer: Swift.UnsafeMutablePointer<Swift.UInt8>, width: Swift.UnsafeMutablePointer<Swift.Int32>, height: Swift.UnsafeMutablePointer<Swift.Int32>, rects: Swift.Array<T5AirSnapFramework.SgmRectImage>, rectsCount: Swift.UnsafeMutablePointer<Swift.Int32>, gender: Swift.UInt8, age: Swift.UInt8, clean: Swift.Bool, livenessScore: Swift.UnsafeMutablePointer<Swift.Float>) -> Swift.Int32
+  @objc public func getSegmentedFingers(grayBuffer: Swift.UnsafeMutablePointer<Swift.UInt8>, gender: Swift.UInt8, age: Swift.UInt8, clean: Swift.Bool, rects: Swift.Array<T5AirSnapFramework.SgmRectImage>, rectsCount: Swift.UnsafeMutablePointer<Swift.Int32>, livenessScore: Swift.UnsafeMutablePointer<Swift.Float>) -> Swift.Int32
+  @objc public func createTemplateMinex(rawImages: Swift.UnsafeMutablePointer<T5AirSnapFramework.RawImage>, numFingers: Swift.UInt32, minexTemplateType: Swift.Int32, templateBuffer: Swift.UnsafeMutablePointer<Swift.UInt8>, nistQuality: Swift.UnsafeMutablePointer<Swift.UInt8>, quality: Swift.UnsafeMutablePointer<Swift.UInt8>, minutiaesNumber: Swift.UnsafeMutablePointer<Swift.UInt32>, templateSize: Swift.UnsafeMutablePointer<Swift.UInt32>, maxTemplateSize: Swift.Int32 = 500, certifiedSensor: Swift.Bool = false, sensorId: Swift.UInt16 = 0) -> Swift.Int32
+  @objc public func getNistFingerImageQuality(rawImage: Swift.UnsafeMutablePointer<Swift.UInt8>, width: Swift.Int32, height: Swift.Int32, quality: Swift.UnsafeMutablePointer<Swift.UInt8>) -> Swift.Int32
+  @objc public func getNistFingerImageQuality2(rawImage: Swift.UnsafeMutablePointer<Swift.UInt8>, width: Swift.Int32, height: Swift.Int32, quality: Swift.UnsafeMutablePointer<Swift.UInt8>) -> Swift.Int32
+  @objc public func getFingerprintQuality(rawImage: Swift.UnsafeMutablePointer<Swift.UInt8>, width: Swift.Int32, height: Swift.Int32, quality: Swift.UnsafeMutablePointer<Swift.UInt8>) -> Swift.Int32
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public func saveNistFile(is_FBI: Swift.Int32, demographicsInfo: Swift.Dictionary<Swift.Int, Swift.String>, fingers: Swift.Array<T5AirSnapFramework.SgmRectImage>?, faces: Swift.Array<T5AirSnapFramework.ImageData_>?, tenprints: Swift.Array<T5AirSnapFramework.SgmRectImage>?, nistBuffer: Swift.UnsafeMutablePointer<Swift.UInt8>?, length_nistBuffer: Swift.UnsafeMutablePointer<Swift.Int32>) -> Swift.Int32
+  #endif
+  @objc public func toggleTorch(on: Swift.Bool)
+  @objc override dynamic public init()
+  @objc deinit
+}

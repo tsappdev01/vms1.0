@@ -1,0 +1,21 @@
+
+[cardreader readPublicDataEF:1 validateSignature:true];
+int Value =  [cardreader getreadPublicDataEFLength];
+NSLog(@"Value %d",Value);
+NSMutableString *testString =[[NSMutableString alloc]init];
+NSMutableString *testString1 =[[NSMutableString alloc]init];
+uint8_t * byteData = [cardreader getreadPublicDataEFByte];
+int byteLength = [cardreader getreadPublicDataEFLength];
+
+for (int i=0; i<byteLength; i++)
+{
+[testString appendString:[NSString stringWithFormat:@"%02x",byteData[i]]];
+}
+//        [testString appendFormat:@"\n\n\n"];
+
+for (int i = 0; i < byteLength; i++) {
+printf("%02x ", byteData[i] & 0xFF);
+
+[testString1 appendString:[NSString stringWithFormat:@"%02x",byteData[i] & 0xFF]];
+}
+NSLog(@"testString1 %@",testString1);

@@ -1,0 +1,6 @@
+framework module Grabba {
+  umbrella header "Grabba.h"
+
+  export *
+  module * { export * }
+}

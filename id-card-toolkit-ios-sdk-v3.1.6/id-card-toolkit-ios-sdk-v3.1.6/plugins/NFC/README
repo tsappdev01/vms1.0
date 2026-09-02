@@ -1,0 +1,24 @@
+ICA Toolkit iOS Plugin :
+Plugin for iOS device with NFC interface
+
+Supported iOS Operating System version : iOS 13 or Above
+Supported iOS Device : iphone 7 or Later
+
+Frameworks required : CoreNFC.framework
+
+Following are the settings required to be kept in info.plist of the integrated application
+
+	Privacy - NFC Scan Usage Description. App Requires NFC to read the card details
+
+	com.apple.developer.nfc.readersession.formats  
+	TAG
+	NDEF
+
+	ISO7816 application identifiers for NFC Tag Reader Session
+	A000000243001300000001FF
+	A0000002430013000000010109
+	A00000024300130000000101
+	A00000024300130000000103
+	A0000002430013000000010101
+
+Please refer to the image attached along with the plugin framework for the above settings.

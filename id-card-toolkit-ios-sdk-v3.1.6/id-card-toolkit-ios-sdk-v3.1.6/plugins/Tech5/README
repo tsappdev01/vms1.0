@@ -1,0 +1,50 @@
+ICA Toolkit iOS Plugin :
+Tech5 AirSnap Fingerprint Plugin — camera-based fingerprint capture
+using the Tech5 AirSnap SDK.
+
+Supported architectures:
+	1. arm64 (iOS device only — no simulator slice)
+
+Contents:
+
+  T5FingerCapture.framework
+      Umbrella framework that embeds all required Tech5 SDK components:
+        AirsnapFingerUI.framework  Camera capture UI
+        T5AirSnapFramework         Tech5 AirSnap native SDK
+        ncnn.framework             Neural network runtime
+        opencv2.framework          OpenCV for fingerprint processing
+        OpenSSL.framework          Cryptography
+        T5NistLibrary              NIST fingerprint quality
+
+Installation:
+
+  1. Drag T5FingerCapture.framework into your Xcode project.
+  2. Project target > General > Frameworks, Libraries, and Embedded Content:
+       - Set T5FingerCapture.framework to "Embed & Sign"
+  3. Add Camera permission to Info.plist:
+
+       <key>NSCameraUsageDescription</key>
+       <string>Required for fingerprint capture</string>
+
+  4. Project target > Build Settings > Other Linker Flags:
+       - Add -ObjC
+
+Requirements:
+
+  - Minimum iOS deployment target: 14.0
+  - Architecture: arm64 (device only — does not include simulator slice)
+  - Camera permission required at runtime
+  - Network connection (Tech5 SDK requires periodic license validation)
+
+Notes:
+
+  - The AirSnap SDK launches a camera capture view controller internally.
+    Pass a UIViewController context (not Application context) when invoking
+    the toolkit's fingerprint capture API.
+  - Framework size: ~121 MB (includes ML models for fingerprint detection
+    and liveness, OpenCV, NCNN runtime, NIST quality library).
+  - The full xcframework set with simulator slices (446 MB total) is
+    distributed separately. Contact the toolkit team if a simulator-capable
+    build is needed for development.
+
+NEW in v3.0.5.
