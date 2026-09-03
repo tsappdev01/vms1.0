@@ -17,16 +17,10 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
             e.HasIndex(x => x.Name).IsUnique();
 
-            // The DI group companies from BRD section 6, seeded so the entity dropdown is
-            // populated on a fresh database without a separate script.
-            e.HasData(
-                new DiEntity { Id = 1, Name = "Dubai Investments PJSC" },
-                new DiEntity { Id = 2, Name = "Dubai Investments Park" },
-                new DiEntity { Id = 3, Name = "National General Insurance" },
-                new DiEntity { Id = 4, Name = "Masharie" },
-                new DiEntity { Id = 5, Name = "Glass Entities" },
-                new DiEntity { Id = 6, Name = "Other DI Subsidiaries" },
-                new DiEntity { Id = 7, Name = "Other DI Sister Companies" });
+            /* Not seeded with HasData. EnsureCreated only seeds at creation, so a
+               HasData change never reaches a database that already exists - and this one
+               does. EntitySeeder syncs the list on every startup instead, which works on
+               both a fresh and an existing database. */
         });
 
         b.Entity<VisitorEntry>(e =>

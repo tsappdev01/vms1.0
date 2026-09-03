@@ -21,8 +21,14 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<VmsDbContext>>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
     await using var db = await factory.CreateDbContextAsync();
     await db.Database.EnsureCreatedAsync();
+
+    // Additive, and runs every start, so the entity list can be changed in code and
+    // reaches an existing database - which HasData would not.
+    await EntitySeeder.SyncAsync(db, logger);
 }
 
 if (!app.Environment.IsDevelopment())
