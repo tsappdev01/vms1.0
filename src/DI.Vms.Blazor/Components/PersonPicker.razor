@@ -1,0 +1,173 @@
+@implements IDisposable
+
+@* Type-ahead over the people list.
+
+   Knows nothing about the database: the parent hands it a Search delegate, so the
+   parent decides whether the search is narrowed to the selected entity. Keeps the
+   component to the interaction, which is the part with the sharp edges. *@
+
+<div class="picker">
+    <input id="@Id" class="picker-input" type="text"
+           value="@Text"
+           @oninput="OnInput"
+           @onkeydown="OnKeyDown"
+           @onfocusin="() => open = suggestions.Count > 0"
+           placeholder="@Placeholder"
+           autocomplete="off" role="combobox" aria-expanded="@open"
+           aria-autocomplete="list" aria-controls="@($"{Id}-list")" />
+
+    @if (searching)
+    {
+        <span class="picker-busy" aria-hidden="true"><span class="spinner"></span></span>
+    }
+
+    @if (open && suggestions.Count > 0)
+    {
+        <ul class="picker-list" id="@($"{Id}-list")" role="listbox">
+            @for (var i = 0; i < suggestions.Count; i++)
+            {
+                var index = i;
+                var person = suggestions[i];
+                <li role="option" aria-selected="@(index == highlight)"
+                    class="@(index == highlight ? "highlight" : null)"
+                    @onmousedown:preventDefault="true"
+                    @onmousedown="() => Choose(person)"
+                    @onmouseover="() => highlight = index">
+                    <span class="picker-name">@person.DisplayName</span>
+                    <span class="picker-meta">
+                        @if (!string.IsNullOrWhiteSpace(person.Title))
+                        {
+                            <span>@person.Title</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(person.CompanyName))
+                        {
+                            <span class="picker-company">@person.CompanyName</span>
+                        }
+                    </span>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Id { get; set; } = "person";
+
+    /// <summary>The text in the box. Two-way, because a name may simply be typed.</summary>
+    [Parameter] public string Text { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> TextChanged { get; set; }
+
+    /// <summary>Raised with the person picked, or null once the text stops matching them.</summary>
+    [Parameter] public EventCallback<Person?> PersonChanged { get; set; }
+
+    /// <summary>Runs the search. The parent owns the query, and so owns the filtering.</summary>
+    [Parameter, EditorRequired] public Func<string, Task<IReadOnlyList<Person>>> Search { get; set; } = default!;
+
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Characters before searching. One letter would match most of the list.</summary>
+    private const int MinimumTerm = 2;
+
+    private List<Person> suggestions = [];
+    private bool open;
+    private bool searching;
+    private int highlight = -1;
+
+    /// <summary>
+    /// Cancels the pending search on each keystroke, so the query runs once the typing
+    /// pauses rather than once per character - every one of which is a round trip over
+    /// the circuit and a query against the database.
+    /// </summary>
+    private CancellationTokenSource? debounce;
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var text = e.Value?.ToString() ?? string.Empty;
+        Text = text;
+        await TextChanged.InvokeAsync(text);
+
+        // The typed text no longer belongs to whoever was picked.
+        await PersonChanged.InvokeAsync(null);
+
+        debounce?.Cancel();
+        debounce?.Dispose();
+        debounce = new CancellationTokenSource();
+        var token = debounce.Token;
+
+        if (text.Trim().Length < MinimumTerm)
+        {
+            suggestions = [];
+            open = false;
+            searching = false;
+            return;
+        }
+
+        searching = true;
+
+        try
+        {
+            await Task.Delay(250, token);
+
+            var found = await Search(text.Trim());
+            if (token.IsCancellationRequested) return;
+
+            suggestions = [.. found];
+            highlight = suggestions.Count > 0 ? 0 : -1;
+            open = suggestions.Count > 0;
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a later keystroke; the newer search owns the state.
+            return;
+        }
+        finally
+        {
+            if (!token.IsCancellationRequested) searching = false;
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (!open || suggestions.Count == 0)
+        {
+            // Let the attendant reopen the last set without retyping.
+            if (e.Key == "ArrowDown" && suggestions.Count > 0) open = true;
+            return;
+        }
+
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                highlight = (highlight + 1) % suggestions.Count;
+                break;
+
+            case "ArrowUp":
+                highlight = (highlight - 1 + suggestions.Count) % suggestions.Count;
+                break;
+
+            case "Enter":
+                if (highlight >= 0) await Choose(suggestions[highlight]);
+                break;
+
+            case "Escape":
+                open = false;
+                break;
+        }
+    }
+
+    private async Task Choose(Person person)
+    {
+        Text = person.DisplayName;
+        open = false;
+        highlight = -1;
+
+        await TextChanged.InvokeAsync(person.DisplayName);
+        await PersonChanged.InvokeAsync(person);
+    }
+
+    public void Dispose()
+    {
+        debounce?.Cancel();
+        debounce?.Dispose();
+    }
+}

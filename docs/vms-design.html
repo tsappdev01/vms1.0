@@ -914,7 +914,24 @@
               <td>0 retires an entity from the dropdown and keeps its history.</td>
             </tr>
             <tr>
-              <td rowspan="6"><strong>vms.VisitorEntry</strong></td>
+              <td rowspan="4"><strong>vms.Person</strong></td>
+              <td class="k">DisplayName</td><td class="k">nvarchar(200)</td>
+              <td>Indexed. The picker matches anywhere in it, so the index serves the ordering rather than the search.</td>
+            </tr>
+            <tr>
+              <td class="k">Title, Email</td><td class="k">nvarchar(200), (256)</td>
+              <td>Shown beside each suggestion — three people are called <em>Manager</em>, so the name alone does not disambiguate.</td>
+            </tr>
+            <tr>
+              <td class="k">CompanyName</td><td class="k">nvarchar(200)</td>
+              <td>As the address list spells it: <em>Dubai Investments Park</em>, where the entity list says <code>DIP</code>.</td>
+            </tr>
+            <tr>
+              <td class="k">DiEntityId</td><td class="k">int, FK, null</td>
+              <td>Nullable deliberately. The two lists do not fully agree — <em>Emirates Building System</em> has no entity — and an unmatched person must still be findable by searching all entities rather than vanishing.</td>
+            </tr>
+            <tr>
+              <td rowspan="8"><strong>vms.VisitorEntry</strong></td>
               <td class="k">IdNumber</td><td class="k">nvarchar(30)</td>
               <td>Indexed. Not unique — the same person visits more than once.</td>
             </tr>
@@ -935,6 +952,14 @@
               <td>From a fixed list; the second holds what was typed for <em>Other</em>, and is null otherwise, so the report can still group by the first.</td>
             </tr>
             <tr>
+              <td class="k">PersonToVisitId</td><td class="k">int, FK, null</td>
+              <td>To <code>vms.Person</code>. Null means the host's name was typed rather than picked, which is how the two are told apart. <code>NO ACTION</code>: removing someone from the address list must never delete the visits that came to see them.</td>
+            </tr>
+            <tr>
+              <td class="k">PersonToVisit&#8203;Title / Email / Company</td><td class="k">nvarchar</td>
+              <td>Copied from the person at the time of the visit, not joined at read time. A host who changes title or leaves must not rewrite what an earlier report said.</td>
+            </tr>
+            <tr>
               <td class="k">RecordedAtUtc</td><td class="k">datetimeoffset</td>
               <td>Stored UTC, displayed GST. Composite index with <code>DiEntityId</code>, which is exactly how the report reads.</td>
             </tr>
@@ -951,6 +976,16 @@
         capped at their observed lengths. Nullable is not laziness: the card in section 5 proves
         most of them can be absent.
       </p>
+
+      <div class="decision">
+        <span class="label">Decision</span>
+        <p>
+          The host is stored twice over: as a foreign key when one was picked, and as a copy of
+          the name, title, email and company either way. The key makes the link traceable; the
+          copy makes the record stable. A visitor log is a statement about a moment, and joining
+          it to live data at read time lets that statement change afterwards.
+        </p>
+      </div>
     </section>
 
     <!-- ============================================================ 7 -->

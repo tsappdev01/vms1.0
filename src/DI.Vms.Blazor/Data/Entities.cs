@@ -9,6 +9,31 @@ public class DiEntity
 }
 
 /// <summary>
+/// Someone a visitor can come to see, as exported from the address list: display name,
+/// title, email and company.
+/// </summary>
+public class Person
+{
+    public int Id { get; set; }
+    public required string DisplayName { get; set; }
+    public string? Title { get; set; }
+    public string? Email { get; set; }
+
+    /// <summary>The company as the address list spells it, e.g. "Dubai Investments Park".</summary>
+    public string? CompanyName { get; set; }
+
+    /// <summary>
+    /// The entity this person belongs to, where the company could be matched to one.
+    /// Null when it could not - the address list's company names and the entity list do
+    /// not fully agree - and those people are then found only by searching all entities.
+    /// </summary>
+    public int? DiEntityId { get; set; }
+    public DiEntity? DiEntity { get; set; }
+
+    public bool IsActive { get; set; } = true;
+}
+
+/// <summary>
 /// One visitor entry. Card fields are stored as the chip presents them, so the record
 /// reflects what was actually read rather than an interpretation of it.
 /// </summary>
@@ -60,7 +85,25 @@ public class VisitorEntry
     // ---- Visit
     public int DiEntityId { get; set; }
     public DiEntity? DiEntity { get; set; }
+    /// <summary>
+    /// The host's name as recorded - the display name of whoever was picked, or exactly
+    /// what was typed when the host was not in the list.
+    /// </summary>
     public required string PersonToVisit { get; set; }
+
+    /// <summary>
+    /// The person picked from the list, when one was. Null for a typed name, which is
+    /// what tells the two apart.
+    /// </summary>
+    public int? PersonToVisitId { get; set; }
+    public Person? PersonToVisitPerson { get; set; }
+
+    /* Copied from the person at the time of the visit rather than joined at read time.
+       A host who changes title, or leaves, must not silently rewrite what last year's
+       report said - the same reason the purpose stores its label and not an id. */
+    public string? PersonToVisitTitle { get; set; }
+    public string? PersonToVisitEmail { get; set; }
+    public string? PersonToVisitCompany { get; set; }
 
     /// <summary>
     /// Why they are here, from the fixed list the desk offers. Stored as the chosen

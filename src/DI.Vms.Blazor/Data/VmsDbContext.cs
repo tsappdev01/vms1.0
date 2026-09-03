@@ -5,6 +5,7 @@ namespace DI.Vms.Blazor.Data;
 public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(options)
 {
     public DbSet<DiEntity> DiEntities => Set<DiEntity>();
+    public DbSet<Person> People => Set<Person>();
     public DbSet<VisitorEntry> VisitorEntries => Set<VisitorEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -28,6 +29,24 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
                can be changed without a rebuild and a redeploy. */
         });
 
+        b.Entity<Person>(e =>
+        {
+            e.ToTable("Person");
+            e.Property(x => x.DisplayName).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Title).HasMaxLength(200);
+            e.Property(x => x.Email).HasMaxLength(256);
+            e.Property(x => x.CompanyName).HasMaxLength(200);
+            e.Property(x => x.IsActive).HasDefaultValue(true);
+
+            e.HasOne(x => x.DiEntity).WithMany().HasForeignKey(x => x.DiEntityId);
+
+            /* The picker matches anywhere in the name, so an index on DisplayName cannot
+               serve a leading wildcard - it is here for the ordering, and because the
+               table is small enough that a scan is cheap either way. */
+            e.HasIndex(x => x.DisplayName);
+            e.HasIndex(x => new { x.DiEntityId, x.IsActive });
+        });
+
         b.Entity<VisitorEntry>(e =>
         {
             e.ToTable("VisitorEntry");
@@ -39,6 +58,16 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.Property(x => x.PersonToVisit).HasMaxLength(200).IsRequired();
             e.Property(x => x.Purpose).HasMaxLength(60).IsRequired();
             e.Property(x => x.PurposeOther).HasMaxLength(200);
+            e.Property(x => x.PersonToVisitTitle).HasMaxLength(200);
+            e.Property(x => x.PersonToVisitEmail).HasMaxLength(256);
+            e.Property(x => x.PersonToVisitCompany).HasMaxLength(200);
+
+            /* NoAction, not Cascade: removing someone from the address list must never
+               delete the visits that came to see them. */
+            e.HasOne(x => x.PersonToVisitPerson)
+             .WithMany()
+             .HasForeignKey(x => x.PersonToVisitId)
+             .OnDelete(DeleteBehavior.NoAction);
             e.Property(x => x.CaptureMethod).HasMaxLength(30).IsRequired();
             e.Property(x => x.AddressEmail).HasMaxLength(256);
 

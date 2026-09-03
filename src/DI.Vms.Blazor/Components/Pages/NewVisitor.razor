@@ -511,7 +511,7 @@ else if (step == 2 && card is not null)
                 }
                 else
                 {
-                    <select id="entity" @bind="entityId">
+                    <select id="entity" @bind="entityId" @bind:after="ClearHost">
                         <option value="0">Select an entity…</option>
                         @foreach (var e in entities)
                         {
@@ -523,8 +523,41 @@ else if (step == 2 && card is not null)
 
             <div class="field">
                 <label for="person">Person to visit</label>
-                <input id="person" @bind="personToVisit" @bind:event="oninput"
-                       placeholder="Full name of the person being visited" autocomplete="off" />
+                <PersonPicker Id="person"
+                              Text="@personToVisit"
+                              TextChanged="@(t => personToVisit = t)"
+                              PersonChanged="@(p => host = p)"
+                              Search="SearchPeople"
+                              Placeholder="Start typing a name" />
+
+                <div class="field-aside">
+                    <label class="check">
+                        <input type="checkbox" @bind="searchAllEntities" @bind:after="ClearHost" />
+                        Search all entities
+                    </label>
+
+                    @if (host is not null)
+                    {
+                        <span class="picked">
+                            @host.DisplayName@(string.IsNullOrWhiteSpace(host.Title) ? "" : $" · {host.Title}")
+                        </span>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(personToVisit))
+                    {
+                        <span class="picked typed">Not in the list — recorded as typed</span>
+                    }
+                </div>
+
+                @* Offered rather than done silently: narrowing to the entity is the point
+                   of the filter, and quietly widening it would hide that the host belongs
+                   somewhere else. *@
+                @if (noMatchInEntity && !searchAllEntities)
+                {
+                    <span class="field-note warn">
+                        No match in @(entities.FirstOrDefault(e => e.Id == entityId)?.Name ?? "this entity").
+                        <button class="link" @onclick="SearchEverywhere">Search all entities</button>
+                    </span>
+                }
             </div>
 
             <div class="field">
@@ -584,7 +617,10 @@ else if (step == 3 && saved is not null)
                 <dt>Visitor</dt><dd>@saved.FullNameEnglish</dd>
                 <dt>ID Number</dt><dd class="mono">@saved.IdNumber</dd>
                 <dt>Entity</dt><dd>@entities.FirstOrDefault(e => e.Id == saved.DiEntityId)?.Name</dd>
-                <dt>Person to visit</dt><dd>@saved.PersonToVisit</dd>
+                <dt>Person to visit</dt>
+                <dd>
+                    @saved.PersonToVisit@(string.IsNullOrWhiteSpace(saved.PersonToVisitTitle) ? "" : $" · {saved.PersonToVisitTitle}")
+                </dd>
                 <dt>Purpose</dt>
                 <dd>
                     @saved.Purpose@(string.IsNullOrWhiteSpace(saved.PurposeOther) ? "" : $" — {saved.PurposeOther}")
@@ -682,6 +718,67 @@ else if (step == 3 && saved is not null)
     private string personToVisit = string.Empty;
     private string purpose = string.Empty;
     private string purposeOther = string.Empty;
+
+    /// <summary>The person picked from the list, or null when the name was simply typed.</summary>
+    private Person? host;
+
+    private bool searchAllEntities;
+
+    /// <summary>
+    /// True when the last search found nobody in the selected entity but would have found
+    /// somebody elsewhere - which is the only case worth telling the attendant about.
+    /// </summary>
+    private bool noMatchInEntity;
+
+    /// <summary>
+    /// Runs the host search, narrowed to the selected entity unless told otherwise.
+    ///
+    /// Matches anywhere in the name, not just the start: a visitor asking for "Kamau"
+    /// should find Emma Kamau. Email is matched too, since it is often what the visitor
+    /// was given. Capped, because a suggestion list nobody can read is no help.
+    /// </summary>
+    private async Task<IReadOnlyList<Person>> SearchPeople(string term)
+    {
+        noMatchInEntity = false;
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        var all = db.People.Where(p => p.IsActive
+                                   && (EF.Functions.Like(p.DisplayName, $"%{term}%")
+                                    || (p.Email != null && EF.Functions.Like(p.Email, $"{term}%"))));
+
+        if (searchAllEntities || entityId == 0)
+        {
+            return await all.OrderBy(p => p.DisplayName).Take(12).ToListAsync();
+        }
+
+        var withinEntity = await all.Where(p => p.DiEntityId == entityId)
+                                    .OrderBy(p => p.DisplayName)
+                                    .Take(12)
+                                    .ToListAsync();
+
+        if (withinEntity.Count > 0) return withinEntity;
+
+        // Nothing here; say so only if widening would actually help.
+        noMatchInEntity = await all.AnyAsync();
+        return withinEntity;
+    }
+
+    private void SearchEverywhere()
+    {
+        searchAllEntities = true;
+        noMatchInEntity = false;
+    }
+
+    /// <summary>
+    /// A change of scope invalidates the pick: the name in the box may no longer be the
+    /// person the attendant chose from the narrower list.
+    /// </summary>
+    private void ClearHost()
+    {
+        host = null;
+        noMatchInEntity = false;
+    }
 
     /// <summary>
     /// Everything the visit needs before it can be written: an entity, a host, a purpose,
@@ -846,6 +943,10 @@ else if (step == 3 && saved is not null)
                 AddressEmail = card.AddressEmail,
                 DiEntityId = entityId,
                 PersonToVisit = personToVisit.Trim(),
+                PersonToVisitId = host?.Id,
+                PersonToVisitTitle = host?.Title,
+                PersonToVisitEmail = host?.Email,
+                PersonToVisitCompany = host?.CompanyName,
                 Purpose = purpose,
                 PurposeOther = purpose == OtherPurpose ? purposeOther.Trim() : null,
                 RecordedAtUtc = DateTimeOffset.UtcNow,
@@ -879,6 +980,9 @@ else if (step == 3 && saved is not null)
         personToVisit = string.Empty;
         purpose = string.Empty;
         purposeOther = string.Empty;
+        host = null;
+        searchAllEntities = false;
+        noMatchInEntity = false;
         message = null;
 
         // A fresh visitor starts from the reader, and gets its own three attempts.

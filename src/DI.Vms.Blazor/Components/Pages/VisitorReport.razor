@@ -187,7 +187,8 @@ else
             string.Empty,
             string.Join(',', new[]
             {
-                "Entity", "Recorded (GST)", "Person to Visit", "Purpose", "Visitor", "Full Name (Raw)",
+                "Entity", "Recorded (GST)", "Person to Visit", "Host Title", "Host Email",
+                "Host Company", "Purpose", "Visitor", "Full Name (Raw)",
                 "Full Name (Arabic)", "ID Number", "Card Number", "ID Type", "ID Issue",
                 "ID Expiry", "Gender", "Date of Birth", "Nationality", "Nationality Code",
                 "Place of Birth", "Emirate", "City", "Area", "Street", "Building", "PO Box",
@@ -197,7 +198,8 @@ else
 
         lines.AddRange(entries.Select(v => string.Join(',', new[]
         {
-            v.DiEntity?.Name, Gst(v.RecordedAtUtc), v.PersonToVisit, PurposeOf(v), v.FullNameEnglish,
+            v.DiEntity?.Name, Gst(v.RecordedAtUtc), v.PersonToVisit, v.PersonToVisitTitle,
+            v.PersonToVisitEmail, v.PersonToVisitCompany, PurposeOf(v), v.FullNameEnglish,
             v.FullNameRaw, v.FullNameArabic, v.IdNumber, v.CardNumber, v.IdType, v.IssueDate,
             v.ExpiryDate, v.Gender, v.DateOfBirth, v.NationalityEnglish, v.NationalityCode,
             v.PlaceOfBirthEnglish, v.AddressEmirate, v.AddressCity, v.AddressArea,

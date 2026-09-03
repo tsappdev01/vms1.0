@@ -83,7 +83,8 @@ public static class DbBootstrapper
         throw new InvalidOperationException(
             $"The database is missing {string.Join(", ", missing)} but already has " +
             $"{string.Join(", ", wanted.Except(missing, StringComparer.OrdinalIgnoreCase))}. " +
-            "Drop the tables that are there, or switch to EF migrations, then start again.");
+            "Run the scripts in db/ in number order against this database - the one that " +
+            "adds the missing table is there - and start again.");
     }
 
     /// <summary>
