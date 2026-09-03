@@ -11,19 +11,39 @@
     The MSI is ICP's, from the toolkit bundle:
         id-card-toolkit-windows-sdk-v3.1.6\installer\ICAToolkitService\64\ICAToolkitService.msi
 
+    It REQUIRES a configuration source - a directory or a URL - and a silent install with
+    neither fails with 1603 and no explanation, because the wizard page that would have
+    asked for it never appears. Pass -ConfigDirectory (or -ConfigUrl).
+
+    The configuration is ICP's bundle, in this repository at
+        IDCARDOFFLINE_config_2026-04-14\IDCARDOFFLINE_ag_config_2026-04-14
+    (config_ag, config_li, config_pg and the rest). Copy it to the desk first - the
+    installer wants a path that exists on the machine it is installing on. The same files
+    are also under the SDK's quickstart\64, byte for byte; that folder just has the
+    binaries mixed in with them.
+
     After this, open the VMS site on this PC and check the reader panel. If it still says
     no agent answered, the site's own /agent-required page lists what to look at.
 
 .EXAMPLE
-    .\install-desk-agent.ps1 -MsiPath \\uatweb01\deploy\ICAToolkitService.msi
+    .\install-desk-agent.ps1 -MsiPath \\uatweb01\deploy\ICAToolkitService.msi `
+                             -ConfigDirectory C:\ICAToolkit\Config
 
 .EXAMPLE
     # Also trust the agent's certificate, when ICP supplies one as a file.
-    .\install-desk-agent.ps1 -MsiPath .\ICAToolkitService.msi -AgentCertificatePath .\toolkitagent.cer
+    .\install-desk-agent.ps1 -MsiPath .\ICAToolkitService.msi `
+                             -ConfigDirectory C:\ICAToolkit\Config `
+                             -AgentCertificatePath .\toolkitagent.cer
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string] $MsiPath,
+
+    # The folder holding config_ag and config_li ON THIS PC. Required unless -ConfigUrl
+    # is given; the MSI takes CONFIG_URL in preference when both are set.
+    [string] $ConfigDirectory = '',
+
+    [string] $ConfigUrl = '',
 
     # A certificate to put in LocalMachine\Root so the browser will accept the wss://
     # socket to the agent. Optional: the agent's installer may do this itself.
@@ -45,11 +65,37 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 
 if (-not (Test-Path $MsiPath)) { throw "MSI not found at $MsiPath." }
 
+if (-not $ConfigDirectory -and -not $ConfigUrl) {
+    throw 'Pass -ConfigDirectory (the folder holding config_ag and config_li on this PC) or -ConfigUrl. The installer requires one, and a silent install without it fails with 1603 and says nothing about why.'
+}
+
+if ($ConfigDirectory) {
+    if (-not (Test-Path $ConfigDirectory)) {
+        throw "Configuration directory $ConfigDirectory does not exist on this PC. Copy ICP's config bundle there first."
+    }
+
+    # The agent's own config. Without it the installer accepts the folder and the agent
+    # then has nothing to run on.
+    if (-not (Test-Path (Join-Path $ConfigDirectory 'config_ag'))) {
+        throw "No config_ag in $ConfigDirectory. That is the agent's configuration - check you copied ICP's bundle and not just part of it."
+    }
+}
+
 $log = Join-Path $env:TEMP 'ICAToolkitService-install.log'
 Write-Host "Installing $(Split-Path $MsiPath -Leaf)..."
 
-$process = Start-Process msiexec.exe -Wait -PassThru -ArgumentList @(
-    '/i', "`"$((Resolve-Path $MsiPath).Path)`"", '/quiet', '/norestart', '/l*v', "`"$log`"")
+$arguments = @('/i', "`"$((Resolve-Path $MsiPath).Path)`"", '/quiet', '/norestart', '/l*v', "`"$log`"")
+
+# CONFIG_URL wins over CONFIG_DIRECTORY inside the installer when both are set, so only
+# the one that was asked for is passed - a leftover of the other is not a thing to debug.
+if ($ConfigUrl) {
+    $arguments += "CONFIG_URL=`"$ConfigUrl`""
+}
+else {
+    $arguments += "CONFIG_DIRECTORY=`"$((Resolve-Path $ConfigDirectory).Path)`""
+}
+
+$process = Start-Process msiexec.exe -Wait -PassThru -ArgumentList $arguments
 
 # 3010 is success-but-reboot-required, which is not a failure.
 if ($process.ExitCode -notin @(0, 3010)) {
@@ -82,6 +128,7 @@ if ($process.ExitCode -notin @(0, 3010)) {
 
     Write-Host ''
     Write-Host 'Things that produce 1603 here, commonest first:'
+    Write-Host '  - No configuration source. This script always passes one, so check the path is right.'
     Write-Host '  - A version is already installed. Uninstall it in Apps & Features, then re-run.'
     Write-Host '  - A prerequisite is missing - usually the VC++ 2013 x64 redistributable.'
     Write-Host '  - The installer wants to be interactive. Try:  msiexec /i "<path to msi>"'
