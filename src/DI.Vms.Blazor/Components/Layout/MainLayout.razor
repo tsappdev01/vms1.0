@@ -2,18 +2,64 @@
 
 <div class="app">
     <nav class="sidebar">
+        @* The mark is the one place the brand artwork lives. Replace
+           wwwroot/brand/di-mark.svg with the official asset and this follows. *@
         <div class="brand">
-            Dubai Investments
-            <span>Visitor Management</span>
+            <img src="brand/di-mark.svg" alt="Dubai Investments" width="34" height="34" />
+            <div class="brand-text">
+                <span class="brand-name">Dubai Investments</span>
+                <span class="brand-sub">Visitor Management</span>
+            </div>
         </div>
-        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">New Visitor</NavLink>
-        <NavLink class="nav-link" href="report">Visitor Report</NavLink>
+
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M19 8v6M22 11h-6" />
+            </svg>
+            New Visitor
+        </NavLink>
+
+        <NavLink class="nav-link" href="report">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 3v18h18" />
+                <path d="M7 15l4-5 3 3 5-7" />
+            </svg>
+            Visitor Report
+        </NavLink>
+
+        @* Says what the system actually does. Not a security claim — see the README on
+           what is and is not protected today. *@
+        <div class="side-foot">
+            <div class="badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <path d="M6 10h4M6 14h7" />
+                    <circle cx="17" cy="12" r="2.5" />
+                </svg>
+            </div>
+            <strong>Read from the chip</strong>
+            <p>Identity comes off the card itself. Nothing is typed by hand or transcribed.</p>
+        </div>
     </nav>
 
     <div class="main">
         <header class="topbar">
-            <span class="muted">DIP Office &middot; Times shown in Gulf Standard Time</span>
+            <span class="office">DIP Office</span>
+            <span class="sep"></span>
+            <span class="note">Times shown in Gulf Standard Time</span>
+            <span class="clock">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                </svg>
+                @* Ticked in the browser rather than over the circuit: a per-second
+                   server render for a wall clock is traffic for nothing. *@
+                <span id="gst-clock">&nbsp;</span>
+            </span>
         </header>
+
         <main class="content">@Body</main>
     </div>
 </div>

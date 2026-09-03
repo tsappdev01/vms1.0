@@ -6,7 +6,7 @@
 <PageTitle>Visitor Report &middot; DI VMS</PageTitle>
 
 <h1>Visitor Details by Entity</h1>
-<p class="muted">All recorded information, with the date-time stamp of each entry.</p>
+<p class="page-sub">All recorded information, with the date-time stamp of each entry.</p>
 
 @if (error is not null)
 {
@@ -14,18 +14,40 @@
 }
 
 <div class="toolbar">
-    <label class="muted">From <input type="date" @bind="from" /></label>
-    <label class="muted">To <input type="date" @bind="to" /></label>
-    <select @bind="entityId">
-        <option value="0">All entities</option>
-        @foreach (var e in entities)
-        {
-            <option value="@e.Id">@e.Name</option>
-        }
-    </select>
-    <button @onclick="Load" disabled="@loading">@(loading ? "Loading…" : "Apply")</button>
-    <button @onclick="ExportCsv" disabled="@(entries.Count == 0)">Export CSV</button>
-    <button @onclick="Print">Print</button>
+    <div class="field">
+        <label for="from">From</label>
+        <input id="from" type="date" @bind="from" />
+    </div>
+    <div class="field">
+        <label for="to">To</label>
+        <input id="to" type="date" @bind="to" />
+    </div>
+    <div class="field grow">
+        <label for="filter-entity">Entity</label>
+        <select id="filter-entity" @bind="entityId">
+            <option value="0">All entities</option>
+            @foreach (var e in entities)
+            {
+                <option value="@e.Id">@e.Name</option>
+            }
+        </select>
+    </div>
+    <button class="primary" @onclick="Load" disabled="@loading">@(loading ? "Loading…" : "Apply")</button>
+    <button @onclick="ExportCsv" disabled="@(entries.Count == 0)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+            <path d="M12 3v12M7.5 10.5 12 15l4.5-4.5" />
+            <path d="M4 19h16" />
+        </svg>
+        Export CSV
+    </button>
+    <button @onclick="Print">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+            <path d="M7 9V4h10v5" />
+            <rect x="3" y="9" width="18" height="7" rx="2" />
+            <path d="M7 16h10v4H7z" />
+        </svg>
+        Print
+    </button>
 </div>
 
 @if (loading)
