@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DI Visitor Management</title>
     <base href="/" />
-    <link rel="stylesheet" href="app.css" />
+    @* Tagged with the build time so a rebuild is never masked by a cached stylesheet. *@
+    <link rel="stylesheet" href="app.css?v=@BuildInfo.CacheTag" />
     <link rel="icon" href="brand/di-mark.svg" type="image/svg+xml" />
     <HeadOutlet />
 </head>
@@ -16,6 +17,6 @@
         <span class="dismiss">&times;</span>
     </div>
     <script src="_framework/blazor.web.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=@BuildInfo.CacheTag"></script>
 </body>
 </html>

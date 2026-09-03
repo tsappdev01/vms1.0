@@ -34,9 +34,11 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
             }
 
             string? version = null;
-            string? licence = null;
+            string? licenceRaw = null;
             try { version = _toolkit!.GetToolkitVersion(); } catch { /* reported as unavailable below */ }
-            try { licence = _toolkit!.GetLicenseExpiryDate(); } catch { /* ditto */ }
+            try { licenceRaw = _toolkit!.GetLicenseExpiryDate(); } catch { /* ditto */ }
+
+            var (licence, licenceDays) = ReadLicence(licenceRaw);
 
             try
             {
@@ -48,7 +50,7 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                     Detail = "Card detected. Ready to read.",
                     ToolkitVersion = version,
                     LicenceExpiry = licence,
-                    LicenceDaysRemaining = DaysUntil(licence),
+                    LicenceDaysRemaining = licenceDays,
                 };
             }
             catch (Exception ex)
@@ -60,7 +62,7 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                     Detail = ex.Message,
                     ToolkitVersion = version,
                     LicenceExpiry = licence,
-                    LicenceDaysRemaining = DaysUntil(licence),
+                    LicenceDaysRemaining = licenceDays,
                 };
             }
         }
@@ -292,26 +294,48 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
         return chosen;
     }
 
-    /// <summary>
-    /// Days from today until the toolkit's licence expiry date, or null if it cannot be
-    /// read. The toolkit returns a string, and its format is its own business - so this
-    /// tries the layouts it has actually been seen to use and gives up rather than
-    /// guessing, since a wrong count is worse than none.
-    /// </summary>
-    private static int? DaysUntil(string? expiry)
-    {
-        if (string.IsNullOrWhiteSpace(expiry)) return null;
+    private static readonly string[] LicenceDateFormats =
+        ["yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy", "yyyy/MM/dd"];
 
-        string[] formats = ["yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy", "yyyy/MM/dd"];
-        if (!DateOnly.TryParseExact(expiry.Trim(), formats, CultureInfo.InvariantCulture,
-                                    DateTimeStyles.None, out var date))
+    /// <summary>
+    /// Reads the toolkit's licence expiry string into something showable and a day count.
+    ///
+    /// The format is the toolkit's own business, and what it actually returns is
+    /// <c>2027-04-14+04:00</c> - an ISO date carrying the Gulf offset and no time at all.
+    /// So the offset-aware parse is tried first, then the leading ten characters, then it
+    /// gives up: an unreadable date is shown verbatim with no count, because a wrong
+    /// count is worse than none.
+    /// </summary>
+    private static (string? Display, int? Days) ReadLicence(string? expiry)
+    {
+        if (string.IsNullOrWhiteSpace(expiry)) return (null, null);
+
+        var text = expiry.Trim();
+
+        if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AllowWhiteSpaces, out var offset))
         {
-            return null;
+            return Format(DateOnly.FromDateTime(offset.Date));
         }
 
-        // Gulf Standard Time, because that is the day the desk is having.
-        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(4)).DateTime);
-        return date.DayNumber - today.DayNumber;
+        // The date on its own, for a suffix the offset-aware parse did not take.
+        var head = text.Length >= 10 ? text[..10] : text;
+        if (DateOnly.TryParseExact(head, LicenceDateFormats, CultureInfo.InvariantCulture,
+                                   DateTimeStyles.None, out var date))
+        {
+            return Format(date);
+        }
+
+        return (text, null);
+
+        static (string?, int?) Format(DateOnly date)
+        {
+            // Gulf Standard Time, because that is the day the desk is having.
+            var today = DateOnly.FromDateTime(
+                DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(4)).DateTime);
+            return (date.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
+                    date.DayNumber - today.DayNumber);
+        }
     }
 
     /// <summary>
