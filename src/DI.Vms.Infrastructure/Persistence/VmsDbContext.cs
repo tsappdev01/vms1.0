@@ -93,6 +93,20 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.Property(x => x.Nationality).HasMaxLength(100);
             e.Property(x => x.CaptureMethod).HasConversion<byte>();
             e.HasIndex(x => new { x.IdType, x.IdNumberHash }).IsUnique();
+
+            // Owned, so the address lives in the Visitor row rather than a join.
+            e.OwnsOne(x => x.Address, a =>
+            {
+                a.Property(p => p.Emirate).HasColumnName("AddressEmirate").HasMaxLength(100);
+                a.Property(p => p.City).HasColumnName("AddressCity").HasMaxLength(100);
+                a.Property(p => p.Area).HasColumnName("AddressArea").HasMaxLength(150);
+                a.Property(p => p.Street).HasColumnName("AddressStreet").HasMaxLength(200);
+                a.Property(p => p.Building).HasColumnName("AddressBuilding").HasMaxLength(200);
+                a.Property(p => p.Flat).HasColumnName("AddressFlat").HasMaxLength(50);
+                a.Property(p => p.PoBox).HasColumnName("AddressPoBox").HasMaxLength(50);
+                a.Property(p => p.Mobile).HasColumnName("AddressMobile").HasMaxLength(50);
+                a.Property(p => p.Email).HasColumnName("AddressEmail").HasMaxLength(256);
+            });
         });
 
         b.Entity<Visit>(e =>

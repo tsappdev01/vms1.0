@@ -11,6 +11,30 @@ namespace DI.Vms.Api.Endpoints;
 
 public static class VisitEndpoints
 {
+    /// <summary>
+    /// Maps the incoming address, discarding one with nothing in it so an empty shell is
+    /// not stored against every walk-in.
+    /// </summary>
+    private static VisitorAddress? ToAddress(AddressDto? dto)
+    {
+        if (dto is null) return null;
+
+        var address = new VisitorAddress
+        {
+            Emirate = dto.Emirate,
+            City = dto.City,
+            Area = dto.Area,
+            Street = dto.Street,
+            Building = dto.Building,
+            Flat = dto.Flat,
+            PoBox = dto.PoBox,
+            Mobile = dto.Mobile,
+            Email = dto.Email,
+        };
+
+        return address.IsEmpty ? null : address;
+    }
+
     public static void MapVisitEndpoints(this IEndpointRouteBuilder app)
     {
         /* Repeat-visitor recognition (BRD 14). The client sends fields already extracted
@@ -148,6 +172,7 @@ public static class VisitEndpoints
                             : Convert.FromBase64String(incoming.Photo),
                         CaptureMethod = incoming.CaptureMethod,
                         CreatedByUserId = user.UserId,
+                        Address = ToAddress(incoming.Address),
                     };
                     db.Visitors.Add(visitor);
                 }

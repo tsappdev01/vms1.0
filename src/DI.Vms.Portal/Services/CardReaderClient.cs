@@ -53,6 +53,7 @@ public sealed class CardReaderClient(IJSRuntime js)
         public string? Gender { get; set; }
         public string? PhotoBase64 { get; set; }
         public string? SignatureWarning { get; set; }
+        public CardAddress? Address { get; set; }
         public CardVerification? Verification { get; set; }
 
         /// <summary>
@@ -74,6 +75,36 @@ public sealed class CardReaderClient(IJSRuntime js)
                     System.Globalization.DateTimeStyles.None, out var iso)
                 ? iso
                 : null;
+        }
+    }
+
+    public sealed class CardAddress
+    {
+        public string? Emirate { get; set; }
+        public string? City { get; set; }
+        public string? Area { get; set; }
+        public string? Street { get; set; }
+        public string? Building { get; set; }
+        public string? Flat { get; set; }
+        public string? PoBox { get; set; }
+        public string? Mobile { get; set; }
+        public string? Email { get; set; }
+
+        /// <summary>
+        /// True when the chip carried no address. Cards observed in testing have every
+        /// address field blank, so the UI must say that rather than show empty boxes.
+        /// </summary>
+        public bool IsEmpty =>
+            string.IsNullOrWhiteSpace(Emirate) && string.IsNullOrWhiteSpace(City) &&
+            string.IsNullOrWhiteSpace(Area) && string.IsNullOrWhiteSpace(Street) &&
+            string.IsNullOrWhiteSpace(Building) && string.IsNullOrWhiteSpace(Flat) &&
+            string.IsNullOrWhiteSpace(PoBox);
+
+        public override string ToString()
+        {
+            var parts = new[] { Flat, Building, Street, Area, City, Emirate }
+                .Where(p => !string.IsNullOrWhiteSpace(p));
+            return string.Join(", ", parts);
         }
     }
 

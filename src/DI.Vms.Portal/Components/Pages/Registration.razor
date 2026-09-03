@@ -98,6 +98,34 @@ else
                     <div class="banner warn"><strong>Signature warning.</strong><span>@card.SignatureWarning</span></div>
                 }
             }
+            @if (card is not null)
+            {
+                <div class="chip-readout">
+                    @if (!string.IsNullOrEmpty(card.PhotoBase64))
+                    {
+                        <img class="visitor-photo" src="@($"data:image/jpeg;base64,{card.PhotoBase64}")"
+                             alt="Cardholder photograph from the chip" />
+                    }
+                    <dl class="readout compact">
+                        <dt>Nationality</dt><dd>@(card.Nationality ?? "—")</dd>
+                        <dt>Date of birth</dt><dd>@(card.ParseDate(card.DateOfBirth) is { } d ? Gst.Date(d) : "—")</dd>
+                        <dt>Home address</dt>
+                        <dd>
+                            @if (card.Address is null || card.Address.IsEmpty)
+                            {
+                                <span class="muted">Not held on this card</span>
+                            }
+                            else
+                            {
+                                @card.Address.ToString()
+                            }
+                        </dd>
+                        <dt>Mobile</dt><dd>@(card.Address?.Mobile ?? "—")</dd>
+                        <dt>Email</dt><dd>@(card.Address?.Email ?? "—")</dd>
+                    </dl>
+                </div>
+            }
+
             <div class="field-row">
                 <div class="field">
                     <label for="vname">Visitor name</label>
@@ -358,7 +386,10 @@ else
                     Nationality: nationality,
                     DateOfBirth: dateOfBirth,
                     Photo: card?.PhotoBase64,
-                    CaptureMethod: card is not null ? IdCaptureMethod.CardReader : IdCaptureMethod.Manual),
+                    CaptureMethod: card is not null ? IdCaptureMethod.CardReader : IdCaptureMethod.Manual,
+                    Address: card?.Address is { } a
+                        ? new AddressDto(a.Emirate, a.City, a.Area, a.Street, a.Building, a.Flat, a.PoBox, a.Mobile, a.Email)
+                        : null),
                 VisitorId: null,
                 DiEntityId: entityId,
                 HostEmployeeId: hostId,

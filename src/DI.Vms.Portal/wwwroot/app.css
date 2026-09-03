@@ -430,3 +430,25 @@ table.data tr.selected { background: var(--surface-2); }
 .actions.left { justify-content: flex-start; }
 .hint { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
 .step .num { line-height: 1; }
+
+/* Chip readout: the photograph beside the fields the card supplied. */
+.chip-readout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 14px;
+    margin-bottom: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+.visitor-photo {
+    width: 96px;
+    height: 122px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+    flex: none;
+}
+.readout.compact { grid-template-columns: 110px 1fr; gap: 4px 12px; font-size: 12.5px; }

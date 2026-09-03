@@ -24,31 +24,20 @@
     private sealed record NavItem(string Href, string Label, bool Emergency = false);
     private sealed record NavGroup(string Name, NavItem[] Items);
 
+    /* Trimmed to the two modules requested on 2026-09-03. The other screens still exist
+       and still route - they are simply not in the navigation until they are asked for,
+       which is reversible in a way that deleting them would not be. */
     private static readonly NavGroup[] Groups =
     [
-        new("Reception",
+        new("Visitor Management",
         [
             new("register", "New Visitor"),
+            new("current", "Current Visitors"),
             new("checkout", "Check Out"),
         ]),
-        new("Monitoring",
+        new("Reports",
         [
-            new("", "Dashboard"),
-            new("current", "Current Visitors"),
-            new("expected", "Expected Visitors"),
-            new("emergency", "Emergency", Emergency: true),
-        ]),
-        new("Records",
-        [
-            new("history", "Visitor History"),
             new("reports", "Reports"),
-            new("audit", "Audit Log"),
-        ]),
-        new("Administration",
-        [
-            new("entities", "DI Entities"),
-            new("employees", "Employees / Hosts"),
-            new("users", "Users & Roles"),
         ]),
     ];
 }

@@ -19,6 +19,8 @@ public static class ReportEndpoints
 {
     private static readonly ReportDefinition[] Definitions =
     [
+        new("visitor-details-by-entity", "Visitor Details by Entity",
+            "Every recorded field for each visit, grouped by DI entity, with check-in and check-out timestamps.", true),
         new("daily-visitors", "Daily Visitor Report", "Visitor, company, ID type, ID number, entity, host, in, out, duration.", true),
         new("by-entity", "Visitor by Entity", "Visit counts grouped by DI entity.", true),
         new("by-host", "Visitor by Host", "Visit counts grouped by host employee.", true),
@@ -108,6 +110,54 @@ public static class ReportEndpoints
 
         switch (definition.Name)
         {
+            case "visitor-details-by-entity":
+            {
+                /* The full record per visit, ordered by entity. ID numbers stay masked:
+                   an unmasked spreadsheet leaving the building would defeat BRD 22, and
+                   an export is exactly how that happens. */
+                columns =
+                [
+                    "DI Entity", "Visit No.", "Visitor", "Company", "Nationality",
+                    "ID Type", "ID Number", "ID Expiry", "Date of Birth", "Home Address", "Mobile", "Email",
+                    "Visitor Type", "Host", "Department", "Floor", "Office", "Purpose",
+                    "Identity Source", "Check-In", "Check-Out", "Duration", "Status", "Registered",
+                ];
+
+                var data = await inRange
+                    .Include(v => v.Visitor).Include(v => v.HostEmployee).Include(v => v.DiEntity)
+                    .OrderBy(v => v.DiEntity!.EntityName).ThenBy(v => v.InTimeUtc)
+                    .ToListAsync(ct);
+
+                rows = data.Select(v => (IReadOnlyList<string?>)new[]
+                {
+                    v.DiEntity?.EntityName,
+                    v.VisitNumber,
+                    v.Visitor?.Name,
+                    v.Visitor?.Company,
+                    v.Visitor?.Nationality,
+                    v.Visitor?.IdType.ToString(),
+                    v.Visitor?.IdNumberMasked,
+                    v.Visitor?.IdExpiryDate?.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture),
+                    v.Visitor?.DateOfBirth?.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture),
+                    v.Visitor?.Address?.ToString(),
+                    v.Visitor?.Address?.Mobile,
+                    v.Visitor?.Address?.Email,
+                    v.VisitType.ToString(),
+                    v.HostEmployee?.Name,
+                    v.Department,
+                    v.Floor,
+                    v.Office,
+                    v.Purpose,
+                    v.Visitor?.CaptureMethod == IdCaptureMethod.Manual ? "Manual entry" : "Card chip",
+                    Gst(v.InTimeUtc, "dd-MMM-yyyy HH:mm"),
+                    Gst(v.OutTimeUtc, "dd-MMM-yyyy HH:mm"),
+                    Duration(v.Duration),
+                    v.Status.ToString(),
+                    Gst(v.CreatedAtUtc, "dd-MMM-yyyy HH:mm"),
+                }).ToList();
+                break;
+            }
+
             case "daily-visitors":
             {
                 columns = ["Visit No.", "Date", "Visitor", "Company", "ID Type", "ID Number", "DI Entity", "Host", "In", "Out", "Duration"];

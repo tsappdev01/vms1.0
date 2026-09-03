@@ -30,6 +30,17 @@ public sealed record IdentifiedVisitorDto(
 
 public sealed record IdentifyResponse(bool Found, IdentifiedVisitorDto? Visitor);
 
+public sealed record AddressDto(
+    string? Emirate,
+    string? City,
+    string? Area,
+    string? Street,
+    string? Building,
+    string? Flat,
+    string? PoBox,
+    string? Mobile,
+    string? Email);
+
 public sealed record NewVisitorDto(
     string Name,
     string? Company,
@@ -39,7 +50,8 @@ public sealed record NewVisitorDto(
     string? Nationality,
     DateOnly? DateOfBirth,
     string? Photo,
-    IdCaptureMethod CaptureMethod);
+    IdCaptureMethod CaptureMethod,
+    AddressDto? Address = null);
 
 public sealed record CreateVisitRequest(
     NewVisitorDto? Visitor,
@@ -85,7 +97,10 @@ public sealed record VisitListItemDto(
     DateTimeOffset? OutTimeUtc,
     DateOnly? ExpectedDate,
     TimeOnly? ExpectedTime,
-    VisitStatus Status);
+    VisitStatus Status,
+    string? Nationality = null,
+    string? Address = null,
+    string? PhotoBase64 = null);
 
 public sealed record EntityCountDto(string EntityName, int Visitors);
 

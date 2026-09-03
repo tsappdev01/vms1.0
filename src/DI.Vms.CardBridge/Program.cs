@@ -227,10 +227,14 @@ namespace DI.Vms.CardBridge
             }
 
             var wantPhoto = !body.ContainsKey("photo") || Convert.ToBoolean(body["photo"]);
+            var wantAddress = !body.ContainsKey("address") || Convert.ToBoolean(body["address"]);
 
-            // The holder's signature and address are deliberately not read. BRD 3 says
-            // capture only what visitor management needs, and the acknowledgement
-            // signature is drawn fresh at check-in.
+            /* The home address is read by business decision of 2026-09-03. BRD 3 otherwise
+               recommends holding no more than visitor management needs, so it stays a
+               caller's choice rather than an unconditional read.
+
+               The holder's signature image is still not read: the acknowledgement
+               signature is drawn fresh at check-in, and the one on the card is not it. */
             var requestId = GenerateRequestId();
 
             var cardReader = _toolkit.GetReaderWithEmiratesId();
@@ -238,7 +242,7 @@ namespace DI.Vms.CardBridge
 
             try
             {
-                var data = cardReader.ReadPublicData(requestId, true, false, wantPhoto, false, false);
+                var data = cardReader.ReadPublicData(requestId, true, false, wantPhoto, false, wantAddress);
 
                 // The response must echo our request id and carry a valid signature.
                 // Without this an identity read is only as trustworthy as the channel
@@ -250,8 +254,9 @@ namespace DI.Vms.CardBridge
                 {
                     { "idNumber", data.IdNumber },
                     { "cardNumber", data.CardNumber },
-                    { "name", nonModifiable == null ? null : nonModifiable.FullNameEnglish },
-                    { "nameArabic", nonModifiable == null ? null : nonModifiable.FullNameArabic },
+                    { "name", CleanName(nonModifiable == null ? null : nonModifiable.FullNameEnglish) },
+                    { "nameArabic", CleanName(nonModifiable == null ? null : nonModifiable.FullNameArabic) },
+                    { "nameRaw", nonModifiable == null ? null : nonModifiable.FullNameEnglish },
                     { "nationality", nonModifiable == null ? null : nonModifiable.NationalityEnglish },
                     { "nationalityCode", nonModifiable == null ? null : nonModifiable.NationalityCode },
                     { "dateOfBirth", nonModifiable == null ? null : nonModifiable.DateOfBirth },
@@ -260,8 +265,26 @@ namespace DI.Vms.CardBridge
                     { "gender", nonModifiable == null ? null : nonModifiable.Gender },
                     { "idType", nonModifiable == null ? null : nonModifiable.IdType },
                     { "photoBase64", null },
+                    { "address", null },
                     { "signatureWarning", signatureWarning },
                 };
+
+                if (wantAddress && data.HomeAddress != null)
+                {
+                    var home = data.HomeAddress;
+                    result["address"] = new Dictionary<string, object>
+                    {
+                        { "emirate", home.EmirateEnglish },
+                        { "city", home.CityEnglish },
+                        { "area", home.AreaEnglish },
+                        { "street", home.StreetEnglish },
+                        { "building", home.BuildingNameEnglish },
+                        { "flat", home.FlatNumber },
+                        { "poBox", home.PoBox },
+                        { "mobile", home.MobilePhoneNumber },
+                        { "email", home.Email },
+                    };
+                }
 
                 if (wantPhoto && data.CardHolderPhoto != null)
                 {
@@ -331,6 +354,26 @@ namespace DI.Vms.CardBridge
             {
                 try { cardReader.Disconnect(); } catch { /* the card may already be out */ }
             }
+        }
+
+        /// <summary>
+        /// The chip stores names as comma-delimited segments, most of them empty:
+        /// "NAYYAR JAWAID,,,,,ALI KHAN," is one person, not seven fields. Joining the
+        /// non-empty parts gives the name a human would write. The raw value is returned
+        /// alongside as nameRaw, since the segments carry given/middle/family positions
+        /// that may matter later.
+        /// </summary>
+        private static string CleanName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return value;
+
+            var parts = value
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim())
+                .Where(p => p.Length > 0);
+
+            var cleaned = string.Join(" ", parts);
+            return cleaned.Length > 0 ? cleaned : value.Trim();
         }
 
         /// <summary>The card status string, falling back to the numeric response status.</summary>

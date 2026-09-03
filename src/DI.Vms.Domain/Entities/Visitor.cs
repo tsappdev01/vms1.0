@@ -43,6 +43,13 @@ public class Visitor : AuditableEntity
     /// </summary>
     public byte[]? Photo { get; set; }
 
+    /// <summary>
+    /// Home address as held on the chip. Captured by business decision of 2026-09-03;
+    /// BRD 3 otherwise recommends against holding more than visitor management needs, so
+    /// these fields are covered by the same retention purge as the ID number.
+    /// </summary>
+    public VisitorAddress? Address { get; set; }
+
     /// <summary>How the identity data was captured, for audit and for BRD 21 feasibility review.</summary>
     public IdCaptureMethod CaptureMethod { get; set; } = IdCaptureMethod.Manual;
 

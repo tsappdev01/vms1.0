@@ -25,7 +25,10 @@ internal static class Mapping
         v.OutTimeUtc,
         v.ExpectedDate,
         v.ExpectedTime,
-        v.Status);
+        v.Status,
+        v.Visitor?.Nationality,
+        v.Visitor?.Address?.ToString(),
+        v.Visitor?.Photo is { Length: > 0 } photo ? Convert.ToBase64String(photo) : null);
 
     public static DiEntityDto ToDto(this DiEntity e) =>
         new(e.Id, e.EntityCode, e.EntityName, e.IsActive);
