@@ -21,7 +21,7 @@
                     @((MarkupString)Steps[n].Icon)
                 </svg>
             </span>
-            @Steps[n].Label
+            @StepLabel(n)
         </div>
     }
 </div>
@@ -125,7 +125,28 @@
             </div>
 
             <div class="hero-panel">
-                @if (readerState is null)
+                @* A host with no reader says so once, plainly, and offers the only path it
+                   has. The alternative - leaving the Read Card button there - costs three
+                   failed attempts per visitor before the manual fallback appears, and
+                   teaches the desk that the app is broken. See docs/deployment.md. *@
+                @if (!Reader.Enabled)
+                {
+                    <span class="ready waiting">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="2.5" y="5" width="19" height="14" rx="2.2" /><path d="M6.5 10h5M6.5 14h7" />
+                        </svg>
+                        <text>Manual entry</text>
+                    </span>
+
+                    <p class="lead">Enter the visitor's details.</p>
+                    <p class="muted">
+                        There is no card reader on this machine, so the Emirates ID cannot be
+                        read from its chip here. Type the details from the card instead - the
+                        entry is marked as entered manually, so it is never taken for a chip
+                        read.
+                    </p>
+                }
+                else if (readerState is null)
                 {
                     <p class="lead">Checking the reader…</p>
                 }
@@ -195,69 +216,83 @@
                     }
                 }
 
-                <div class="actions">
-                    <button class="primary large" @onclick="ReadCard" disabled="@reading">
-                        @if (reading)
-                        {
-                            <span class="spinner" aria-hidden="true"></span>
-                            <text>Reading card…</text>
-                        }
-                        else
-                        {
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="17" height="17" aria-hidden="true">
-                                <path d="M4 8a12 12 0 0 1 0 8M8.5 6a16 16 0 0 1 0 12" />
-                                <circle cx="15" cy="12" r="2.5" />
-                                <path d="M19 9.5a5 5 0 0 1 0 5" />
-                            </svg>
-                            <text>Read Card</text>
-                        }
-                    </button>
-                    <button @onclick="CheckReader" disabled="@reading">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="16" height="16" aria-hidden="true">
-                            <circle cx="11" cy="11" r="7" /><path d="M16 16l4.5 4.5" />
-                        </svg>
-                        Check reader
-                    </button>
-                </div>
-
-                @* While a read is in flight the phase replaces the tip: the tip is advice
-                   for when nothing is happening, and two panels would just compete. *@
-                @if (reading)
+                @if (!Reader.Enabled)
                 {
-                    <div class="tip">
-                        <span class="reading-phase">
-                            <span class="spinner" aria-hidden="true"></span>
-                            <span aria-live="polite">@readingPhase</span>
-                        </span>
+                    <div class="actions">
+                        <button class="primary large" @onclick="StartManualEntry">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="17" height="17" aria-hidden="true">
+                                <path d="M4 20h16" /><path d="M14.5 4.5l4 4L9 18H5v-4l9.5-9.5Z" />
+                            </svg>
+                            <text>Enter details</text>
+                        </button>
                     </div>
                 }
                 else
                 {
-                    @* Offered only after three failures. Before that, the reader is the
-                       better answer and a manual shortcut would only invite skipping it. *@
-                    @if (failedReads >= 3)
+                    <div class="actions">
+                        <button class="primary large" @onclick="ReadCard" disabled="@reading">
+                            @if (reading)
+                            {
+                                <span class="spinner" aria-hidden="true"></span>
+                                <text>Reading card…</text>
+                            }
+                            else
+                            {
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="17" height="17" aria-hidden="true">
+                                    <path d="M4 8a12 12 0 0 1 0 8M8.5 6a16 16 0 0 1 0 12" />
+                                    <circle cx="15" cy="12" r="2.5" />
+                                    <path d="M19 9.5a5 5 0 0 1 0 5" />
+                                </svg>
+                                <text>Read Card</text>
+                            }
+                        </button>
+                        <button @onclick="CheckReader" disabled="@reading">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="16" height="16" aria-hidden="true">
+                                <circle cx="11" cy="11" r="7" /><path d="M16 16l4.5 4.5" />
+                            </svg>
+                            Check reader
+                        </button>
+                    </div>
+
+                    @* While a read is in flight the phase replaces the tip: the tip is advice
+                       for when nothing is happening, and two panels would just compete. *@
+                    @if (reading)
                     {
-                        <div class="fallback">
-                            <strong>The card has not been read after @failedReads attempts.</strong>
-                            <p>
-                                Enter the visitor's details by hand instead? The entry will be
-                                marked as entered manually, so it is never taken for a chip read.
-                            </p>
-                            <div class="actions">
-                                <button @onclick="StartManualEntry">Enter manually</button>
-                                <button class="primary" @onclick="ReadCard" disabled="@reading">Try again</button>
-                            </div>
+                        <div class="tip">
+                            <span class="reading-phase">
+                                <span class="spinner" aria-hidden="true"></span>
+                                <span aria-live="polite">@readingPhase</span>
+                            </span>
                         </div>
                     }
                     else
                     {
-                        <div class="tip">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M9 18h6M10 21h4" />
-                                <path d="M12 3a6 6 0 0 1 3.5 10.9V15h-7v-1.1A6 6 0 0 1 12 3Z" />
-                            </svg>
-                            <span><b>Tip:</b> Ensure the card chip is clean and try again if not detected.</span>
-                        </div>
+                        @* Offered only after three failures. Before that, the reader is the
+                           better answer and a manual shortcut would only invite skipping it. *@
+                        @if (failedReads >= 3)
+                        {
+                            <div class="fallback">
+                                <strong>The card has not been read after @failedReads attempts.</strong>
+                                <p>
+                                    Enter the visitor's details by hand instead? The entry will be
+                                    marked as entered manually, so it is never taken for a chip read.
+                                </p>
+                                <div class="actions">
+                                    <button @onclick="StartManualEntry">Enter manually</button>
+                                    <button class="primary" @onclick="ReadCard" disabled="@reading">Try again</button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="tip">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M9 18h6M10 21h4" />
+                                    <path d="M12 3a6 6 0 0 1 3.5 10.9V15h-7v-1.1A6 6 0 0 1 12 3Z" />
+                                </svg>
+                                <span><b>Tip:</b> Ensure the card chip is clean and try again if not detected.</span>
+                            </div>
+                        }
                     }
                 }
             </div>
@@ -271,10 +306,22 @@
                     <rect x="2" y="5" width="20" height="14" rx="2" /><path d="M6 10h4M6 14h7" /><circle cx="17" cy="12" r="2.5" />
                 </svg>
             </span>
-            <div>
-                <strong>Straight from the chip</strong>
-                <p>Name, nationality, photograph and signature are read off the card itself, never transcribed.</p>
-            </div>
+            @* The claim has to match the host: on one with no reader nothing is read off
+               a chip, and a visitor can read this panel. *@
+            @if (Reader.Enabled)
+            {
+                <div>
+                    <strong>Straight from the chip</strong>
+                    <p>Name, nationality, photograph and signature are read off the card itself, never transcribed.</p>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <strong>From your Emirates ID</strong>
+                    <p>Only what is printed on the card is recorded, and the entry says it was entered by hand.</p>
+                </div>
+            }
         </div>
         <div class="assurance">
             <span class="ico">
@@ -284,7 +331,9 @@
             </span>
             <div>
                 <strong>Fast &amp; Efficient</strong>
-                <p>Two fields to fill. Everything else is already on the card, so check-in takes seconds.</p>
+                <p>@(Reader.Enabled
+                        ? "Two fields to fill. Everything else is already on the card, so check-in takes seconds."
+                        : "Only what the visit needs: the ID number, the name, and who is being visited.")</p>
             </div>
         </div>
         <div class="assurance">
@@ -735,6 +784,12 @@ else if (step == 3 && saved is not null)
         ("Saved",
          """<circle cx="12" cy="12" r="8.6" /><path d="M8.4 12.4l2.6 2.6 4.6-5.2" />"""),
     ];
+
+    /// <summary>
+    /// The first step is not "Insert Card" on a host that cannot read one.
+    /// </summary>
+    private string StepLabel(int index) =>
+        index == 0 && !Reader.Enabled ? "Visitor Details" : Steps[index].Label;
 
     private int step;
     private bool reading;

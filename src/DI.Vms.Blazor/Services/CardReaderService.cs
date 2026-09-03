@@ -23,8 +23,28 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
     private Toolkit? _toolkit;
     private string? _initialisationError;
 
+    /// <summary>
+    /// Whether this host reads cards at all. False on a machine with no reader attached -
+    /// a central server, for instance - where the toolkit would only ever fail and the
+    /// desk should be typing the details in instead. Set <c>Toolkit:Enabled</c> to false
+    /// there; see docs/deployment.md.
+    ///
+    /// It is configuration rather than detection because the toolkit cannot tell "no
+    /// reader on this machine" from "no card in the reader": both arrive as an exception
+    /// out of GetReaderWithEmiratesId, and only the first one means stop offering to read.
+    /// </summary>
+    public bool Enabled { get; } = configuration.GetValue("Toolkit:Enabled", true);
+
+    private const string DisabledDetail =
+        "Card reading is turned off on this host, which has no reader. Visitor details are entered by hand.";
+
     public async Task<ReaderState> GetStateAsync()
     {
+        if (!Enabled)
+        {
+            return new ReaderState { Available = false, Detail = DisabledDetail };
+        }
+
         await _gate.WaitAsync();
         try
         {
@@ -82,6 +102,11 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
     /// </summary>
     public async Task<CardData> ReadAsync(IProgress<string>? progress = null)
     {
+        if (!Enabled)
+        {
+            throw new InvalidOperationException(DisabledDetail);
+        }
+
         await _gate.WaitAsync();
         try
         {
