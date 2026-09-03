@@ -61,6 +61,7 @@ public static class DbBootstrapper
         if (missing.Count == 0)
         {
             logger.LogInformation("Schema present: {Tables}.", string.Join(", ", wanted));
+            await VerifyColumnsAsync(db, logger, ct);
             return;
         }
 
@@ -83,5 +84,50 @@ public static class DbBootstrapper
             $"The database is missing {string.Join(", ", missing)} but already has " +
             $"{string.Join(", ", wanted.Except(missing, StringComparer.OrdinalIgnoreCase))}. " +
             "Drop the tables that are there, or switch to EF migrations, then start again.");
+    }
+
+    /// <summary>
+    /// Checks that every column the model expects exists on the tables that are already
+    /// there, and says which are missing if any are.
+    ///
+    /// This bootstrapper creates absent tables but never alters present ones, so a
+    /// property added to the model reaches an existing database only through a script in
+    /// db/. Without this check the first query fails instead, with SQL Server's
+    /// "Invalid column name" and no indication of which script to run - the same
+    /// confusion that the missing tables caused.
+    /// </summary>
+    private static async Task VerifyColumnsAsync(VmsDbContext db, ILogger logger, CancellationToken ct)
+    {
+        var present = await db.Database
+            .SqlQueryRaw<string>(
+                "SELECT s.name + '.' + t.name + '.' + c.name AS Value FROM sys.columns c " +
+                "JOIN sys.tables t ON t.object_id = c.object_id " +
+                "JOIN sys.schemas s ON s.schema_id = t.schema_id")
+            .ToListAsync(ct);
+
+        var found = new HashSet<string>(present, StringComparer.OrdinalIgnoreCase);
+        var missing = new List<string>();
+
+        foreach (var type in db.Model.GetEntityTypes())
+        {
+            var table = type.GetTableName();
+            if (table is null) continue;
+
+            var schema = type.GetSchema() ?? db.Model.GetDefaultSchema() ?? "dbo";
+
+            foreach (var property in type.GetProperties())
+            {
+                var column = property.GetColumnName();
+                if (string.IsNullOrEmpty(column)) continue;
+                if (!found.Contains($"{schema}.{table}.{column}")) missing.Add($"{table}.{column}");
+            }
+        }
+
+        if (missing.Count == 0) return;
+
+        throw new InvalidOperationException(
+            $"The database is missing {missing.Count} column(s) the code expects: " +
+            $"{string.Join(", ", missing)}. Run the scripts in db/ against this database - " +
+            "the newest one adds them - and start again.");
     }
 }

@@ -527,10 +527,31 @@ else if (step == 2 && card is not null)
                        placeholder="Full name of the person being visited" autocomplete="off" />
             </div>
 
+            <div class="field">
+                <label for="purpose">Purpose of visit</label>
+                <select id="purpose" @bind="purpose" @bind:after="PurposeChanged">
+                    <option value="">Select purpose of visit…</option>
+                    @foreach (var p in Purposes)
+                    {
+                        <option value="@p">@p</option>
+                    }
+                    <option value="@OtherPurpose">@OtherPurpose</option>
+                </select>
+            </div>
+
+            @if (purpose == OtherPurpose)
+            {
+                <div class="field">
+                    <label for="purpose-other">Please give details</label>
+                    <input id="purpose-other" @bind="purposeOther" @bind:event="oninput"
+                           placeholder="What is the visit for?" autocomplete="off" maxlength="200" />
+                </div>
+            }
+
             <div class="actions">
                 <button @onclick="() => step = 1">Back</button>
                 <button class="primary" @onclick="Save"
-                        disabled="@(saving || entityId == 0 || string.IsNullOrWhiteSpace(personToVisit))">
+                        disabled="@(saving || !VisitIsComplete)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
                         <path d="M5 12.5l4.5 4.5L19 7" />
                     </svg>
@@ -564,6 +585,10 @@ else if (step == 3 && saved is not null)
                 <dt>ID Number</dt><dd class="mono">@saved.IdNumber</dd>
                 <dt>Entity</dt><dd>@entities.FirstOrDefault(e => e.Id == saved.DiEntityId)?.Name</dd>
                 <dt>Person to visit</dt><dd>@saved.PersonToVisit</dd>
+                <dt>Purpose</dt>
+                <dd>
+                    @saved.Purpose@(string.IsNullOrWhiteSpace(saved.PurposeOther) ? "" : $" — {saved.PurposeOther}")
+                </dd>
                 <dt>Recorded</dt><dd class="mono">@ToGst(saved.RecordedAtUtc) GST</dd>
                 <dt>Source</dt>
                 <dd>
@@ -636,9 +661,44 @@ else if (step == 3 && saved is not null)
     private CardData? card;
     private string? signatureDataUrl;
 
+    /// <summary>
+    /// The purposes the desk offers, and the one that asks for details.
+    ///
+    /// Held in code rather than in a table: unlike the entity list, which follows the
+    /// group's companies and must change without a redeploy, this is a closed vocabulary
+    /// belonging to the form. Moving it to vms.VisitPurpose is small if it needs to be
+    /// editable at the desk.
+    /// </summary>
+    private static readonly string[] Purposes =
+    [
+        "Meetings", "Submission", "Delivery", "Collection",
+        "Visit", "Interview", "Enquiry", "Payments",
+    ];
+
+    private const string OtherPurpose = "Other";
+
     private List<DiEntity> entities = [];
     private int entityId;
     private string personToVisit = string.Empty;
+    private string purpose = string.Empty;
+    private string purposeOther = string.Empty;
+
+    /// <summary>
+    /// Everything the visit needs before it can be written: an entity, a host, a purpose,
+    /// and - when the purpose is Other - what that other purpose actually was. Recording
+    /// "Other" and nothing else would be worse than recording nothing.
+    /// </summary>
+    private bool VisitIsComplete =>
+        entityId != 0
+        && !string.IsNullOrWhiteSpace(personToVisit)
+        && !string.IsNullOrWhiteSpace(purpose)
+        && (purpose != OtherPurpose || !string.IsNullOrWhiteSpace(purposeOther));
+
+    /// <summary>Clears the detail when the purpose moves off Other, so a stale note cannot be saved.</summary>
+    private void PurposeChanged()
+    {
+        if (purpose != OtherPurpose) purposeOther = string.Empty;
+    }
     private VisitorEntry? saved;
 
     protected override async Task OnInitializedAsync()
@@ -786,6 +846,8 @@ else if (step == 3 && saved is not null)
                 AddressEmail = card.AddressEmail,
                 DiEntityId = entityId,
                 PersonToVisit = personToVisit.Trim(),
+                Purpose = purpose,
+                PurposeOther = purpose == OtherPurpose ? purposeOther.Trim() : null,
                 RecordedAtUtc = DateTimeOffset.UtcNow,
                 CaptureMethod = captureMethod,
             };
@@ -815,6 +877,8 @@ else if (step == 3 && saved is not null)
         saved = null;
         entityId = 0;
         personToVisit = string.Empty;
+        purpose = string.Empty;
+        purposeOther = string.Empty;
         message = null;
 
         // A fresh visitor starts from the reader, and gets its own three attempts.
