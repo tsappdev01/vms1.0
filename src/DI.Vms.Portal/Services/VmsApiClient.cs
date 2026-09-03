@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DI.Vms.Application.Contracts;
+using DI.Vms.Domain.Enums;
 
 namespace DI.Vms.Portal.Services;
 
@@ -65,6 +66,21 @@ public sealed class VmsApiClient(HttpClient http, UserContext user, ILogger<VmsA
         return GetAsync<ReportResult>($"reports/{name}{qs}", ct);
     }
 
+    public Task<IdentifyResponse?> IdentifyAsync(IdentifyRequest request, CancellationToken ct = default) =>
+        PostAsync<IdentifyRequest, IdentifyResponse>("visits/identify", request, ct);
+
+    public Task<CreateVisitResult?> CreateVisitAsync(CreateVisitRequest request, CancellationToken ct = default) =>
+        PostAsync<CreateVisitRequest, CreateVisitResult>("visits", request, ct);
+
+    public Task<CheckInResponse?> CheckInAsync(Guid visitId, string signatureImage, string deviceId, CancellationToken ct = default) =>
+        PostAsync<CheckInRequest, CheckInResponse>($"visits/{visitId}/check-in", new CheckInRequest(signatureImage, deviceId), ct);
+
+    public Task<CheckOutResponse?> CheckOutAsync(Guid visitId, CancellationToken ct = default) =>
+        PostAsync<object, CheckOutResponse>($"visits/{visitId}/check-out", new { }, ct);
+
+    /// <summary>The API returns the new visit's id and status; it has no contract type of its own.</summary>
+    public sealed record CreateVisitResult(Guid Id, VisitStatus Status);
+
     /// <summary>
     /// Retrieves the plaintext ID number. Permission-gated and audited server-side
     /// (BRD 22) - a 403 here is the control working, not a fault.
@@ -94,6 +110,24 @@ public sealed class VmsApiClient(HttpClient http, UserContext user, ILogger<VmsA
         // Development authentication only; replaced by a bearer token with Entra ID.
         request.Headers.Add("X-Dev-Role", user.Role.ToString());
         return request;
+    }
+
+    private async Task<TOut?> PostAsync<TIn, TOut>(string path, TIn body, CancellationToken ct)
+    {
+        try
+        {
+            using var request = Build(HttpMethod.Post, path);
+            request.Content = JsonContent.Create(body, options: Json);
+            using var response = await http.SendAsync(request, ct);
+            await EnsureOkAsync(response, ct);
+            return await response.Content.ReadFromJsonAsync<TOut>(Json, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            logger.LogWarning(ex, "POST {Path} failed", path);
+            throw new VmsApiUnavailableException(
+                $"The API did not respond. Check that DI.Vms.Api is running at {http.BaseAddress}.", ex);
+        }
     }
 
     private async Task<T?> GetAsync<T>(string path, CancellationToken ct)

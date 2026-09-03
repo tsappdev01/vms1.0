@@ -422,3 +422,11 @@ table.data tr.selected { background: var(--surface-2); }
     box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.2);
 }
 #blazor-error-ui .dismiss { cursor: pointer; float: right; font-weight: 600; }
+
+/* ------------------------------------------------ registration wizard (Blazor) */
+
+.narrow-card { max-width: 720px; }
+.status.big { font-size: 15px; margin-bottom: 14px; }
+.actions.left { justify-content: flex-start; }
+.hint { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+.step .num { line-height: 1; }

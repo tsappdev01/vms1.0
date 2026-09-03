@@ -1,0 +1,131 @@
+@page "/checkout"
+@rendermode InteractiveServer
+@inject VmsApiClient Api
+
+<PageTitle>Check Out &middot; DI VMS</PageTitle>
+
+<div class="page-header">
+    <h1>Check Out</h1>
+    <p>Search for the visitor, then check them out.</p>
+</div>
+
+@if (done is not null)
+{
+    <div class="banner">
+        <strong>@done.Value.VisitNumber checked out.</strong>
+        <span>Duration @(done.Value.Minutes / 60)h @(done.Value.Minutes % 60)m.</span>
+    </div>
+}
+
+@if (error is not null)
+{
+    <div class="banner critical"><strong>Problem.</strong><span>@error</span></div>
+}
+
+<div class="toolbar">
+    <input class="grow" placeholder="Search visitor name, company or visit number…"
+           @bind="filter" @bind:event="oninput" aria-label="Search visitors inside" />
+    <button @onclick="Load" disabled="@loading">Refresh</button>
+</div>
+
+<section class="card">
+    @if (visits is null)
+    {
+        <div class="empty">Loading…</div>
+    }
+    else if (Filtered.Count == 0)
+    {
+        <div class="empty">
+            <strong>@(string.IsNullOrWhiteSpace(filter) ? "Nobody is currently inside" : "No match")</strong>
+            @if (!string.IsNullOrWhiteSpace(filter))
+            {
+                <span>Try a shorter search term.</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr><th>Visit No.</th><th>Visitor</th><th>Visiting</th><th>Floor</th><th>In Time</th><th>Duration</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in Filtered)
+                    {
+                        <tr>
+                            <td class="mono">@v.VisitNumber</td>
+                            <td>
+                                <div class="strong">@v.VisitorName</div>
+                                @if (!string.IsNullOrEmpty(v.Company)) { <div class="sub-cell">@v.Company</div> }
+                            </td>
+                            <td>@v.HostName</td>
+                            <td class="mono">@(v.Floor ?? "—")</td>
+                            <td class="mono">@Gst.Time(v.InTimeUtc)</td>
+                            <td class="mono">@Gst.Duration(v.InTimeUtc, null)</td>
+                            <td class="right">
+                                <button class="primary" disabled="@(busyId == v.Id)"
+                                        @onclick="() => CheckOutVisit(v)">
+                                    @(busyId == v.Id ? "…" : "Check out")
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    private List<VisitListItemDto>? visits;
+    private string filter = string.Empty;
+    private string? error;
+    private bool loading;
+    private Guid busyId;
+    private (string VisitNumber, int Minutes)? done;
+
+    private List<VisitListItemDto> Filtered =>
+        (visits ?? [])
+            .Where(v => string.IsNullOrWhiteSpace(filter) ||
+                        $"{v.VisitorName} {v.Company} {v.VisitNumber}"
+                            .Contains(filter, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+    protected override Task OnInitializedAsync() => Load();
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try { visits = await Api.GetInsideAsync(); }
+        catch (Exception ex) { error = ex.Message; }
+        finally { loading = false; }
+    }
+
+    private async Task CheckOutVisit(VisitListItemDto visit)
+    {
+        busyId = visit.Id;
+        error = null;
+        try
+        {
+            var result = await Api.CheckOutAsync(visit.Id);
+            if (result is not null)
+            {
+                done = (visit.VisitNumber, result.DurationMinutes);
+            }
+
+            // Occupancy has changed, so the list must be refetched rather than patched -
+            // another desk may have checked someone in or out meanwhile.
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            busyId = Guid.Empty;
+        }
+    }
+}

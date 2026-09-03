@@ -11,6 +11,7 @@ builder.Services.AddRazorComponents()
    30-second-old occupancy figure is misleading in exactly the situation that matters. */
 
 builder.Services.AddScoped<UserContext>();
+builder.Services.AddScoped<CardReaderClient>();
 
 builder.Services.AddHttpClient<VmsApiClient>(client =>
 {
