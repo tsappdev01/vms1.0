@@ -161,29 +161,37 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                 }
             }
 
-            var configDirectory = configuration["Toolkit:ConfigDirectory"];
+            var configDirectory = ResolveConfigDirectory();
 
-            if (string.IsNullOrWhiteSpace(configDirectory) || !Directory.Exists(configDirectory))
+            if (configDirectory is null)
             {
                 _initialisationError =
-                    "Toolkit:ConfigDirectory is not set to an existing folder. Point it at the " +
-                    "ICP config directory - the one containing config_li and config_ag.";
+                    "Could not find a toolkit config directory. Set Toolkit:ConfigDirectory to the " +
+                    "folder containing config_li (and config_ag, for the complete ICP bundle).";
                 return false;
             }
 
-            var logDirectory = configuration["Toolkit:LogDirectory"]
-                ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            var logDirectory = configuration["Toolkit:LogDirectory"];
+            if (string.IsNullOrWhiteSpace(logDirectory))
+            {
+                logDirectory = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                     "EIDAToolkit", "logs");
+            }
             Directory.CreateDirectory(logDirectory);
 
-            var config =
-                $"{{\"config_directory\":\"{configDirectory.Replace("\\", "\\\\")}\"," +
-                $"\"log_directory\":\"{logDirectory.Replace("\\", "\\\\")}\"," +
-                "\"application_type\":\"APP_INPROC\"," +
-                "\"read_publicdata_offline\":true}";
+            /* Newline-separated "key = value", NOT JSON. The quickstart README documents a
+               JSON example and the toolkit rejects it with "Invalid or incomplete
+               configuration data"; this is the format the working config_ap uses and the
+               format the Android sample builds. */
+            var config = string.Join('\n',
+                $"config_directory = {configDirectory}",
+                $"log_directory = {logDirectory}",
+                "application_type = APP_INPROC",
+                "read_publicdata_offline = true");
 
             _toolkit = new Toolkit(true, config);
-            logger.LogInformation("Toolkit initialised from {ConfigDirectory}", configDirectory);
+            logger.LogInformation("Toolkit initialised. Config directory: {ConfigDirectory}", configDirectory);
             return true;
         }
         catch (DllNotFoundException ex)
@@ -204,6 +212,78 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
             logger.LogError(ex, "Toolkit initialisation failed");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Finds the toolkit config directory: the configured value if it exists, otherwise a
+    /// search for one containing config_li.
+    ///
+    /// The search prefers a directory that also has config_ag, which marks ICP's complete
+    /// bundle - the earlier partial delivery carried a licence the Validation Gateway
+    /// rejected, and silently picking it back up would resurrect that failure.
+    /// </summary>
+    private string? ResolveConfigDirectory()
+    {
+        var configured = configuration["Toolkit:ConfigDirectory"];
+        if (!string.IsNullOrWhiteSpace(configured) && File.Exists(Path.Combine(configured, "config_li")))
+        {
+            return configured;
+        }
+
+        if (!string.IsNullOrWhiteSpace(configured))
+        {
+            logger.LogWarning(
+                "Toolkit:ConfigDirectory is set to {Configured} but no config_li is there; searching instead.",
+                configured);
+        }
+
+        var candidates = new List<string>();
+
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            try
+            {
+                if (File.Exists(Path.Combine(dir.FullName, "config_li")))
+                {
+                    candidates.Add(dir.FullName);
+                }
+
+                foreach (var child in dir.GetDirectories())
+                {
+                    if (File.Exists(Path.Combine(child.FullName, "config_li")))
+                    {
+                        candidates.Add(child.FullName);
+                    }
+
+                    foreach (var grandchild in child.GetDirectories())
+                    {
+                        if (File.Exists(Path.Combine(grandchild.FullName, "config_li")))
+                        {
+                            candidates.Add(grandchild.FullName);
+                        }
+                    }
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // A folder we cannot enumerate is simply not a candidate.
+            }
+
+            if (candidates.Count > 0) break;
+        }
+
+        var complete = candidates.FirstOrDefault(c => File.Exists(Path.Combine(c, "config_ag")));
+        var chosen = complete ?? candidates.FirstOrDefault();
+
+        if (chosen is not null && candidates.Count > 1)
+        {
+            logger.LogInformation(
+                "Found {Count} config directories; using {Chosen}{Note}",
+                candidates.Count, chosen,
+                complete is null ? " (none carried config_ag)" : " (has config_ag)");
+        }
+
+        return chosen;
     }
 
     /// <summary>

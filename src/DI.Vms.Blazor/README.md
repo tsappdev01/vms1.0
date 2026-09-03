@@ -25,11 +25,30 @@ nature, so the app is too.
 
 ```json
 "Toolkit": {
-  "ConfigDirectory": "C:\\Claude.AI\\vms1.0\\IDCARDOFFLINE_config_2026-04-14\\IDCARDOFFLINE_ag_config_2026-04-14"
+  "ConfigDirectory": "C:\\Claude.AI\\vms1.0\\id-card-toolkit-windows-sdk-v3.1.6\\quickstart\\64"
 }
 ```
 
-It must be the folder containing `config_li` and `config_ag`.
+It must be the folder holding `config_li`. The default above is where the `config_ap` that
+produced a successful read pointed; the ICP bundle folder
+(`IDCARDOFFLINE_config_2026-04-14\IDCARDOFFLINE_ag_config_2026-04-14`) is the alternative.
+
+Leave it blank and the app searches for a folder containing `config_li`, preferring one
+that also has `config_ag` — that marks ICP's complete bundle, and the earlier partial
+delivery carried the licence the Validation Gateway rejected.
+
+### The config format is `key = value`, not JSON
+
+```
+config_directory = C:\...\quickstart\64
+log_directory    = C:\ProgramData\EIDAToolkit\logs
+application_type = APP_INPROC
+read_publicdata_offline = true
+```
+
+The SDK's quickstart README documents a **JSON** example. The toolkit rejects it with
+`Invalid or incomplete configuration data`. Newline-separated `key = value` is what the
+working `config_ap` uses and what the Android sample builds, so that is what this passes.
 
 **2. Check the connection string.** `Server=UATWEB01;Database=VMS`.
 
