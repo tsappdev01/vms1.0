@@ -2,14 +2,27 @@
 
 <div class="app">
     <nav class="sidebar">
-        @* The mark is the one place the brand artwork lives. Replace
-           wwwroot/brand/di-mark.svg with the official asset and this follows. *@
+        @* The lockup, composed rather than drawn: navy field, gold monogram, wordmark in
+           both scripts. Built in HTML because an SVG would need <text> for the wordmark,
+           and then its layout depends on Segoe UI being installed - where it is not, the
+           three blocks collide. Flex takes whatever width the font gives it.
+
+           The monogram is a path, so it is font-independent either way. Swap this block
+           for an <img> when the official asset is to hand. *@
         <div class="brand">
-            <img src="brand/di-mark.svg" alt="Dubai Investments" width="34" height="34" />
-            <div class="brand-text">
-                <span class="brand-name">Dubai Investments</span>
-                <span class="brand-sub">Visitor Management</span>
+            <div class="lockup" role="img" aria-label="Dubai Investments">
+                <span class="lockup-ar" dir="rtl" aria-hidden="true">
+                    <b>دبي</b><b>للاستثمار</b>
+                </span>
+                <svg class="lockup-mark" viewBox="0 0 56 64" aria-hidden="true">
+                    <path fill="currentColor" fill-rule="evenodd"
+                          d="M6 8h14a24 24 0 0 1 0 48H6V8Zm14 12a12 12 0 1 1-8.5 20.5L20 20Z" />
+                </svg>
+                <span class="lockup-en" aria-hidden="true">
+                    <b>Dubai</b><b>Investments</b>
+                </span>
             </div>
+            <span class="brand-sub">Visitor Management</span>
         </div>
 
         <NavLink class="nav-link" href="" Match="NavLinkMatch.All">

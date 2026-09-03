@@ -1,0 +1,131 @@
+@* The visitor's Emirates ID, drawn as a card from what the chip returned, so the
+   attendant can compare the screen against the card in their hand at a glance.
+
+   Built in HTML rather than SVG on purpose. An SVG would need <text> for every field,
+   and <text> is Razor's literal-content marker - it is used that way in NewVisitor.razor
+   - so the labels would be at the mercy of parser context. HTML also gives real text
+   selection, real right-to-left handling for the Arabic, and searchable content.
+
+   The layout follows the physical card so the two read the same way. It deliberately
+   does not imitate the guilloche or the state emblem: this is a screen rendering of data
+   just read from the genuine card, not a facsimile that should ever pass for one. *@
+
+@* The wrapper carries container-type, not the card: cqw units resolve against an
+   ancestor container, so an element cannot size its own font from its own width. *@
+<div class="eid-wrap">
+<div class="eid" role="group" aria-label="Emirates ID as read from the chip">
+    <div class="eid-head">
+        <div class="eid-authority">
+            <b>UNITED ARAB EMIRATES</b>
+            <span>Federal Authority for Identity &amp; Citizenship, Customs &amp; Port Security</span>
+            @if (!string.IsNullOrWhiteSpace(Card.IdType))
+            {
+                <em>@Card.IdType</em>
+            }
+        </div>
+
+        @* The national flag, not the state emblem. *@
+        <div class="eid-flag" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+        <div class="eid-authority eid-ar" dir="rtl">
+            <b>الإمارات العربية المتحدة</b>
+            <span>الهيئة الاتحادية للهوية والجنسية والجمارك وأمن المنافذ</span>
+        </div>
+    </div>
+
+    <div class="eid-body">
+        <div class="eid-portrait">
+            @if (Card.Photo is { Length: > 0 })
+            {
+                <img class="eid-photo" src="@DataUrl(Card.Photo, "image/jpeg")" alt="Cardholder photograph" />
+            }
+            else
+            {
+                <div class="eid-photo eid-missing">No photo</div>
+            }
+
+            <div class="eid-sig">
+                @if (SignatureDataUrl is not null)
+                {
+                    <img src="@SignatureDataUrl" alt="Cardholder signature" />
+                }
+                <span class="eid-sig-label">Signature / التوقيع</span>
+            </div>
+        </div>
+
+        <dl class="eid-fields">
+            <div class="eid-row eid-idn">
+                <dt>ID Number <span dir="rtl">رقم الهوية</span></dt>
+                <dd class="eid-idn-value">@Dash(Card.IdNumber)</dd>
+            </div>
+
+            <div class="eid-row">
+                <dt>Name <span dir="rtl">الاسم</span></dt>
+                <dd>@Dash(Card.FullNameEnglish)</dd>
+                @if (!string.IsNullOrWhiteSpace(Card.FullNameArabic))
+                {
+                    <dd class="eid-value-ar" dir="rtl">@Card.FullNameArabic</dd>
+                }
+            </div>
+
+            <div class="eid-pair">
+                <div class="eid-row">
+                    <dt>Date of Birth <span dir="rtl">تاريخ الميلاد</span></dt>
+                    <dd>@Dash(Card.DateOfBirth)</dd>
+                </div>
+                <div class="eid-row">
+                    <dt>Sex <span dir="rtl">الجنس</span></dt>
+                    <dd>@Dash(Card.Gender)</dd>
+                </div>
+            </div>
+
+            <div class="eid-row">
+                <dt>Nationality <span dir="rtl">الجنسية</span></dt>
+                <dd>@Dash(Card.NationalityEnglish)</dd>
+                @if (!string.IsNullOrWhiteSpace(Card.NationalityArabic))
+                {
+                    <dd class="eid-value-ar" dir="rtl">@Card.NationalityArabic</dd>
+                }
+            </div>
+
+            <div class="eid-pair">
+                <div class="eid-row">
+                    <dt>Issuing Date <span dir="rtl">تاريخ الاصدار</span></dt>
+                    <dd>@Dash(Card.IssueDate)</dd>
+                </div>
+                <div class="eid-row">
+                    <dt>Expiry Date <span dir="rtl">تاريخ الانتهاء</span></dt>
+                    <dd>@Dash(Card.ExpiryDate)</dd>
+                </div>
+            </div>
+        </dl>
+
+        @* The faint second portrait the card carries, bottom right. *@
+        @if (Card.Photo is { Length: > 0 })
+        {
+            <img class="eid-ghost" src="@DataUrl(Card.Photo, "image/jpeg")" alt="" aria-hidden="true" />
+        }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Card.CardNumber))
+    {
+        <div class="eid-foot">
+            <span>Card Number <span dir="rtl">رقم البطاقة</span></span>
+            <b>@Card.CardNumber</b>
+        </div>
+    }
+</div>
+
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CardData Card { get; set; } = default!;
+
+    /// <summary>The signature, already converted to PNG - the chip stores it as TIFF.</summary>
+    [Parameter] public string? SignatureDataUrl { get; set; }
+
+    private static string Dash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    private static string DataUrl(byte[] bytes, string mime) =>
+        $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+}

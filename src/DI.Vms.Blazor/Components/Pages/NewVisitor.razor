@@ -263,55 +263,54 @@
 
 else if (step == 1 && card is not null)
 {
-    @* The identity strip answers "who am I looking at" before the field-by-field
-       readout does. Same values, read in the order the attendant needs them. *@
+    @* The card itself, in the panel that held the illustration a moment ago, so the
+       screen and the card in the attendant's hand can be compared side by side. *@
     <section class="card">
-        <div class="identity">
-            @if (card.Photo is { Length: > 0 })
-            {
-                <img class="identity-photo" src="@ToDataUrl(card.Photo, "image/jpeg")" alt="Cardholder photograph" />
-            }
-            else
-            {
-                <div class="identity-photo placeholder">No photo on card</div>
-            }
+        <div class="hero hero-card">
+            <div class="hero-art">
+                <EmiratesIdCard Card="card" SignatureDataUrl="signatureDataUrl" />
+            </div>
 
-            <div class="identity-who">
-                <h2 class="identity-name">@card.FullNameEnglish</h2>
+            <div class="hero-panel">
+                <span class="ready">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9" /><path d="M8.5 12.5l2.5 2.5 4.5-5" />
+                    </svg>
+                    <text>Card read</text>
+                </span>
+
+                <p class="lead">@card.FullNameEnglish</p>
                 @if (!string.IsNullOrWhiteSpace(card.FullNameArabic))
                 {
                     <p class="identity-name-ar" dir="rtl">@card.FullNameArabic</p>
                 }
-                <div class="identity-facts">
-                    <span><span class="k">ID</span> <span class="mono">@card.IdNumber</span></span>
-                    @if (!string.IsNullOrWhiteSpace(card.NationalityEnglish))
-                    {
-                        <span><span class="k">Nationality</span> @card.NationalityEnglish</span>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(card.ExpiryDate))
-                    {
-                        <span><span class="k">Card expires</span> <span class="mono">@card.ExpiryDate</span></span>
-                    }
+
+                <div class="readout compact">
+                    <dt>ID Number</dt><dd class="mono">@card.IdNumber</dd>
+                    <dt>Card Number</dt><dd class="mono">@(string.IsNullOrWhiteSpace(card.CardNumber) ? "—" : card.CardNumber)</dd>
+                    <dt>Nationality</dt><dd>@(string.IsNullOrWhiteSpace(card.NationalityEnglish) ? "—" : card.NationalityEnglish)</dd>
+                    <dt>Card expires</dt><dd class="mono">@(string.IsNullOrWhiteSpace(card.ExpiryDate) ? "—" : card.ExpiryDate)</dd>
                 </div>
-            </div>
 
-            <div class="identity-sig">
-                <div class="field-label">Signature</div>
-                @if (signatureDataUrl is not null)
+                @if (card.SignatureWarning is not null)
                 {
-                    <img class="signature" src="@signatureDataUrl" alt="Cardholder signature" />
+                    <div class="tip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" />
+                        </svg>
+                        <span><b>Note.</b> @card.SignatureWarning</span>
+                    </div>
                 }
-                else
-                {
-                    <div class="signature placeholder">Not on card</div>
-                }
-            </div>
-        </div>
 
-        <div class="card-body">
-            <div class="grid-3">
-                <Field Label="ID Number" Value="@card.IdNumber" Mono="true" />
-                <Field Label="Card Number" Value="@card.CardNumber" Mono="true" />
+                <div class="actions">
+                    <button @onclick="Restart">Read a different card</button>
+                    <button class="primary" @onclick="ToVisitDetails">
+                        Continue
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                            <path d="M5 12h13M13 6l6 6-6 6" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </section>
@@ -354,20 +353,6 @@ else if (step == 1 && card is not null)
         </div>
     </section>
 
-    @if (card.SignatureWarning is not null)
-    {
-        <div class="banner warn"><strong>Note.</strong><span>@card.SignatureWarning</span></div>
-    }
-
-    <div class="actions">
-        <button @onclick="Restart">Read a different card</button>
-        <button class="primary" @onclick="ToVisitDetails">
-            Continue
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
-                <path d="M5 12h13M13 6l6 6-6 6" />
-            </svg>
-        </button>
-    </div>
 }
 
 @* --------------------------------------------- 3. Entity and person, then save *@

@@ -118,6 +118,7 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                     Gender = nm?.Gender,
                     DateOfBirth = nm?.DateOfBirth,
                     NationalityEnglish = CardText.Fix(nm?.NationalityEnglish),
+                    NationalityArabic = CardText.Fix(nm?.NationalityArabic),
                     NationalityCode = nm?.NationalityCode,
                     PlaceOfBirthEnglish = CardText.Fix(nm?.PlaceOfBirthEnglish),
 

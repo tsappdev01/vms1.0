@@ -1,21 +1,25 @@
 /* Dubai Investments VMS.
-   Action is DI blue #1a5fc4 - the corporate navy lifted to a colour that works on a
-   button and reads at a glance across a reception desk. Navy #0e3453 stays as the
-   deep tone: the mark, headings, the dark ground. Gold #b8912e is kept for the mark
-   and for a field that carried data where its neighbours did not, so it still means
-   something when it appears. Light and dark, following the viewer's setting. */
+   The palette is the corporate lockup's own two colours: navy #123a5c and gold
+   #bf9a38. Navy carries action - the primary button, the active route, the current
+   step. Gold carries emphasis - the product line under the lockup, the card's contact
+   chip, a field that held data where its neighbours did not. Nothing else spends
+   either, which is what keeps them meaning something.
+
+   Navy becomes the ground in dark mode, so it cannot also be the action colour there;
+   the accent lifts to a legible blue and gold lightens with it.
+
+   Light and dark, following the viewer's setting. */
 
 :root {
   color-scheme: light;
 
   /* ---- brand */
-  --di-navy:      #0e3453;
-  --di-blue:      #1a5fc4;
-  --di-blue-mid:  #17539f;
-  --di-blue-tint: #eaf1fc;
-  --di-blue-soft: #f4f8fe;
-  --di-gold:      #b8912e;
-  --di-gold-tint: #faf4e6;
+  --di-navy:      #123a5c;
+  --di-navy-mid:  #1b4f79;
+  --di-navy-tint: #e9eff5;
+  --di-navy-soft: #f3f6fa;
+  --di-gold:      #bf9a38;
+  --di-gold-tint: #faf5e7;
 
   /* ---- surfaces and ink */
   --page:          #f5f7f9;
@@ -29,12 +33,12 @@
   --gridline:      #eaeff4;
 
   /* ---- action and state */
-  --accent:        var(--di-blue);
-  --accent-hover:  var(--di-blue-mid);
+  --accent:        var(--di-navy);
+  --accent-hover:  var(--di-navy-mid);
   --accent-on:     #ffffff;
-  --accent-tint:   var(--di-blue-tint);
-  --accent-soft:   var(--di-blue-soft);
-  --focus:         var(--di-blue);
+  --accent-tint:   var(--di-navy-tint);
+  --accent-soft:   var(--di-navy-soft);
+  --focus:         #2f74b8;
   --status-good:   #12854a;
   --status-warning:#a9761a;
   --status-critical:#c1372f;
@@ -55,10 +59,10 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --di-blue-tint: #14253c;
-    --di-blue-soft: #101c2b;
-    --di-gold:      #d3ac4e;
-    --di-gold-tint: #2a2314;
+    --di-navy-tint: #16283a;
+    --di-navy-soft: #111d29;
+    --di-gold:      #d9b453;
+    --di-gold-tint: #2b2415;
 
     --page:          #0b1218;
     --surface:       #131c24;
@@ -71,12 +75,12 @@
     --gridline:      #1f2c37;
 
     /* Navy is the ground here, so it cannot also be the action colour. */
-    --accent:        #4f92e8;
-    --accent-hover:  #6aa5f0;
-    --accent-on:     #06121c;
-    --accent-tint:   #14253c;
-    --accent-soft:   #101c2b;
-    --focus:         #6aa5f0;
+    --accent:        #5b9bd8;
+    --accent-hover:  #75ade2;
+    --accent-on:     #08161f;
+    --accent-tint:   #16283a;
+    --accent-soft:   #111d29;
+    --focus:         #75ade2;
     --status-good:   #4cc07a;
     --status-warning:#e0af52;
     --status-critical:#e8756b;
@@ -93,10 +97,10 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --di-blue-tint: #14253c;
-  --di-blue-soft: #101c2b;
-  --di-gold:      #d3ac4e;
-  --di-gold-tint: #2a2314;
+  --di-navy-tint: #16283a;
+  --di-navy-soft: #111d29;
+  --di-gold:      #d9b453;
+  --di-gold-tint: #2b2415;
 
   --page:          #0b1218;
   --surface:       #131c24;
@@ -108,12 +112,12 @@
   --border:        #24333f;
   --gridline:      #1f2c37;
 
-  --accent:        #4f92e8;
-  --accent-hover:  #6aa5f0;
-  --accent-on:     #06121c;
-  --accent-tint:   #14253c;
-  --accent-soft:   #101c2b;
-  --focus:         #6aa5f0;
+  --accent:        #5b9bd8;
+  --accent-hover:  #75ade2;
+  --accent-on:     #08161f;
+  --accent-tint:   #16283a;
+  --accent-soft:   #111d29;
+  --focus:         #75ade2;
   --status-good:   #4cc07a;
   --status-warning:#e0af52;
   --status-critical:#e8756b;
@@ -206,25 +210,34 @@ code {
 }
 
 .brand {
-  display: flex; align-items: center; gap: 11px;
-  padding: 17px 6px 20px;
+  display: flex; flex-direction: column; gap: 8px; align-items: stretch;
+  padding: 16px 4px 16px;
   margin-bottom: 10px;
   border-bottom: 1px solid var(--gridline);
 }
-/* The mark is a navy tile, which loses its edge against the dark sidebar - a ring
-   gives it back without touching the artwork. */
-.brand img {
-  width: 34px; height: 34px; border-radius: 8px;
-  box-shadow: 0 0 0 1px var(--border);
+/* The lockup: navy field, gold monogram between the Arabic and English wordmarks,
+   exactly as the corporate logo sets them. Sized in em off the block's own font-size,
+   so the whole thing scales from one number. */
+.lockup {
+  display: flex; align-items: center; justify-content: center;
+  gap: .7em;
+  padding: .85em .9em;
+  border-radius: 4px;
+  background: var(--di-navy);
+  color: var(--di-gold);
+  font-size: 11px;
 }
-.brand-text { display: flex; flex-direction: column; min-width: 0; }
-.brand-name {
-  font-size: 13.5px; font-weight: 650; letter-spacing: -.01em;
-  color: var(--text-primary); white-space: nowrap;
+.lockup-mark { width: 2.1em; height: 2.4em; flex: none; }
+.lockup-ar, .lockup-en {
+  display: flex; flex-direction: column;
+  color: #fff; font-weight: 700; line-height: 1.12;
+  white-space: nowrap;
 }
+.lockup-ar { align-items: flex-end; font-size: 1.02em; font-weight: 600; }
+.lockup-en { align-items: flex-start; font-size: 1.12em; letter-spacing: -.01em; }
 .brand-sub {
-  font-size: 9.5px; font-weight: 600; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
+  font-size: 9.5px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--di-gold); text-align: center;
 }
 
 .nav-link {
@@ -290,7 +303,8 @@ code {
 @media (max-width: 860px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { flex-direction: row; align-items: center; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
-  .brand { border-bottom: none; margin: 0 8px 0 0; padding: 12px 0; }
+  .brand { border-bottom: none; margin: 0 10px 0 0; padding: 10px 0; width: 168px; }
+  .brand-sub { display: none; }
   .side-foot { display: none; }
   .content { padding: 18px 16px 40px; }
   .topbar .note { display: none; }
@@ -367,6 +381,9 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 /* ---------------------------------------------------------------- insert-card hero */
 
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
+/* The card facsimile needs the wider share; the panel beside it is a short summary. */
+.hero.hero-card { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+@media (max-width: 900px) { .hero.hero-card { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
 
 .hero-art {
@@ -482,6 +499,136 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
   font-size: 11.5px; color: var(--text-muted); text-align: center; padding: 8px;
 }
 
+/* ---------------------------------------------------------------- Emirates ID card */
+
+/* One fluid knob: everything inside sizes in em off the card's own font-size, and that
+   font-size tracks the card's width. The px value is the fallback where container query
+   units are unavailable, and the cqw declaration overrides it where they are. */
+.eid-wrap { container-type: inline-size; width: 100%; max-width: 560px; }
+.eid {
+  width: 100%;
+  aspect-ratio: 856 / 540;
+  font-size: 11px;
+  font-size: 1.95cqw;
+  display: flex; flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 1em;
+  overflow: hidden;
+  color: var(--text-primary);
+  /* A quiet substitute for the card's security printing. Not an imitation of it. */
+  background:
+    repeating-linear-gradient(58deg, color-mix(in srgb, var(--accent) 5%, transparent) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(-58deg, color-mix(in srgb, var(--di-gold) 5%, transparent) 0 1px, transparent 1px 9px),
+    linear-gradient(146deg, var(--surface), var(--accent-soft));
+  box-shadow: var(--shadow);
+}
+
+.eid-head {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: .8em; align-items: center;
+  padding: .85em 1.1em .7em;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.eid-authority { display: flex; flex-direction: column; gap: .1em; min-width: 0; }
+.eid-authority b { font-size: 1.06em; font-weight: 700; letter-spacing: .01em; line-height: 1.1; }
+.eid-authority span { font-size: .6em; line-height: 1.15; color: var(--text-secondary); }
+.eid-authority em { font-size: .84em; font-weight: 700; font-style: normal; margin-top: .15em; }
+.eid-ar { text-align: right; }
+
+.eid-flag { display: flex; width: 2.6em; height: 1.75em; border-radius: .15em; overflow: hidden; }
+.eid-flag i { flex: 1; }
+.eid-flag i:nth-child(1) { background: #ff0000; flex: 0 0 25%; }
+.eid-flag i:nth-child(2) { background: #00732f; }
+.eid-flag i:nth-child(3) { background: #ffffff; }
+.eid-flag i:nth-child(4) { background: #000000; }
+/* The red band runs down the hoist, the other three stack. */
+.eid-flag {
+  display: grid;
+  grid-template-columns: 25% 1fr;
+  grid-template-rows: repeat(3, 1fr);
+}
+.eid-flag i:nth-child(1) { grid-area: 1 / 1 / 4 / 2; }
+.eid-flag i:nth-child(2) { grid-area: 1 / 2 / 2 / 3; }
+.eid-flag i:nth-child(3) { grid-area: 2 / 2 / 3 / 3; }
+.eid-flag i:nth-child(4) { grid-area: 3 / 2 / 4 / 3; }
+
+.eid-body {
+  position: relative;
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: 10.4em 1fr;
+  gap: 1.2em;
+  padding: .9em 1.1em .9em;
+}
+
+.eid-portrait { display: flex; flex-direction: column; gap: .55em; min-width: 0; }
+.eid-photo {
+  width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block;
+  border: 1px solid var(--border); border-radius: .25em;
+  background: var(--surface-2);
+}
+.eid-photo.eid-missing {
+  display: grid; place-items: center;
+  font-size: .68em; color: var(--text-muted); text-align: center; padding: .4em;
+}
+.eid-sig {
+  border-top: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  padding-top: .3em;
+  display: flex; flex-direction: column; gap: .15em;
+}
+/* The signature is black ink on a transparent bitmap, so it needs a light plate or it
+   disappears into a dark surface - which is exactly what the printed card gives it. */
+.eid-sig img {
+  width: 100%; height: 3.1em; display: block;
+  object-fit: contain; object-position: left center;
+  background: #fdfdfc; border-radius: .15em; padding: .1em .2em;
+}
+.eid-sig-label { font-size: .58em; color: var(--text-muted); }
+
+/* Spread down the card rather than bunching at the top, as the printed card does. */
+.eid-fields {
+  margin: 0; min-width: 0;
+  display: flex; flex-direction: column;
+  justify-content: space-between; gap: .4em;
+}
+.eid-row { min-width: 0; }
+
+/* The printed card sets each bilingual value as a pair - English reading from the left,
+   Arabic from the right, on one line. Right-aligning the Arabic on its own row instead
+   strands it against the card's edge and reads as a caption on whatever is nearest. */
+.eid-row:has(.eid-value-ar) {
+  display: grid; grid-template-columns: 1fr auto; gap: .2em 1em; align-items: baseline;
+}
+.eid-row:has(.eid-value-ar) dt { grid-column: 1 / -1; }
+.eid-row dt {
+  font-size: .62em; font-weight: 600; letter-spacing: .02em;
+  color: var(--text-secondary); line-height: 1.2;
+  display: flex; gap: .5em; flex-wrap: wrap;
+}
+.eid-row dt span { color: var(--text-muted); font-weight: 500; }
+.eid-row dd { margin: 0; font-size: .92em; font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; }
+.eid-value-ar { font-weight: 600; text-align: right; }
+.eid-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .45em .9em; }
+
+.eid-idn-value {
+  font-size: 1.16em; font-weight: 700;
+  font-variant-numeric: tabular-nums; letter-spacing: .01em;
+}
+
+.eid-ghost {
+  position: absolute; right: 1.1em; bottom: .9em;
+  width: 4em; aspect-ratio: 3 / 4; object-fit: cover;
+  border-radius: .2em; opacity: .17;
+  filter: grayscale(1);
+}
+
+.eid-foot {
+  display: flex; align-items: baseline; gap: .6em;
+  padding: .45em 1.1em .6em;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+  font-size: .68em; color: var(--text-secondary);
+}
+.eid-foot b { font-size: 1.15em; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
 /* ---------------------------------------------------------------- identity strip */
 
 /* Photo, name, and the three facts an attendant actually needs, above the
@@ -565,6 +712,7 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 }
 .readout dt { color: var(--text-muted); }
 .readout dd { margin: 0; font-weight: 550; }
+.readout.compact { grid-template-columns: 110px 1fr; gap: 6px 14px; font-size: 13px; padding: 12px 14px; }
 
 .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
 .actions.center-actions { justify-content: center; margin-top: 26px; }

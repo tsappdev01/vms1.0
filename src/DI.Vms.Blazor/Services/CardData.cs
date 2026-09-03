@@ -23,6 +23,10 @@ public sealed class CardData
     public string? Gender { get; set; }
     public string? DateOfBirth { get; set; }
     public string? NationalityEnglish { get; set; }
+
+    /// <summary>Read for the card facsimile, which prints nationality in both scripts.</summary>
+    public string? NationalityArabic { get; set; }
+
     public string? NationalityCode { get; set; }
     public string? PlaceOfBirthEnglish { get; set; }
 
