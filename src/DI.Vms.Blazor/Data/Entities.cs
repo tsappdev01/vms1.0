@@ -62,6 +62,19 @@ public class VisitorEntry
     public DiEntity? DiEntity { get; set; }
     public required string PersonToVisit { get; set; }
 
+    /// <summary>
+    /// Why they are here, from the fixed list the desk offers. Stored as the chosen
+    /// label rather than an id, so a report over last year still reads correctly if the
+    /// list is later changed.
+    /// </summary>
+    public required string Purpose { get; set; }
+
+    /// <summary>
+    /// What was typed when the purpose was "Other". Null for every other purpose - the
+    /// two are kept apart so the report can still group by Purpose.
+    /// </summary>
+    public string? PurposeOther { get; set; }
+
     /// <summary>The date-time stamp of the entry, in UTC. Displayed as Gulf Standard Time.</summary>
     public DateTimeOffset RecordedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 

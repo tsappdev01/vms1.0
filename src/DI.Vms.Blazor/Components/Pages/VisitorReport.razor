@@ -76,7 +76,7 @@ else
                 <table class="data">
                     <thead>
                         <tr>
-                            <th>Recorded (GST)</th><th>Person to Visit</th><th>Visitor</th>
+                            <th>Recorded (GST)</th><th>Person to Visit</th><th>Purpose</th><th>Visitor</th>
                             <th>ID Number</th><th>Card No.</th><th>Nationality</th>
                             <th>Gender</th><th>Date of Birth</th><th>ID Issue</th><th>ID Expiry</th>
                             <th>Mobile</th><th>Email</th><th>Address</th><th>Source</th>
@@ -88,6 +88,7 @@ else
                             <tr>
                                 <td class="mono nowrap">@Gst(v.RecordedAtUtc)</td>
                                 <td>@v.PersonToVisit</td>
+                                <td class="wrap">@PurposeOf(v)</td>
                                 <td class="strong">@v.FullNameEnglish</td>
                                 <td class="mono">@v.IdNumber</td>
                                 <td class="mono">@Dash(v.CardNumber)</td>
@@ -186,7 +187,7 @@ else
             string.Empty,
             string.Join(',', new[]
             {
-                "Entity", "Recorded (GST)", "Person to Visit", "Visitor", "Full Name (Raw)",
+                "Entity", "Recorded (GST)", "Person to Visit", "Purpose", "Visitor", "Full Name (Raw)",
                 "Full Name (Arabic)", "ID Number", "Card Number", "ID Type", "ID Issue",
                 "ID Expiry", "Gender", "Date of Birth", "Nationality", "Nationality Code",
                 "Place of Birth", "Emirate", "City", "Area", "Street", "Building", "PO Box",
@@ -196,7 +197,7 @@ else
 
         lines.AddRange(entries.Select(v => string.Join(',', new[]
         {
-            v.DiEntity?.Name, Gst(v.RecordedAtUtc), v.PersonToVisit, v.FullNameEnglish,
+            v.DiEntity?.Name, Gst(v.RecordedAtUtc), v.PersonToVisit, PurposeOf(v), v.FullNameEnglish,
             v.FullNameRaw, v.FullNameArabic, v.IdNumber, v.CardNumber, v.IdType, v.IssueDate,
             v.ExpiryDate, v.Gender, v.DateOfBirth, v.NationalityEnglish, v.NationalityCode,
             v.PlaceOfBirthEnglish, v.AddressEmirate, v.AddressCity, v.AddressArea,
@@ -214,6 +215,15 @@ else
         instant.ToOffset(TimeSpan.FromHours(4)).ToString("dd MMM yyyy HH:mm:ss");
 
     private static string Dash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    /// <summary>
+    /// The purpose, with the typed detail appended when it was "Other". One column, so
+    /// grouping by purpose still works while the detail is not lost.
+    /// </summary>
+    private static string PurposeOf(VisitorEntry v) =>
+        string.IsNullOrWhiteSpace(v.PurposeOther)
+            ? Dash(v.Purpose)
+            : $"{v.Purpose} — {v.PurposeOther}";
 
     private static string? PostalAddress(VisitorEntry v)
     {

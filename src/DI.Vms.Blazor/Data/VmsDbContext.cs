@@ -37,6 +37,8 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.Property(x => x.FullNameRaw).HasMaxLength(300);
             e.Property(x => x.FullNameArabic).HasMaxLength(300);
             e.Property(x => x.PersonToVisit).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Purpose).HasMaxLength(60).IsRequired();
+            e.Property(x => x.PurposeOther).HasMaxLength(200);
             e.Property(x => x.CaptureMethod).HasMaxLength(30).IsRequired();
             e.Property(x => x.AddressEmail).HasMaxLength(256);
 

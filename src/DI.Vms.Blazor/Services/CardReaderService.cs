@@ -72,15 +72,27 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
         }
     }
 
-    public async Task<CardData> ReadAsync()
+    /// <summary>
+    /// Reads the card, reporting each phase as it starts.
+    ///
+    /// The toolkit's calls are synchronous native ones, so the phases exist as much for
+    /// the interface as for the log: without a real await between them the circuit never
+    /// gets a turn to paint, and a read that takes a couple of seconds looks like a
+    /// button that did nothing. See <see cref="PhaseAsync"/>.
+    /// </summary>
+    public async Task<CardData> ReadAsync(IProgress<string>? progress = null)
     {
         await _gate.WaitAsync();
         try
         {
+            await PhaseAsync(progress, "Starting the toolkit…");
+
             if (!TryInitialise())
             {
                 throw new InvalidOperationException(_initialisationError ?? "The toolkit is not initialised.");
             }
+
+            await PhaseAsync(progress, "Connecting to the card…");
 
             var reader = _toolkit!.GetReaderWithEmiratesId();
             reader.Connect();
@@ -88,6 +100,8 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
             try
             {
                 var requestId = NewRequestId();
+
+                await PhaseAsync(progress, "Reading the chip…");
 
                 // Non-modifiable data, photograph, the card's signature image and the
                 // address. Modifiable data is not read: occupation, sponsor and passport
@@ -97,6 +111,8 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                 /* Repaired before validation as well as before display: the signed XML
                    comes through the same mangling, and a digest taken over mangled text
                    never matches the one the card signed. */
+                await PhaseAsync(progress, "Checking the response…");
+
                 var warning = ValidateResponse(requestId, CardText.Fix(data.XmlString));
                 var nm = data.NonModifiablePublicData;
                 var home = data.HomeAddress;
@@ -293,6 +309,21 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
         }
 
         return chosen;
+    }
+
+    /// <summary>
+    /// Reports a phase and then yields for a moment, so the caller's interface can paint
+    /// it before the next blocking native call starts.
+    ///
+    /// A real delay rather than Task.Yield: yielding can resume before the render batch
+    /// has been dispatched, and the phase then never appears. One millisecond per phase
+    /// against a read measured in seconds.
+    /// </summary>
+    private static async Task PhaseAsync(IProgress<string>? progress, string phase)
+    {
+        if (progress is null) return;
+        progress.Report(phase);
+        await Task.Delay(1);
     }
 
     private static readonly string[] LicenceDateFormats =

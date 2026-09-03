@@ -931,6 +931,10 @@
               <td>Free text. Not joined to an employee table — there isn't one.</td>
             </tr>
             <tr>
+              <td class="k">Purpose, PurposeOther</td><td class="k">nvarchar(60), (200)</td>
+              <td>From a fixed list; the second holds what was typed for <em>Other</em>, and is null otherwise, so the report can still group by the first.</td>
+            </tr>
+            <tr>
               <td class="k">RecordedAtUtc</td><td class="k">datetimeoffset</td>
               <td>Stored UTC, displayed GST. Composite index with <code>DiEntityId</code>, which is exactly how the report reads.</td>
             </tr>
