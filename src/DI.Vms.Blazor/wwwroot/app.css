@@ -215,11 +215,17 @@ code {
   margin-bottom: 10px;
   border-bottom: 1px solid var(--gridline);
 }
-/* The lockup: navy field, gold monogram between the Arabic and English wordmarks,
-   exactly as the corporate logo sets them. Sized in em off the block's own font-size,
-   so the whole thing scales from one number. */
-/* Supplied artwork sits at the width of the rail and keeps its own proportions. */
-.lockup-asset { display: block; width: 100%; height: auto; border-radius: 4px; }
+/* Supplied artwork sits at the width of the rail and keeps its own proportions.
+
+   The navy is on the image itself with no padding, so it is completely hidden behind
+   artwork that carries its own navy block, and shows through artwork delivered with a
+   transparent background - which would otherwise sit on the sidebar's white surface
+   with its white wordmark invisible. Either file works without being told which. */
+.lockup-asset {
+  display: block; width: 100%; height: auto;
+  background: var(--di-navy);
+  border-radius: 4px;
+}
 
 /* The composed rendition: monogram, then wordmark, on the corporate navy. Everything
    inside sizes in em, so the whole lockup scales from the one font-size. */

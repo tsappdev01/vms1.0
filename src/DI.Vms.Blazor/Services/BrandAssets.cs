@@ -16,8 +16,16 @@ public static class BrandAssets
     public static string? LogoPath { get; private set; }
 
     /// <summary>Called once at startup, when the content root is known.</summary>
-    public static void Locate(string webRootPath, ILogger logger)
+    public static void Locate(string? webRootPath, ILogger logger)
     {
+        // Null under some hosting layouts. Nothing to search, and a brand asset is not
+        // worth failing a start over.
+        if (string.IsNullOrEmpty(webRootPath))
+        {
+            logger.LogWarning("No web root; brand lockup will use the composed rendition.");
+            return;
+        }
+
         // In preference order: a vector scales, so it wins over the raster forms.
         string[] candidates = ["di-logo.svg", "di-logo.png", "di-logo.webp", "di-logo.jpg"];
 
