@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
@@ -47,6 +48,7 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                     Detail = "Card detected. Ready to read.",
                     ToolkitVersion = version,
                     LicenceExpiry = licence,
+                    LicenceDaysRemaining = DaysUntil(licence),
                 };
             }
             catch (Exception ex)
@@ -58,6 +60,7 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                     Detail = ex.Message,
                     ToolkitVersion = version,
                     LicenceExpiry = licence,
+                    LicenceDaysRemaining = DaysUntil(licence),
                 };
             }
         }
@@ -287,6 +290,28 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
         }
 
         return chosen;
+    }
+
+    /// <summary>
+    /// Days from today until the toolkit's licence expiry date, or null if it cannot be
+    /// read. The toolkit returns a string, and its format is its own business - so this
+    /// tries the layouts it has actually been seen to use and gives up rather than
+    /// guessing, since a wrong count is worse than none.
+    /// </summary>
+    private static int? DaysUntil(string? expiry)
+    {
+        if (string.IsNullOrWhiteSpace(expiry)) return null;
+
+        string[] formats = ["yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy", "yyyy/MM/dd"];
+        if (!DateOnly.TryParseExact(expiry.Trim(), formats, CultureInfo.InvariantCulture,
+                                    DateTimeStyles.None, out var date))
+        {
+            return null;
+        }
+
+        // Gulf Standard Time, because that is the day the desk is having.
+        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(4)).DateTime);
+        return date.DayNumber - today.DayNumber;
     }
 
     /// <summary>

@@ -1,15 +1,19 @@
 /* Dubai Investments VMS.
-   Brand palette: DI navy #0e3453 and DI gold #b8912e, taken from the corporate mark.
-   Navy carries action, gold carries emphasis, and neither is spent on anything else.
-   Light and dark, following the viewer's setting. */
+   Action is DI blue #1a5fc4 - the corporate navy lifted to a colour that works on a
+   button and reads at a glance across a reception desk. Navy #0e3453 stays as the
+   deep tone: the mark, headings, the dark ground. Gold #b8912e is kept for the mark
+   and for a field that carried data where its neighbours did not, so it still means
+   something when it appears. Light and dark, following the viewer's setting. */
 
 :root {
   color-scheme: light;
 
   /* ---- brand */
   --di-navy:      #0e3453;
-  --di-navy-mid:  #17496f;
-  --di-navy-tint: #eaf0f6;
+  --di-blue:      #1a5fc4;
+  --di-blue-mid:  #17539f;
+  --di-blue-tint: #eaf1fc;
+  --di-blue-soft: #f4f8fe;
   --di-gold:      #b8912e;
   --di-gold-tint: #faf4e6;
 
@@ -25,11 +29,12 @@
   --gridline:      #eaeff4;
 
   /* ---- action and state */
-  --accent:        var(--di-navy);
-  --accent-hover:  var(--di-navy-mid);
+  --accent:        var(--di-blue);
+  --accent-hover:  var(--di-blue-mid);
   --accent-on:     #ffffff;
-  --accent-tint:   var(--di-navy-tint);
-  --focus:         #2f7ac4;
+  --accent-tint:   var(--di-blue-tint);
+  --accent-soft:   var(--di-blue-soft);
+  --focus:         var(--di-blue);
   --status-good:   #12854a;
   --status-warning:#a9761a;
   --status-critical:#c1372f;
@@ -37,9 +42,9 @@
   --warning-tint:  #fdf4e3;
   --critical-tint: #fceceb;
 
-  --radius:    10px;
-  --radius-sm: 7px;
-  --radius-lg: 14px;
+  --radius:    12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
   --shadow-sm: 0 1px 2px rgba(15, 27, 38, .05);
   --shadow:    0 1px 2px rgba(15, 27, 38, .05), 0 6px 18px rgba(15, 27, 38, .045);
   --scroll-shadow: rgba(15, 27, 38, .17);
@@ -50,7 +55,8 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --di-navy-tint: #142a3d;
+    --di-blue-tint: #14253c;
+    --di-blue-soft: #101c2b;
     --di-gold:      #d3ac4e;
     --di-gold-tint: #2a2314;
 
@@ -65,11 +71,12 @@
     --gridline:      #1f2c37;
 
     /* Navy is the ground here, so it cannot also be the action colour. */
-    --accent:        #4f92d1;
-    --accent-hover:  #6aa5de;
+    --accent:        #4f92e8;
+    --accent-hover:  #6aa5f0;
     --accent-on:     #06121c;
-    --accent-tint:   #14293c;
-    --focus:         #6aa5de;
+    --accent-tint:   #14253c;
+    --accent-soft:   #101c2b;
+    --focus:         #6aa5f0;
     --status-good:   #4cc07a;
     --status-warning:#e0af52;
     --status-critical:#e8756b;
@@ -86,7 +93,8 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --di-navy-tint: #142a3d;
+  --di-blue-tint: #14253c;
+  --di-blue-soft: #101c2b;
   --di-gold:      #d3ac4e;
   --di-gold-tint: #2a2314;
 
@@ -100,11 +108,12 @@
   --border:        #24333f;
   --gridline:      #1f2c37;
 
-  --accent:        #4f92d1;
-  --accent-hover:  #6aa5de;
+  --accent:        #4f92e8;
+  --accent-hover:  #6aa5f0;
   --accent-on:     #06121c;
-  --accent-tint:   #14293c;
-  --focus:         #6aa5de;
+  --accent-tint:   #14253c;
+  --accent-soft:   #101c2b;
+  --focus:         #6aa5f0;
   --status-good:   #4cc07a;
   --status-warning:#e0af52;
   --status-critical:#e8756b;
@@ -215,7 +224,7 @@ code {
 }
 .brand-sub {
   font-size: 9.5px; font-weight: 600; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--di-gold); white-space: nowrap;
+  text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
 }
 
 .nav-link {
@@ -233,15 +242,17 @@ code {
 }
 
 .side-foot {
-  margin-top: auto; padding: 14px;
+  margin-top: auto; padding: 15px;
   border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--surface-2);
+}
+.side-foot {
+  background: var(--accent-soft); border-color: var(--accent-tint);
 }
 .side-foot .badge {
   display: grid; place-items: center;
-  width: 26px; height: 26px; margin-bottom: 9px;
-  border-radius: 7px;
-  background: var(--di-gold-tint); color: var(--di-gold);
+  width: 28px; height: 28px; margin-bottom: 10px;
+  border-radius: 9px;
+  background: var(--accent-tint); color: var(--accent);
 }
 .side-foot .badge svg { width: 14px; height: 14px; stroke: currentColor; }
 .side-foot strong { display: block; font-size: 12.5px; margin-bottom: 3px; }
@@ -259,12 +270,13 @@ code {
 .topbar .sep { width: 1px; height: 15px; background: var(--border); }
 .topbar .note { font-size: 12px; color: var(--text-muted); }
 .clock {
-  display: flex; align-items: center; gap: 7px;
-  margin-left: auto;
+  display: flex; align-items: center; gap: 8px;
+  margin-left: auto; padding: 5px 12px 5px 9px;
+  border: 1px solid var(--border); border-radius: 999px;
   font-size: 12.5px; font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
 }
-.clock svg { width: 15px; height: 15px; stroke: currentColor; opacity: .7; }
+.clock svg { width: 15px; height: 15px; stroke: currentColor; opacity: .75; }
 
 .content { padding: 26px 24px 48px; flex: 1; min-width: 0; max-width: 1180px; }
 
@@ -284,6 +296,9 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 .page-sub { font-size: 13.5px; color: var(--text-secondary); margin: 0 0 20px; }
 .muted { font-size: 12.5px; color: var(--text-secondary); }
 .hint { font-size: 11.5px; color: var(--text-muted); }
+.expiry { font-weight: 620; }
+.expiry.warn { color: var(--status-warning); }
+.expiry.critical { color: var(--status-critical); }
 .lead { font-size: 18px; font-weight: 620; letter-spacing: -.015em; color: var(--text-primary); }
 .strong { font-weight: 550; }
 .mono { font-variant-numeric: tabular-nums; }
@@ -315,23 +330,28 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 
 .steps { display: flex; gap: 10px; margin: 20px 0 22px; flex-wrap: wrap; }
 .step {
-  display: flex; align-items: center; gap: 9px;
-  padding: 8px 16px 8px 10px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 17px 7px 8px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
   font-size: 12.5px; font-weight: 550;
   color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
 }
 .step .num {
-  display: grid; place-items: center;
-  width: 21px; height: 21px; border-radius: 50%;
+  display: grid; place-items: center; flex: none;
+  width: 22px; height: 22px; border-radius: 50%;
   background: var(--surface-sunk); color: var(--text-secondary);
   font-size: 11px; font-weight: 650;
 }
+.step .ico { display: grid; place-items: center; flex: none; }
+.step .ico svg { width: 14px; height: 14px; stroke: currentColor; }
+/* Ringed rather than filled: the current step should stand out without becoming the
+   loudest thing on a screen whose point is the button below it. */
 .step.active {
-  border-color: var(--accent); color: var(--text-primary);
-  background: var(--accent-tint); font-weight: 620;
+  border-color: var(--accent); color: var(--accent); font-weight: 620;
+  box-shadow: 0 0 0 3px var(--accent-tint);
 }
 .step.active .num { background: var(--accent); color: var(--accent-on); }
 .step.done { color: var(--text-secondary); }
@@ -344,12 +364,11 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 
 .hero-art {
   display: grid; place-items: center;
-  padding: 26px;
-  background: linear-gradient(160deg, var(--accent-tint), var(--surface) 78%);
-  border-right: 1px solid var(--gridline);
+  padding: 22px;
+  background: linear-gradient(155deg, var(--accent-tint) 4%, var(--accent-soft) 46%, var(--surface) 92%);
 }
-.hero-art svg { width: 100%; max-width: 340px; height: auto; }
-@media (max-width: 900px) { .hero-art { border-right: none; border-bottom: 1px solid var(--gridline); } }
+.hero-art svg { width: 100%; max-width: 400px; height: auto; }
+@media (max-width: 900px) { .hero-art { border-bottom: 1px solid var(--gridline); } }
 
 .hero-panel { padding: 30px 28px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
 .hero-panel .lead { margin: 0; }
@@ -365,53 +384,63 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 .ready svg { width: 15px; height: 15px; stroke: currentColor; }
 
 .reader-state {
-  display: flex; align-items: flex-start; gap: 12px;
+  display: flex; align-items: center; gap: 13px;
   width: 100%;
-  padding: 13px 15px;
-  border: 1px solid var(--border); border-left-width: 3px;
-  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   background: var(--surface-2);
 }
 .reader-state .icon { display: grid; place-items: center; width: 30px; height: 30px; color: var(--text-secondary); }
 .reader-state .icon svg { width: 22px; height: 22px; stroke: currentColor; }
 .reader-state strong { display: block; font-size: 13px; color: var(--text-primary); }
 .reader-state span { display: block; color: var(--text-secondary); font-size: 12.5px; }
-.reader-state.ok { border-left-color: var(--status-good); background: var(--good-tint); }
+.reader-state.ok { border-color: color-mix(in srgb, var(--status-good) 34%, var(--border)); background: var(--good-tint); }
 .reader-state.ok .icon { color: var(--status-good); }
-.reader-state.waiting { border-left-color: var(--status-warning); background: var(--warning-tint); }
+.reader-state.waiting { border-color: color-mix(in srgb, var(--status-warning) 40%, var(--border)); background: var(--warning-tint); }
 .reader-state.waiting .icon { color: var(--status-warning); }
 
 .tip {
-  display: flex; gap: 9px; align-items: flex-start;
+  display: flex; gap: 10px; align-items: flex-start;
   width: 100%;
   padding: 11px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--di-gold-tint);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-tint);
   font-size: 12.5px; color: var(--text-secondary);
 }
-.tip svg { width: 15px; height: 15px; stroke: var(--di-gold); margin-top: 1px; }
-.tip b { color: var(--text-primary); font-weight: 600; }
+.tip svg { width: 15px; height: 15px; stroke: var(--accent); margin-top: 1px; }
+.tip b { color: var(--accent); font-weight: 600; }
 
 /* Three true statements about how this works. Not a security claim — see
    src/DI.Vms.Blazor/README.md on what is and is not protected. */
+/* One panel with dividers rather than three cards: these are three facets of the same
+   statement, and three separate cards would read as three separate things. */
 .assurances {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 14px; margin-top: 4px;
-}
-.assurance {
-  display: flex; gap: 12px; align-items: flex-start;
-  padding: 15px 16px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.assurance {
+  display: flex; gap: 13px; align-items: flex-start;
+  padding: 18px 20px;
+  border-left: 1px solid var(--gridline);
+}
+.assurance:first-child { border-left: none; }
+@media (max-width: 800px) {
+  .assurance { border-left: none; border-top: 1px solid var(--gridline); }
+  .assurance:first-child { border-top: none; }
 }
 .assurance .ico {
-  display: grid; place-items: center;
-  width: 30px; height: 30px; border-radius: 8px;
+  display: grid; place-items: center; flex: none;
+  width: 34px; height: 34px; border-radius: 10px;
   background: var(--accent-tint); color: var(--accent);
 }
-.assurance .ico svg { width: 16px; height: 16px; stroke: currentColor; }
-.assurance strong { display: block; font-size: 12.5px; margin-bottom: 2px; }
+.assurance .ico svg { width: 17px; height: 17px; stroke: currentColor; }
+.assurance strong { display: block; font-size: 13px; margin-bottom: 3px; }
 .assurance p { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--text-secondary); }
 
 /* ---------------------------------------------------------------- read-only fields */

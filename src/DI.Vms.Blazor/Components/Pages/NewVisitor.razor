@@ -7,14 +7,20 @@
 <PageTitle>New Visitor &middot; DI VMS</PageTitle>
 
 <h1>New Visitor</h1>
-<p class="page-sub">Read the Emirates ID, name the entity and the host, and stamp the entry.</p>
+<p class="page-sub">Quick and secure visitor registration</p>
 
 <div class="steps">
     @for (var i = 0; i < Steps.Length; i++)
     {
         var n = i;
         <div class="step @(n == step ? "active" : "") @(n < step ? "done" : "")">
-            <span class="num">@(n < step ? "✓" : (n + 1).ToString())</span>@Steps[n]
+            <span class="num">@(n < step ? "✓" : (n + 1).ToString())</span>
+            <span class="ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    @((MarkupString)Steps[n].Icon)
+                </svg>
+            </span>
+            @Steps[n].Label
         </div>
     }
 </div>
@@ -33,43 +39,85 @@
             <div class="hero-art">
                 @* An Emirates ID above a contact reader, over a Dubai skyline. Drawn here
                    rather than shipped as an image so it follows the theme. *@
-                <svg viewBox="0 0 340 260" role="img"
-                     aria-label="An Emirates ID card resting on a card reader, against a Dubai skyline">
-                    <g stroke="var(--accent)" fill="none" opacity=".18" stroke-width="1.4"
-                       stroke-linejoin="round">
-                        <path d="M28 196V150l10-14 10 14v46" />
-                        <path d="M62 196v-58l14-10 14 10v58" />
-                        <path d="M170 196V54l7-30 7 30v142" />
-                        <path d="M164 196v-96l6-8 6 8" />
-                        <path d="M252 196v-72l16-12 16 12v72" />
-                        <path d="M296 196v-44l10-8 10 8v44" />
+                @* Deliberately no <text> elements: <text> is Razor's literal-content
+                   marker, used that way further down this same file, so an SVG that
+                   relied on it would be at the mercy of parser context. The card's
+                   bilingual header is drawn as bars, which also reads better than 6px
+                   type at this size. *@
+                <svg viewBox="0 0 400 306" role="img"
+                     aria-label="An Emirates ID card held above a contact card reader, against a Dubai skyline">
+                    <defs>
+                        <linearGradient id="cardface" x1="0" y1="0" x2="0.45" y2="1">
+                            <stop offset="0" stop-color="var(--surface)" />
+                            <stop offset="1" stop-color="var(--accent-tint)" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- skyline, with the Burj Khalifa's spire on the centre line -->
+                    <g stroke="var(--accent)" fill="none" opacity=".2" stroke-width="1.5" stroke-linejoin="round">
+                        <path d="M24 238v-52l11-13 11 13v52" />
+                        <path d="M56 238v-72l15-11 15 11v72" />
+                        <path d="M96 238v-40l9-9 9 9v40" />
+                        <path d="M200 238V64l6-34 6 34v174" />
+                        <path d="M192 238V128l8-11 8 11" />
+                        <path d="M184 238v-74l8-9 8 9" />
+                        <path d="M290 238v-84l17-13 17 13v84" />
+                        <path d="M334 238v-50l11-9 11 9v50" />
+                        <path d="M366 238v-32l8-7 8 7v32" />
                     </g>
 
-                    <line x1="16" y1="196" x2="324" y2="196" stroke="var(--border)" stroke-width="1.4" />
+                    <g fill="var(--accent)" opacity=".1">
+                        <path d="M64 62a11 11 0 0 1 21-4 9 9 0 0 1 3 17H70a7 7 0 0 1-6-13Z" />
+                        <path d="M312 98a9 9 0 0 1 17-3 7 7 0 0 1 2 14h-15a6 6 0 0 1-4-11Z" />
+                    </g>
+
+                    <!-- the reader's signal, as rings on the desk -->
+                    <g fill="none" stroke="var(--accent)" opacity=".2" stroke-width="1.3">
+                        <ellipse cx="200" cy="262" rx="150" ry="31" />
+                        <ellipse cx="200" cy="262" rx="106" ry="22" />
+                        <ellipse cx="200" cy="262" rx="60" ry="12" />
+                    </g>
 
                     <!-- reader -->
-                    <rect x="112" y="170" width="116" height="26" rx="5"
-                          fill="var(--surface-2)" stroke="var(--text-muted)" stroke-width="1.3" />
-                    <rect x="126" y="176" width="88" height="5" rx="2.5"
-                          fill="var(--status-good)" opacity=".85" />
-                    <path d="M170 170v-8" stroke="var(--text-muted)" stroke-width="1.3" />
+                    <rect x="141" y="240" width="118" height="30" rx="7"
+                          fill="var(--surface)" stroke="var(--text-muted)" stroke-width="1.3" />
+                    <rect x="155" y="259" width="90" height="5" rx="2.5" fill="var(--status-good)" />
+                    <g fill="none" stroke="var(--text-muted)" stroke-width="1.4" stroke-linecap="round" opacity=".7">
+                        <path d="M231 252a5.5 5.5 0 0 0 0-7" />
+                        <path d="M238 255a10.5 10.5 0 0 0 0-13" />
+                    </g>
 
-                    <!-- card -->
-                    <g transform="rotate(-7 170 104)">
-                        <rect x="86" y="58" width="168" height="96" rx="9"
-                              fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5" />
-                        <rect x="96" y="94" width="30" height="24" rx="4"
+                    <!-- card, tilted and lifted clear of the reader -->
+                    <g transform="rotate(-7 200 152)">
+                        <rect x="104" y="86" width="192" height="120" rx="11"
+                              fill="url(#cardface)" stroke="var(--accent)" stroke-width="1.6" />
+
+                        <!-- bilingual header, as bars; the crest sits between them -->
+                        <g stroke="var(--text-muted)" stroke-linecap="round" opacity=".62">
+                            <path d="M116 103h58" stroke-width="3.4" />
+                            <path d="M116 112h40" stroke-width="2.6" />
+                            <path d="M284 103h-52" stroke-width="3.4" />
+                            <path d="M284 112h-34" stroke-width="2.6" />
+                        </g>
+                        <path d="M195 100h10l-5 10z" fill="var(--di-gold)" opacity=".9" />
+
+                        <!-- the contact chip: what is actually being read -->
+                        <rect x="118" y="136" width="35" height="27" rx="4"
                               fill="var(--di-gold-tint)" stroke="var(--di-gold)" stroke-width="1.3" />
-                        <path d="M104 100v12M112 100v12M120 100v12" stroke="var(--di-gold)" stroke-width="1.1" />
-                        <rect x="196" y="72" width="48" height="60" rx="5"
+                        <path d="M127 142v15M135.5 142v15M144 142v15" stroke="var(--di-gold)" stroke-width="1.1" />
+
+                        <!-- portrait -->
+                        <rect x="238" y="126" width="48" height="62" rx="5"
                               fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.2" />
-                        <circle cx="220" cy="94" r="10" fill="var(--border)" />
-                        <path d="M206 126a14 14 0 0 1 28 0" fill="var(--border)" />
-                        <g stroke="var(--border)" stroke-width="4" stroke-linecap="round">
-                            <path d="M98 74h44" />
-                            <path d="M98 128h58" />
-                            <path d="M136 100h48" />
-                            <path d="M136 112h34" />
+                        <circle cx="262" cy="148" r="10" fill="var(--text-muted)" opacity=".45" />
+                        <path d="M247 182a15 15 0 0 1 30 0z" fill="var(--text-muted)" opacity=".45" />
+
+                        <g stroke="var(--border)" stroke-linecap="round" stroke-width="4.5">
+                            <path d="M163 142h56" />
+                            <path d="M163 155h38" />
+                            <path d="M118 176h48" />
+                            <path d="M118 190h74" />
+                            <path d="M238 199h48" />
                         </g>
                     </g>
                 </svg>
@@ -88,7 +136,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <circle cx="12" cy="12" r="9" /><path d="M8.5 12.5l2.5 2.5 4.5-5" />
                             </svg>
-                            <text>Ready to read</text>
+                            <text>Ready to scan</text>
                         }
                         else
                         {
@@ -100,7 +148,7 @@
                     </span>
 
                     <p class="lead">Insert the Emirates ID into the reader.</p>
-                    <p class="muted">Chip side first, then read the card.</p>
+                    <p class="muted">Please place the card on the reader to proceed.</p>
 
                     <div class="reader-state @(readerState.Available ? "ok" : "waiting")">
                         <span class="icon">
@@ -123,6 +171,24 @@
                             @if (readerState.LicenceExpiry is not null)
                             {
                                 <text> &middot; licence to @readerState.LicenceExpiry</text>
+                            }
+                            @* A licence that lapses stops every read, and replacing the last
+                               one took ICP a fortnight - so the count is on screen, and turns
+                               into a warning while there is still time to act on it. *@
+                            @if (readerState.LicenceDaysRemaining is { } days)
+                            {
+                                @if (days < 0)
+                                {
+                                    <text> &middot; </text><span class="expiry critical">expired @(-days) days ago</span>
+                                }
+                                else if (days <= 60)
+                                {
+                                    <text> &middot; </text><span class="expiry warn">expires in @days days</span>
+                                }
+                                else
+                                {
+                                    <text> &middot; expires in @days days</text>
+                                }
                             }
                         </p>
                     }
@@ -150,7 +216,7 @@
                         <path d="M9 18h6M10 21h4" />
                         <path d="M12 3a6 6 0 0 1 3.5 10.9V15h-7v-1.1A6 6 0 0 1 12 3Z" />
                     </svg>
-                    <span><b>Tip.</b> If the card is not detected, wipe the chip contacts and reseat it.</span>
+                    <span><b>Tip:</b> Ensure the card chip is clean and try again if not detected.</span>
                 </div>
             </div>
         </div>
@@ -165,7 +231,7 @@
             </span>
             <div>
                 <strong>Straight from the chip</strong>
-                <p>Name, nationality, photograph and signature are read off the card, not transcribed.</p>
+                <p>Name, nationality, photograph and signature are read off the card itself, never transcribed.</p>
             </div>
         </div>
         <div class="assurance">
@@ -175,8 +241,8 @@
                 </svg>
             </span>
             <div>
-                <strong>Two fields to fill</strong>
-                <p>Everything else is already on the card. The attendant names the entity and the host.</p>
+                <strong>Fast &amp; Efficient</strong>
+                <p>Two fields to fill. Everything else is already on the card, so check-in takes seconds.</p>
             </div>
         </div>
         <div class="assurance">
@@ -187,7 +253,7 @@
             </span>
             <div>
                 <strong>Stamped on save</strong>
-                <p>Each entry keeps the moment it was recorded, stored in UTC and shown in GST.</p>
+                <p>Every entry keeps the moment it was recorded, stored in UTC and shown in Gulf Standard Time.</p>
             </div>
         </div>
     </div>
@@ -399,7 +465,21 @@ else if (step == 3 && saved is not null)
 }
 
 @code {
-    private static readonly string[] Steps = ["Insert Card", "Visitor Information", "Visit Details", "Saved"];
+    /// <summary>
+    /// The four steps and their icons. Icon markup is a compile-time constant, never
+    /// anything that came off a card, so rendering it as markup is safe.
+    /// </summary>
+    private static readonly (string Label, string Icon)[] Steps =
+    [
+        ("Insert Card",
+         """<rect x="2.5" y="5" width="19" height="14" rx="2.2" /><path d="M6.5 10h4M6.5 14h6" /><circle cx="17" cy="11.5" r="2" />"""),
+        ("Visitor Information",
+         """<circle cx="12" cy="8.2" r="3.4" /><path d="M5.6 20a6.4 6.4 0 0 1 12.8 0" />"""),
+        ("Visit Details",
+         """<rect x="3.5" y="5.5" width="17" height="15" rx="2.2" /><path d="M8 3v4M16 3v4M3.5 10.5h17" />"""),
+        ("Saved",
+         """<circle cx="12" cy="12" r="8.6" /><path d="M8.4 12.4l2.6 2.6 4.6-5.2" />"""),
+    ];
 
     private int step;
     private bool reading;

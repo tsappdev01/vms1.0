@@ -56,5 +56,14 @@ public sealed class ReaderState
     public string? ReaderName { get; init; }
     public string Detail { get; init; } = string.Empty;
     public string? ToolkitVersion { get; init; }
+
+    /// <summary>As the toolkit reports it, which is a string of its own choosing.</summary>
     public string? LicenceExpiry { get; init; }
+
+    /// <summary>
+    /// Days until the licence expires, or null when the toolkit's date could not be
+    /// parsed. Worth surfacing because an expired licence stops every read, and the last
+    /// one took a fortnight to replace.
+    /// </summary>
+    public int? LicenceDaysRemaining { get; init; }
 }
