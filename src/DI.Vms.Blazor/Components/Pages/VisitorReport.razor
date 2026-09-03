@@ -1,0 +1,212 @@
+@page "/report"
+@rendermode InteractiveServer
+@inject IDbContextFactory<VmsDbContext> DbFactory
+@inject IJSRuntime Js
+
+<PageTitle>Visitor Report &middot; DI VMS</PageTitle>
+
+<h1>Visitor Details by Entity</h1>
+<p class="muted">All recorded information, with the date-time stamp of each entry.</p>
+
+@if (error is not null)
+{
+    <div class="banner critical"><strong>Could not load.</strong><span>@error</span></div>
+}
+
+<div class="toolbar">
+    <label class="muted">From <input type="date" @bind="from" /></label>
+    <label class="muted">To <input type="date" @bind="to" /></label>
+    <select @bind="entityId">
+        <option value="0">All entities</option>
+        @foreach (var e in entities)
+        {
+            <option value="@e.Id">@e.Name</option>
+        }
+    </select>
+    <button @onclick="Load" disabled="@loading">@(loading ? "Loading…" : "Apply")</button>
+    <button @onclick="ExportCsv" disabled="@(entries.Count == 0)">Export CSV</button>
+    <button @onclick="Print">Print</button>
+</div>
+
+@if (loading)
+{
+    <div class="empty">Loading…</div>
+}
+else if (entries.Count == 0)
+{
+    <div class="empty">
+        <strong>No entries</strong>
+        <span>Nothing was recorded between @from.ToString("dd MMM yyyy") and @to.ToString("dd MMM yyyy").</span>
+    </div>
+}
+else
+{
+    <p class="muted">@entries.Count @(entries.Count == 1 ? "entry" : "entries") across @grouped.Count @(grouped.Count == 1 ? "entity" : "entities").</p>
+
+    @foreach (var group in grouped)
+    {
+        <section class="card">
+            <div class="card-head">
+                <h2>@group.Key</h2>
+                <span class="sub">@group.Value.Count @(group.Value.Count == 1 ? "visitor" : "visitors")</span>
+            </div>
+            <div class="table-wrap">
+                <table class="data">
+                    <thead>
+                        <tr>
+                            <th>Recorded (GST)</th><th>Person to Visit</th><th>Visitor</th>
+                            <th>ID Number</th><th>Card No.</th><th>Nationality</th>
+                            <th>Gender</th><th>Date of Birth</th><th>ID Issue</th><th>ID Expiry</th>
+                            <th>Mobile</th><th>Email</th><th>Address</th><th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var v in group.Value)
+                        {
+                            <tr>
+                                <td class="mono nowrap">@Gst(v.RecordedAtUtc)</td>
+                                <td>@v.PersonToVisit</td>
+                                <td class="strong">@v.FullNameEnglish</td>
+                                <td class="mono">@v.IdNumber</td>
+                                <td class="mono">@Dash(v.CardNumber)</td>
+                                <td>@Dash(v.NationalityEnglish)</td>
+                                <td>@Dash(v.Gender)</td>
+                                <td class="mono">@Dash(v.DateOfBirth)</td>
+                                <td class="mono">@Dash(v.IssueDate)</td>
+                                <td class="mono">@Dash(v.ExpiryDate)</td>
+                                <td class="mono">@Dash(v.AddressMobile)</td>
+                                <td>@Dash(v.AddressEmail)</td>
+                                <td>@Dash(PostalAddress(v))</td>
+                                <td>@v.CaptureMethod</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+}
+
+@code {
+    private List<VisitorEntry> entries = [];
+    private List<DiEntity> entities = [];
+    private List<KeyValuePair<string, List<VisitorEntry>>> grouped = [];
+
+    private DateOnly from = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30);
+    private DateOnly to = DateOnly.FromDateTime(DateTime.UtcNow);
+    private int entityId;
+
+    private bool loading;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        entities = await db.DiEntities.OrderBy(e => e.Name).ToListAsync();
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            // Inclusive of the whole 'to' day, in GST, since that is what a user means by
+            // a date range on a report.
+            var fromUtc = new DateTimeOffset(from.ToDateTime(TimeOnly.MinValue), TimeSpan.FromHours(4));
+            var toUtc = new DateTimeOffset(to.ToDateTime(TimeOnly.MaxValue), TimeSpan.FromHours(4));
+
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var query = db.VisitorEntries
+                .Include(v => v.DiEntity)
+                .Where(v => v.RecordedAtUtc >= fromUtc && v.RecordedAtUtc <= toUtc);
+
+            if (entityId != 0)
+            {
+                query = query.Where(v => v.DiEntityId == entityId);
+            }
+
+            entries = await query
+                .OrderBy(v => v.DiEntity!.Name)
+                .ThenByDescending(v => v.RecordedAtUtc)
+                .ToListAsync();
+
+            grouped = entries
+                .GroupBy(v => v.DiEntity?.Name ?? "(no entity)")
+                .OrderBy(g => g.Key)
+                .Select(g => new KeyValuePair<string, List<VisitorEntry>>(g.Key, g.ToList()))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task ExportCsv()
+    {
+        var lines = new List<string>
+        {
+            "Visitor Details by Entity",
+            $"{from:dd MMM yyyy} to {to:dd MMM yyyy}",
+            $"Generated {Gst(DateTimeOffset.UtcNow)} GST",
+            string.Empty,
+            string.Join(',', new[]
+            {
+                "Entity", "Recorded (GST)", "Person to Visit", "Visitor", "Full Name (Raw)",
+                "Full Name (Arabic)", "ID Number", "Card Number", "ID Type", "ID Issue",
+                "ID Expiry", "Gender", "Date of Birth", "Nationality", "Nationality Code",
+                "Place of Birth", "Emirate", "City", "Area", "Street", "Building", "PO Box",
+                "Phone", "Mobile", "Email", "Source",
+            }.Select(Escape)),
+        };
+
+        lines.AddRange(entries.Select(v => string.Join(',', new[]
+        {
+            v.DiEntity?.Name, Gst(v.RecordedAtUtc), v.PersonToVisit, v.FullNameEnglish,
+            v.FullNameRaw, v.FullNameArabic, v.IdNumber, v.CardNumber, v.IdType, v.IssueDate,
+            v.ExpiryDate, v.Gender, v.DateOfBirth, v.NationalityEnglish, v.NationalityCode,
+            v.PlaceOfBirthEnglish, v.AddressEmirate, v.AddressCity, v.AddressArea,
+            v.AddressStreet, v.AddressBuilding, v.AddressPoBox, v.AddressPhone,
+            v.AddressMobile, v.AddressEmail, v.CaptureMethod,
+        }.Select(Escape))));
+
+        await Js.InvokeVoidAsync("vms.downloadCsv",
+            $"visitor-details-by-entity-{from:yyyy-MM-dd}.csv", string.Join('\n', lines));
+    }
+
+    private async Task Print() => await Js.InvokeVoidAsync("window.print");
+
+    private static string Gst(DateTimeOffset instant) =>
+        instant.ToOffset(TimeSpan.FromHours(4)).ToString("dd MMM yyyy HH:mm:ss");
+
+    private static string Dash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    private static string? PostalAddress(VisitorEntry v)
+    {
+        var parts = new[] { v.AddressBuilding, v.AddressStreet, v.AddressArea, v.AddressCity, v.AddressEmirate }
+            .Where(p => !string.IsNullOrWhiteSpace(p));
+        return string.Join(", ", parts);
+    }
+
+    /// <summary>
+    /// RFC 4180 quoting, plus neutralising values a spreadsheet would treat as a formula:
+    /// a name beginning with '=' must not execute when the export is opened.
+    /// </summary>
+    private static string Escape(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+
+        var v = value;
+        if (v[0] is '=' or '+' or '-' or '@' or '\t' or '\r') v = "'" + v;
+
+        return v.Contains(',') || v.Contains('"') || v.Contains('\n') || v.Contains('\r')
+            ? '"' + v.Replace("\"", "\"\"") + '"'
+            : v;
+    }
+}

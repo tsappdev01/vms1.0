@@ -6,25 +6,11 @@ obj/
 .vs/
 artifacts/
 
-# Android
-.gradle/
-local.properties
-*.iml
-.idea/
-
-# Node
-node_modules/
-dist/
-.env
-.env.local
-
-# Secrets - never commit toolkit credentials or production configs
+# Secrets - never commit connection strings or toolkit credentials
 appsettings.Production.json
 appsettings.*.Local.json
 *.pfx
-*.snk
 secrets.json
 
-# Toolkit runtime artefacts - machine-specific, and logs are diagnostics not source
+# Toolkit runtime artefacts
 EIDAToolkit_*.log
-id-card-toolkit-windows-sdk-*/quickstart/*/config_ap

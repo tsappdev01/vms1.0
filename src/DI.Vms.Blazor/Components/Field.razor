@@ -1,0 +1,26 @@
+@* A read-only field as the card presented it. An empty value shows a dash rather than
+   nothing, so "the card did not carry this" is visibly different from a layout gap. *@
+
+<div class="field-ro @(Highlight ? "highlight" : "")">
+    <div class="field-label">@Label</div>
+    <div class="field-value @(Mono ? "mono" : "")" dir="@(Rtl ? "rtl" : null)">
+        @if (string.IsNullOrWhiteSpace(Value))
+        {
+            <span class="empty-value">—</span>
+        }
+        else
+        {
+            @Value
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public bool Mono { get; set; }
+    [Parameter] public bool Rtl { get; set; }
+
+    /// <summary>Draws attention to a field that carried data where its neighbours did not.</summary>
+    [Parameter] public bool Highlight { get; set; }
+}

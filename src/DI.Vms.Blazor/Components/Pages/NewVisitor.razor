@@ -1,0 +1,355 @@
+@page "/"
+@rendermode InteractiveServer
+@inject CardReaderService Reader
+@inject ILogger<NewVisitor> Logger
+@inject IDbContextFactory<VmsDbContext> DbFactory
+
+<PageTitle>New Visitor &middot; DI VMS</PageTitle>
+
+<h1>New Visitor</h1>
+
+<div class="steps">
+    @for (var i = 0; i < Steps.Length; i++)
+    {
+        var n = i;
+        <div class="step @(n == step ? "active" : "") @(n < step ? "done" : "")">
+            <span class="num">@(n < step ? "✓" : (n + 1).ToString())</span>@Steps[n]
+        </div>
+    }
+</div>
+
+@if (message is not null)
+{
+    <div class="banner @messageKind"><span>@message</span></div>
+}
+
+@* ---------------------------------------------------- 1. Insert and read the card *@
+
+@if (step == 0)
+{
+    <section class="card">
+        <div class="card-body center">
+            <p class="lead">Insert the Emirates ID into the reader.</p>
+
+            @if (readerState is null)
+            {
+                <p class="muted">Checking the reader…</p>
+            }
+            else
+            {
+                <div class="reader-state @(readerState.Available ? "ok" : "waiting")">
+                    <strong>@(readerState.Available ? (readerState.ReaderName ?? "Reader ready") : "Waiting for a card")</strong>
+                    <span>@readerState.Detail</span>
+                </div>
+                @if (readerState.LicenceExpiry is not null)
+                {
+                    <p class="hint">Toolkit @readerState.ToolkitVersion &middot; licence to @readerState.LicenceExpiry</p>
+                }
+            }
+
+            <div class="actions center-actions">
+                <button class="primary large" @onclick="ReadCard" disabled="@reading">
+                    @(reading ? "Reading card…" : "Read Card")
+                </button>
+                <button @onclick="CheckReader" disabled="@reading">Check reader</button>
+            </div>
+        </div>
+    </section>
+}
+
+@* ------------------------------------------- 2. Visitor information from the chip *@
+
+else if (step == 1 && card is not null)
+{
+    <section class="card">
+        <div class="card-head"><h2>Identity</h2></div>
+        <div class="card-body">
+            <div class="grid-3">
+                <Field Label="ID Number" Value="@card.IdNumber" Mono="true" />
+                <Field Label="Card Number" Value="@card.CardNumber" Mono="true" />
+            </div>
+            <div class="images">
+                <div>
+                    <div class="field-label">Card Holder Photo</div>
+                    @if (card.Photo is { Length: > 0 })
+                    {
+                        <img class="photo" src="@ToDataUrl(card.Photo, "image/jpeg")" alt="Cardholder photograph" />
+                    }
+                    else
+                    {
+                        <div class="photo placeholder">Not on card</div>
+                    }
+                </div>
+                <div>
+                    <div class="field-label">Signature</div>
+                    @if (signatureDataUrl is not null)
+                    {
+                        <img class="signature" src="@signatureDataUrl" alt="Cardholder signature" />
+                    }
+                    else
+                    {
+                        <div class="signature placeholder">Not on card</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-head"><h2>Non-Modifiable Data</h2></div>
+        <div class="card-body grid-3">
+            <Field Label="ID Type" Value="@card.IdType" />
+            <Field Label="Issue Date" Value="@card.IssueDate" />
+            <Field Label="Expiry Date" Value="@card.ExpiryDate" />
+            <Field Label="Full Name (English)" Value="@card.FullNameEnglish" />
+            <Field Label="Full Name (Arabic)" Value="@card.FullNameArabic" Rtl="true" />
+            <Field Label="Nationality (English)" Value="@card.NationalityEnglish" />
+            <Field Label="Gender" Value="@card.Gender" />
+            <Field Label="Date of Birth" Value="@card.DateOfBirth" />
+            <Field Label="Nationality Code" Value="@card.NationalityCode" />
+            <Field Label="Title (English)" Value="@card.TitleEnglish" />
+            <Field Label="Place of Birth (English)" Value="@card.PlaceOfBirthEnglish" />
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>Home Address</h2>
+            @if (card.HasNoPostalAddress)
+            {
+                <span class="sub">No postal address held on this card</span>
+            }
+        </div>
+        <div class="card-body grid-3">
+            <Field Label="Emirate" Value="@card.AddressEmirate" />
+            <Field Label="City" Value="@card.AddressCity" />
+            <Field Label="Area" Value="@card.AddressArea" />
+            <Field Label="Street" Value="@card.AddressStreet" />
+            <Field Label="Building" Value="@card.AddressBuilding" />
+            <Field Label="PO Box" Value="@card.AddressPoBox" />
+            <Field Label="Phone" Value="@card.AddressPhone" />
+            <Field Label="Mobile" Value="@card.AddressMobile" Highlight="true" />
+            <Field Label="Email" Value="@card.AddressEmail" Highlight="true" />
+        </div>
+    </section>
+
+    @if (card.SignatureWarning is not null)
+    {
+        <div class="banner warn"><strong>Note.</strong><span>@card.SignatureWarning</span></div>
+    }
+
+    <div class="actions">
+        <button @onclick="Restart">Read a different card</button>
+        <button class="primary" @onclick="() => step = 2">Continue</button>
+    </div>
+}
+
+@* --------------------------------------------- 3. Entity and person, then save *@
+
+else if (step == 2 && card is not null)
+{
+    <section class="card narrow">
+        <div class="card-head"><h2>Visit Details</h2></div>
+        <div class="card-body">
+            <div class="readout">
+                <dt>Visitor</dt><dd>@card.FullNameEnglish</dd>
+                <dt>ID Number</dt><dd class="mono">@card.IdNumber</dd>
+            </div>
+
+            <div class="field mt">
+                <label for="entity">Entity being visited</label>
+                <select id="entity" @bind="entityId">
+                    <option value="0">Select an entity…</option>
+                    @foreach (var e in entities)
+                    {
+                        <option value="@e.Id">@e.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="person">Person to visit</label>
+                <input id="person" @bind="personToVisit" @bind:event="oninput"
+                       placeholder="Full name of the person being visited" autocomplete="off" />
+            </div>
+
+            <div class="actions">
+                <button @onclick="() => step = 1">Back</button>
+                <button class="primary" @onclick="Save"
+                        disabled="@(saving || entityId == 0 || string.IsNullOrWhiteSpace(personToVisit))">
+                    @(saving ? "Saving…" : "Save")
+                </button>
+            </div>
+        </div>
+    </section>
+}
+
+@* ------------------------------------------------------------------ 4. Saved *@
+
+else if (step == 3 && saved is not null)
+{
+    <section class="card narrow">
+        <div class="card-body">
+            <div class="saved-mark">Saved</div>
+            <div class="readout">
+                <dt>Reference</dt><dd class="mono">#@saved.Id</dd>
+                <dt>Visitor</dt><dd>@saved.FullNameEnglish</dd>
+                <dt>ID Number</dt><dd class="mono">@saved.IdNumber</dd>
+                <dt>Entity</dt><dd>@entities.FirstOrDefault(e => e.Id == saved.DiEntityId)?.Name</dd>
+                <dt>Person to visit</dt><dd>@saved.PersonToVisit</dd>
+                <dt>Recorded</dt><dd class="mono">@ToGst(saved.RecordedAtUtc) GST</dd>
+            </div>
+            <div class="actions">
+                <button class="primary" @onclick="Restart">New Visitor</button>
+                <a class="button" href="report">View report</a>
+            </div>
+        </div>
+    </section>
+}
+
+@code {
+    private static readonly string[] Steps = ["Insert Card", "Visitor Information", "Visit Details", "Saved"];
+
+    private int step;
+    private bool reading;
+    private bool saving;
+    private string? message;
+    private string messageKind = "";
+
+    private ReaderState? readerState;
+    private CardData? card;
+    private string? signatureDataUrl;
+
+    private List<DiEntity> entities = [];
+    private int entityId;
+    private string personToVisit = string.Empty;
+    private VisitorEntry? saved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEntities();
+        await CheckReader();
+    }
+
+    private async Task LoadEntities()
+    {
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            entities = await db.DiEntities.Where(e => e.IsActive).OrderBy(e => e.Name).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not load the entity list: {ex.Message}");
+        }
+    }
+
+    private async Task CheckReader()
+    {
+        readerState = await Reader.GetStateAsync();
+        message = null;
+    }
+
+    private async Task ReadCard()
+    {
+        reading = true;
+        message = null;
+        try
+        {
+            card = await Reader.ReadAsync();
+            signatureDataUrl = ImageConverter.ToDisplayableDataUrl(card.CardSignature, Logger);
+            step = 1;
+        }
+        catch (Exception ex)
+        {
+            Fail(ex.Message);
+            readerState = await Reader.GetStateAsync();
+        }
+        finally
+        {
+            reading = false;
+        }
+    }
+
+    private async Task Save()
+    {
+        if (card is null) return;
+
+        saving = true;
+        message = null;
+        try
+        {
+            var entry = new VisitorEntry
+            {
+                IdNumber = card.IdNumber,
+                CardNumber = card.CardNumber,
+                Photo = card.Photo,
+                CardSignature = card.CardSignature,
+                IdType = card.IdType,
+                IssueDate = card.IssueDate,
+                ExpiryDate = card.ExpiryDate,
+                FullNameEnglish = card.FullNameEnglish,
+                FullNameRaw = card.FullNameRaw,
+                FullNameArabic = card.FullNameArabic,
+                TitleEnglish = card.TitleEnglish,
+                Gender = card.Gender,
+                DateOfBirth = card.DateOfBirth,
+                NationalityEnglish = card.NationalityEnglish,
+                NationalityCode = card.NationalityCode,
+                PlaceOfBirthEnglish = card.PlaceOfBirthEnglish,
+                AddressEmirate = card.AddressEmirate,
+                AddressCity = card.AddressCity,
+                AddressArea = card.AddressArea,
+                AddressStreet = card.AddressStreet,
+                AddressBuilding = card.AddressBuilding,
+                AddressPoBox = card.AddressPoBox,
+                AddressPhone = card.AddressPhone,
+                AddressMobile = card.AddressMobile,
+                AddressEmail = card.AddressEmail,
+                DiEntityId = entityId,
+                PersonToVisit = personToVisit.Trim(),
+                RecordedAtUtc = DateTimeOffset.UtcNow,
+                CaptureMethod = "CardReader",
+            };
+
+            await using var db = await DbFactory.CreateDbContextAsync();
+            db.VisitorEntries.Add(entry);
+            await db.SaveChangesAsync();
+
+            saved = entry;
+            step = 3;
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not save the entry: {ex.Message}");
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private async Task Restart()
+    {
+        step = 0;
+        card = null;
+        signatureDataUrl = null;
+        saved = null;
+        entityId = 0;
+        personToVisit = string.Empty;
+        message = null;
+        await CheckReader();
+    }
+
+    private void Fail(string text)
+    {
+        message = text;
+        messageKind = "critical";
+    }
+
+    private static string ToDataUrl(byte[] bytes, string mime) =>
+        $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+
+    private static string ToGst(DateTimeOffset instant) =>
+        instant.ToOffset(TimeSpan.FromHours(4)).ToString("dd MMM yyyy HH:mm:ss");
+}

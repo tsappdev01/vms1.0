@@ -1,0 +1,19 @@
+@inherits LayoutComponentBase
+
+<div class="app">
+    <nav class="sidebar">
+        <div class="brand">
+            Dubai Investments
+            <span>Visitor Management</span>
+        </div>
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">New Visitor</NavLink>
+        <NavLink class="nav-link" href="report">Visitor Report</NavLink>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <span class="muted">DIP Office &middot; Times shown in Gulf Standard Time</span>
+        </header>
+        <main class="content">@Body</main>
+    </div>
+</div>

@@ -1,0 +1,4 @@
+config_directory = C:\Claude.AI\vms1.0\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64
+log_directory = C:\ProgramData\EIDAToolkit\logs
+application_type = APP_INPROC
+read_publicdata_offline = true
