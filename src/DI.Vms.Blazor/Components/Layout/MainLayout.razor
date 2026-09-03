@@ -2,26 +2,32 @@
 
 <div class="app">
     <nav class="sidebar">
-        @* The lockup, composed rather than drawn: navy field, gold monogram, wordmark in
-           both scripts. Built in HTML because an SVG would need <text> for the wordmark,
-           and then its layout depends on Segoe UI being installed - where it is not, the
-           three blocks collide. Flex takes whatever width the font gives it.
+        @* The lockup: gold monogram, then the wordmark, on the corporate navy.
 
-           The monogram is a path, so it is font-independent either way. Swap this block
-           for an <img> when the official asset is to hand. *@
+           If the official artwork has been dropped into wwwroot/brand it is used as-is.
+           Otherwise this composes a rendition - in markup rather than SVG, because an
+           SVG wordmark's layout depends on Segoe UI being installed and the two blocks
+           collide wherever it is not. Flex takes whatever width the font gives it. The
+           monogram is a path either way, so it never depends on a font. *@
         <div class="brand">
-            <div class="lockup" role="img" aria-label="Dubai Investments">
-                <span class="lockup-ar" dir="rtl" aria-hidden="true">
-                    <b>دبي</b><b>للاستثمار</b>
-                </span>
-                <svg class="lockup-mark" viewBox="0 0 56 64" aria-hidden="true">
-                    <path fill="currentColor" fill-rule="evenodd"
-                          d="M6 8h14a24 24 0 0 1 0 48H6V8Zm14 12a12 12 0 1 1-8.5 20.5L20 20Z" />
-                </svg>
-                <span class="lockup-en" aria-hidden="true">
-                    <b>Dubai</b><b>Investments</b>
-                </span>
-            </div>
+            @if (BrandAssets.LogoPath is { } logo)
+            {
+                <img class="lockup-asset" src="@logo" alt="Dubai Investments" />
+            }
+            else
+            {
+                <div class="lockup" role="img" aria-label="Dubai Investments">
+                    <svg class="lockup-mark" viewBox="0 0 64 64" aria-hidden="true">
+                        @* A bowl to the left of an upright stem, with a tilted counter. *@
+                        <path fill="currentColor" d="M54 8H42a24 24 0 0 0 0 48h12V8Z" />
+                        <ellipse cx="33" cy="31" rx="13" ry="8.5" fill="var(--di-navy)"
+                                 transform="rotate(-26 33 31)" />
+                    </svg>
+                    <span class="lockup-en">
+                        <b>Dubai</b><b>Investments</b>
+                    </span>
+                </div>
+            }
             <span class="brand-sub">Visitor Management</span>
         </div>
 

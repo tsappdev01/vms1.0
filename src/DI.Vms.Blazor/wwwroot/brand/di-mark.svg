@@ -1,8 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dubai Investments">
-  <!-- Square form of the lockup, for the browser tab. Same navy and gold. -->
+  <!-- Square form of the monogram, for the browser tab. Same navy and gold as the
+       lockup, and the same shape: a bowl to the left of an upright stem. -->
   <rect width="64" height="64" rx="13" fill="#123a5c"/>
-  <path fill="#bf9a38" fill-rule="evenodd"
-        d="M13 15h13a17 17 0 0 1 0 34H13V15Zm14.5 9.5a8.5 8.5 0 1 1-6 14.5l6-14.5Z"/>
-  <rect x="45" y="26" width="6" height="23" rx="1.6" fill="#ffffff"/>
-  <circle cx="48" cy="19.4" r="3.4" fill="#ffffff"/>
+  <path fill="#bf9a38" d="M48 13H38a20 20 0 0 0 0 38h10V13Z"/>
+  <ellipse cx="31" cy="31.5" rx="10.5" ry="7" fill="#123a5c" transform="rotate(-26 31 31.5)"/>
 </svg>

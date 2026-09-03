@@ -27,6 +27,8 @@ using (var scope = app.Services.CreateScope())
     await using var db = await factory.CreateDbContextAsync();
 
     await DbBootstrapper.EnsureSchemaAsync(db, logger);
+
+    BrandAssets.Locate(app.Environment.WebRootPath, logger);
 }
 
 if (!app.Environment.IsDevelopment())
