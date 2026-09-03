@@ -86,7 +86,8 @@ is present.
 
 The companies in the **Entity being visited** dropdown live only in `vms.Entity`. Nothing
 in the application seeds them — no `HasData`, no startup sync — so the list is changed with
-a SQL insert and a page refresh, not a rebuild and a redeploy. `IsActive = 0` takes an
+a SQL insert and a page refresh, not a rebuild and a redeploy. The script is
+[`db/seed_entities.sql`](../../db/seed_entities.sql), and it is re-runnable. `IsActive = 0` takes an
 entity out of the dropdown while its visitor history stays intact; the report's entity
 filter keeps such an entity while it still has visits behind it.
 
