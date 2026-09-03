@@ -89,7 +89,10 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                 // details are not what visitor management is for.
                 var data = reader.ReadPublicData(requestId, true, false, true, true, true);
 
-                var warning = ValidateResponse(requestId, data.XmlString);
+                /* Repaired before validation as well as before display: the signed XML
+                   comes through the same mangling, and a digest taken over mangled text
+                   never matches the one the card signed. */
+                var warning = ValidateResponse(requestId, CardText.Fix(data.XmlString));
                 var nm = data.NonModifiablePublicData;
                 var home = data.HomeAddress;
 
@@ -100,28 +103,28 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                     Photo = data.CardHolderPhoto?.ToArray(),
                     CardSignature = data.HolderSignatureImage?.ToArray(),
 
-                    IdType = nm?.IdType,
+                    IdType = CardText.Fix(nm?.IdType),
                     IssueDate = nm?.IssueDate,
                     ExpiryDate = nm?.ExpiryDate,
                     FullNameEnglish = CleanName(nm?.FullNameEnglish),
-                    FullNameRaw = nm?.FullNameEnglish,
+                    FullNameRaw = CardText.Fix(nm?.FullNameEnglish),
                     FullNameArabic = CleanName(nm?.FullNameArabic),
-                    TitleEnglish = nm?.TitleEnglish,
+                    TitleEnglish = CardText.Fix(nm?.TitleEnglish),
                     Gender = nm?.Gender,
                     DateOfBirth = nm?.DateOfBirth,
-                    NationalityEnglish = nm?.NationalityEnglish,
+                    NationalityEnglish = CardText.Fix(nm?.NationalityEnglish),
                     NationalityCode = nm?.NationalityCode,
-                    PlaceOfBirthEnglish = nm?.PlaceOfBirthEnglish,
+                    PlaceOfBirthEnglish = CardText.Fix(nm?.PlaceOfBirthEnglish),
 
-                    AddressEmirate = home?.EmirateEnglish,
-                    AddressCity = home?.CityEnglish,
-                    AddressArea = home?.AreaEnglish,
-                    AddressStreet = home?.StreetEnglish,
-                    AddressBuilding = home?.BuildingNameEnglish,
+                    AddressEmirate = CardText.Fix(home?.EmirateEnglish),
+                    AddressCity = CardText.Fix(home?.CityEnglish),
+                    AddressArea = CardText.Fix(home?.AreaEnglish),
+                    AddressStreet = CardText.Fix(home?.StreetEnglish),
+                    AddressBuilding = CardText.Fix(home?.BuildingNameEnglish),
                     AddressPoBox = home?.PoBox,
                     AddressPhone = home?.LandPhoneNumber,
                     AddressMobile = home?.MobilePhoneNumber,
-                    AddressEmail = home?.Email,
+                    AddressEmail = CardText.Fix(home?.Email),
 
                     SignatureWarning = warning,
                 };
@@ -288,10 +291,12 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
 
     /// <summary>
     /// The chip stores names as comma-delimited segments, most of them empty:
-    /// "NAYYAR JAWAID,,,,,ALI KHAN," is one person, not seven fields.
+    /// "NAYYAR JAWAID,,,,,ALI KHAN," is one person, not seven fields. The Arabic name is
+    /// delimited the same way, so it is repaired first and then joined identically.
     /// </summary>
     private static string CleanName(string? value)
     {
+        value = CardText.Fix(value);
         if (string.IsNullOrWhiteSpace(value)) return string.Empty;
 
         var joined = string.Join(' ', value

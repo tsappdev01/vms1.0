@@ -70,7 +70,10 @@ dotnet run --project src/DI.Vms.Blazor
 ```
 
 `https://localhost:7100`. The schema is created on first start via `EnsureCreated`, and
-the seven DI entities from BRD §6 are seeded with it — no separate script.
+the DI entities are synced on **every** start by `Data/EntitySeeder.cs` — no separate
+script. Deliberately not EF's `HasData`, which seeds only at database creation: the list
+would then never reach a database that already exists. The sync is additive and matches
+case-insensitively, so editing `EntitySeeder.Names` is all that is needed to add one.
 
 > `EnsureCreated` is right for a single-developer fresh start. Move to EF migrations before
 > more than one person shares the database, or before it holds anything you cannot drop.
@@ -82,11 +85,24 @@ number, card number, photograph, signature), **Non-Modifiable Data** (ID type, i
 expiry dates, names in English and Arabic, gender, date of birth, nationality, title,
 place of birth), and **Home Address**.
 
-Two things were learned from a real card and are handled rather than assumed:
+These were learned from a real card and are handled rather than assumed:
 
 **Names arrive comma-delimited with empty positions.** `NAYYAR JAWAID,,,,,ALI KHAN,` is
 one person, not seven fields. The non-empty segments are joined; the raw value is kept
 because the positions carry given/middle/family meaning.
+
+**Arabic arrives double-decoded on .NET 8.** The native toolkit keeps every attribute as
+UTF-8 bytes in a `char[]`; the managed binding reads it with `Marshal.PtrToStringAnsi`
+(ANSI code page) and repairs that by re-encoding through `Encoding.GetEncoding(0)` and
+decoding as UTF-8. On .NET Framework — the binding's own target, and the vendor samples' —
+code page 0 is the OS ANSI code page and the repair works. On .NET 8 `GetEncoding(0)` is
+UTF-8, so the round trip is the identity and the mangling survives: `نير جواد` shows as
+`Ù†ÙŠØ± Ø¬ÙˆØ§Ø¯`. `Services/CardText.cs` undoes it, inverting the ANSI *decode* rather
+than trusting the encoder — Windows-1252 leaves 0x81 undefined, and 0x81 is the second
+byte of `ف`. It only rewrites text that really was UTF-8 read as ANSI, so correct text and
+a future binding that fixes this itself both pass through untouched. The signed XML is
+repaired the same way before signature validation, since a digest over mangled text cannot
+match the one the card signed.
 
 **The signature is TIFF**, which no browser renders — WPF does, which is why the vendor
 sample shows it. It is converted to PNG server-side (`Services/ImageConverter.cs`). If
