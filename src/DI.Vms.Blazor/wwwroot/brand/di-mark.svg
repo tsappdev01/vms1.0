@@ -1,7 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dubai Investments">
-  <!-- Square form of the monogram, for the browser tab. Same navy and gold as the
-       lockup, and the same shape: a bowl to the left of an upright stem. -->
-  <rect width="64" height="64" rx="13" fill="#123a5c"/>
-  <path fill="#bf9a38" d="M48 13H38a20 20 0 0 0 0 38h10V13Z"/>
-  <ellipse cx="31" cy="31.5" rx="10.5" ry="7" fill="#123a5c" transform="rotate(-26 31 31.5)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Dubai Investments">
+  <!-- Square form of the monogram, for the browser tab. Same navy, gold and shape as the
+       lockup in MainLayout: a full bowl left of an upright stem, with an enclosed
+       teardrop counter. Replace wwwroot/brand/di-logo.svg to override the lockup;
+       this file is only the tab icon. -->
+  <rect width="100" height="100" rx="21" fill="#123a5c"/>
+  <g transform="translate(48 50) scale(.66) translate(-50 -50)">
+    <path fill="#bf9a38" d="M92 6H72a58 44 0 0 0 0 88h20V6Z"/>
+    <path fill="#123a5c" d="M36 70C37 54 41 41 51 34c13-9 25 0 19 14-6 14-19 20-34 22Z"/>
+  </g>
 </svg>
