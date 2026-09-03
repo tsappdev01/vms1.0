@@ -140,7 +140,7 @@ else if (step == 1 && card is not null)
 
     <div class="actions">
         <button @onclick="Restart">Read a different card</button>
-        <button class="primary" @onclick="() => step = 2">Continue</button>
+        <button class="primary" @onclick="ToVisitDetails">Continue</button>
     </div>
 }
 
@@ -158,13 +158,31 @@ else if (step == 2 && card is not null)
 
             <div class="field mt">
                 <label for="entity">Entity being visited</label>
-                <select id="entity" @bind="entityId">
-                    <option value="0">Select an entity…</option>
-                    @foreach (var e in entities)
-                    {
-                        <option value="@e.Id">@e.Name</option>
-                    }
-                </select>
+                @* The list is the Entity table, active rows only, read fresh from the
+                   database each time this screen opens. *@
+                @if (entities.Count == 0)
+                {
+                    <div class="banner warn">
+                        <strong>No entities.</strong>
+                        <span>
+                            The <code>vms.Entity</code> table has no active rows, so there is
+                            nothing to choose. It is populated on startup — check the
+                            application log for the entity sync, and the connection to
+                            <code>VMS</code> on <code>UATWEB01</code>.
+                        </span>
+                    </div>
+                    <button @onclick="LoadEntities">Retry</button>
+                }
+                else
+                {
+                    <select id="entity" @bind="entityId">
+                        <option value="0">Select an entity…</option>
+                        @foreach (var e in entities)
+                        {
+                            <option value="@e.Id">@e.Name</option>
+                        }
+                    </select>
+                }
             </div>
 
             <div class="field">
@@ -231,15 +249,36 @@ else if (step == 3 && saved is not null)
         await CheckReader();
     }
 
+    /// <summary>
+    /// Re-reads the entity list on the way in, so one added to the database while this tab
+    /// sat open is on offer without a page refresh.
+    /// </summary>
+    private async Task ToVisitDetails()
+    {
+        await LoadEntities();
+        step = 2;
+    }
+
+    /// <summary>
+    /// Reads the dropdown's options from the Entity table. Active rows only: an entity
+    /// that has been retired keeps its visitor history but is no longer offered.
+    /// </summary>
     private async Task LoadEntities()
     {
         try
         {
             await using var db = await DbFactory.CreateDbContextAsync();
-            entities = await db.DiEntities.Where(e => e.IsActive).OrderBy(e => e.Name).ToListAsync();
+            entities = await db.DiEntities
+                .Where(e => e.IsActive)
+                .OrderBy(e => e.Name)
+                .ToListAsync();
+
+            // A selection made before a reload may no longer be on offer.
+            if (entityId != 0 && entities.TrueForAll(e => e.Id != entityId)) entityId = 0;
         }
         catch (Exception ex)
         {
+            entities = [];
             Fail($"Could not load the entity list: {ex.Message}");
         }
     }

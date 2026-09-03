@@ -72,8 +72,14 @@ dotnet run --project src/DI.Vms.Blazor
 `https://localhost:7100`. The schema is created on first start via `EnsureCreated`, and
 the DI entities are synced on **every** start by `Data/EntitySeeder.cs` — no separate
 script. Deliberately not EF's `HasData`, which seeds only at database creation: the list
-would then never reach a database that already exists. The sync is additive and matches
-case-insensitively, so editing `EntitySeeder.Names` is all that is needed to add one.
+would then never reach a database that already exists.
+
+`EntitySeeder.Names` is the single source of truth for the dropdown. The sync inserts what
+is missing, reactivates anything listed again, and **retires** — `IsActive = false`, never
+deletes — anything no longer listed, so visitor entries keep pointing at a real row and an
+old report can still name the entity that was visited. The dropdown on New Visitor reads
+active rows only; the report's entity filter also keeps retired entities that still have
+visits behind them.
 
 > `EnsureCreated` is right for a single-developer fresh start. Move to EF migrations before
 > more than one person shares the database, or before it holds anything you cannot drop.

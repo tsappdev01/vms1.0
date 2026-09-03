@@ -102,7 +102,13 @@ else
     protected override async Task OnInitializedAsync()
     {
         await using var db = await DbFactory.CreateDbContextAsync();
-        entities = await db.DiEntities.OrderBy(e => e.Name).ToListAsync();
+        /* Retired entities stay selectable while they still have visits behind them, so a
+           report over an earlier period can still be filtered to one. Retired and unused
+           means it was never really in the list, and only clutters the filter. */
+        entities = await db.DiEntities
+            .Where(e => e.IsActive || db.VisitorEntries.Any(v => v.DiEntityId == e.Id))
+            .OrderBy(e => e.Name)
+            .ToListAsync();
         await Load();
     }
 
