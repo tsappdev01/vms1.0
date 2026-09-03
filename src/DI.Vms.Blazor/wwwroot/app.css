@@ -202,11 +202,17 @@ code {
 
 .app { display: grid; grid-template-columns: 248px 1fr; min-height: 100%; }
 
+/* Pinned to the viewport with its own scroll, so the panel and the build stamp at its
+   foot stay on screen. Left in the page flow it grows past the bottom of the window and
+   the stamp - the one thing that says which build is running - is never visible. */
 .sidebar {
   display: flex; flex-direction: column; gap: 4px;
   padding: 0 14px 16px;
   background: var(--surface);
   border-right: 1px solid var(--border);
+  position: sticky; top: 0;
+  height: 100vh; height: 100dvh;
+  overflow-y: auto;
 }
 
 .brand {
@@ -312,7 +318,12 @@ code {
 
 @media (max-width: 860px) {
   .app { grid-template-columns: 1fr; }
-  .sidebar { flex-direction: row; align-items: center; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
+  /* A bar across the top on narrow screens, so it must not be viewport-tall. */
+  .sidebar {
+    flex-direction: row; align-items: center; flex-wrap: wrap;
+    border-right: none; border-bottom: 1px solid var(--border);
+    position: static; height: auto; overflow: visible;
+  }
   .brand { border-bottom: none; margin: 0 10px 0 0; padding: 10px 0; width: 168px; }
   .brand-sub { display: none; }
   .side-foot { display: none; }
