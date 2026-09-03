@@ -196,12 +196,20 @@
 
                 <div class="actions">
                     <button class="primary large" @onclick="ReadCard" disabled="@reading">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="17" height="17" aria-hidden="true">
-                            <path d="M4 8a12 12 0 0 1 0 8M8.5 6a16 16 0 0 1 0 12" />
-                            <circle cx="15" cy="12" r="2.5" />
-                            <path d="M19 9.5a5 5 0 0 1 0 5" />
-                        </svg>
-                        @(reading ? "Reading card…" : "Read Card")
+                        @if (reading)
+                        {
+                            <span class="spinner" aria-hidden="true"></span>
+                            <text>Reading card…</text>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="17" height="17" aria-hidden="true">
+                                <path d="M4 8a12 12 0 0 1 0 8M8.5 6a16 16 0 0 1 0 12" />
+                                <circle cx="15" cy="12" r="2.5" />
+                                <path d="M19 9.5a5 5 0 0 1 0 5" />
+                            </svg>
+                            <text>Read Card</text>
+                        }
                     </button>
                     <button @onclick="CheckReader" disabled="@reading">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="16" height="16" aria-hidden="true">
@@ -211,13 +219,46 @@
                     </button>
                 </div>
 
-                <div class="tip">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M9 18h6M10 21h4" />
-                        <path d="M12 3a6 6 0 0 1 3.5 10.9V15h-7v-1.1A6 6 0 0 1 12 3Z" />
-                    </svg>
-                    <span><b>Tip:</b> Ensure the card chip is clean and try again if not detected.</span>
-                </div>
+                @* While a read is in flight the phase replaces the tip: the tip is advice
+                   for when nothing is happening, and two panels would just compete. *@
+                @if (reading)
+                {
+                    <div class="tip">
+                        <span class="reading-phase">
+                            <span class="spinner" aria-hidden="true"></span>
+                            <span aria-live="polite">@readingPhase</span>
+                        </span>
+                    </div>
+                }
+                else
+                {
+                    @* Offered only after three failures. Before that, the reader is the
+                       better answer and a manual shortcut would only invite skipping it. *@
+                    @if (failedReads >= 3)
+                    {
+                        <div class="fallback">
+                            <strong>The card has not been read after @failedReads attempts.</strong>
+                            <p>
+                                Enter the visitor's details by hand instead? The entry will be
+                                marked as entered manually, so it is never taken for a chip read.
+                            </p>
+                            <div class="actions">
+                                <button @onclick="StartManualEntry">Enter manually</button>
+                                <button class="primary" @onclick="ReadCard" disabled="@reading">Try again</button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 18h6M10 21h4" />
+                                <path d="M12 3a6 6 0 0 1 3.5 10.9V15h-7v-1.1A6 6 0 0 1 12 3Z" />
+                            </svg>
+                            <span><b>Tip:</b> Ensure the card chip is clean and try again if not detected.</span>
+                        </div>
+                    }
+                }
             </div>
         </div>
     </section>
@@ -260,6 +301,84 @@
 }
 
 @* ------------------------------------------- 2. Visitor information from the chip *@
+
+else if (step == 1 && card is not null && IsManual)
+{
+    @* Typed, not read. No card facsimile: drawing a picture of an Emirates ID from
+       keystrokes would present typing as evidence. *@
+    <section class="card narrow">
+        <div class="card-head">
+            <h2>Visitor Details</h2>
+            <span class="badge-manual">Entered manually</span>
+        </div>
+        <div class="card-body">
+            <p class="muted">
+                Copy these from the face of the card. ID number and full name are required;
+                the rest are recorded when given.
+            </p>
+
+            <div class="grid-2 mt">
+                <div class="field">
+                    <label for="m-id">ID Number <span class="req">required</span></label>
+                    <input id="m-id" @bind="manual.IdNumber" @bind:event="oninput"
+                           placeholder="784-1979-4076928-0" inputmode="numeric" autocomplete="off" />
+                    @if (IdDigits.Length > 0 && IdDigits.Length != 15)
+                    {
+                        <span class="field-note warn">
+                            @IdDigits.Length of 15 digits. An Emirates ID number has 15.
+                        </span>
+                    }
+                </div>
+
+                <div class="field">
+                    <label for="m-card">Card Number</label>
+                    <input id="m-card" @bind="manual.CardNumber" placeholder="139620213" autocomplete="off" />
+                </div>
+
+                <div class="field">
+                    <label for="m-name">Full Name (English) <span class="req">required</span></label>
+                    <input id="m-name" @bind="manual.FullNameEnglish" @bind:event="oninput"
+                           placeholder="As printed on the card" autocomplete="off" />
+                </div>
+
+                <div class="field">
+                    <label for="m-name-ar">Full Name (Arabic)</label>
+                    <input id="m-name-ar" @bind="manual.FullNameArabic" dir="rtl" autocomplete="off" />
+                </div>
+
+                <div class="field">
+                    <label for="m-nat">Nationality</label>
+                    <input id="m-nat" @bind="manual.NationalityEnglish" placeholder="Pakistan" autocomplete="off" />
+                </div>
+
+                <div class="field">
+                    <label for="m-dob">Date of Birth</label>
+                    <input id="m-dob" @bind="manual.DateOfBirth" placeholder="08/10/1979" autocomplete="off" />
+                </div>
+
+                <div class="field">
+                    <label for="m-expiry">Card Expiry</label>
+                    <input id="m-expiry" @bind="manual.ExpiryDate" placeholder="25/08/2028" autocomplete="off" />
+                </div>
+
+                <div class="field">
+                    <label for="m-mobile">Mobile</label>
+                    <input id="m-mobile" @bind="manual.AddressMobile" inputmode="tel" autocomplete="off" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button @onclick="Restart">Back to the reader</button>
+                <button class="primary" @onclick="ToVisitDetails" disabled="@(!ManualIsComplete)">
+                    Continue
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                        <path d="M5 12h13M13 6l6 6-6 6" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+}
 
 else if (step == 1 && card is not null)
 {
@@ -360,7 +479,13 @@ else if (step == 1 && card is not null)
 else if (step == 2 && card is not null)
 {
     <section class="card narrow">
-        <div class="card-head"><h2>Visit Details</h2></div>
+        <div class="card-head">
+            <h2>Visit Details</h2>
+            @if (IsManual)
+            {
+                <span class="badge-manual">Entered manually</span>
+            }
+        </div>
         <div class="card-body">
             <div class="readout">
                 <dt>Visitor</dt><dd>@card.FullNameEnglish</dd>
@@ -440,6 +565,17 @@ else if (step == 3 && saved is not null)
                 <dt>Entity</dt><dd>@entities.FirstOrDefault(e => e.Id == saved.DiEntityId)?.Name</dd>
                 <dt>Person to visit</dt><dd>@saved.PersonToVisit</dd>
                 <dt>Recorded</dt><dd class="mono">@ToGst(saved.RecordedAtUtc) GST</dd>
+                <dt>Source</dt>
+                <dd>
+                    @if (saved.CaptureMethod == "Manual")
+                    {
+                        <span class="badge-manual">Entered manually</span>
+                    }
+                    else
+                    {
+                        <text>Read from the chip</text>
+                    }
+                </dd>
             </div>
             <div class="actions">
                 <button class="primary" @onclick="Restart">New Visitor</button>
@@ -468,6 +604,30 @@ else if (step == 3 && saved is not null)
 
     private int step;
     private bool reading;
+    private string? readingPhase;
+
+    /// <summary>
+    /// Consecutive failed reads. After three the attendant is offered manual entry,
+    /// because a queue at the desk should not depend on a chip that will not answer.
+    /// Reset by a successful read and by starting over.
+    /// </summary>
+    private int failedReads;
+
+    /// <summary>
+    /// How the identity in front of us was obtained. Stored on the entry, so a typed
+    /// record is never mistaken for one the chip produced.
+    /// </summary>
+    private string captureMethod = "CardReader";
+
+    private bool IsManual => captureMethod == "Manual";
+
+    /// <summary>
+    /// The manual form's model. Non-nullable so the field bindings need no null-forgiving
+    /// operators; <c>card</c> is pointed at this same object, so everything downstream -
+    /// visit details, save, the report - reads one place regardless of how the identity
+    /// was obtained.
+    /// </summary>
+    private CardData manual = new();
     private bool saving;
     private string? message;
     private string messageKind = "";
@@ -485,6 +645,29 @@ else if (step == 3 && saved is not null)
     {
         await LoadEntities();
         await CheckReader();
+    }
+
+    /// <summary>The ID number reduced to digits, for the length check and for storage.</summary>
+    private string IdDigits =>
+        new(manual.IdNumber.Where(char.IsAsciiDigit).ToArray());
+
+    /// <summary>The two fields a visitor entry cannot be written without.</summary>
+    private bool ManualIsComplete =>
+        IdDigits.Length > 0 && !string.IsNullOrWhiteSpace(manual.FullNameEnglish);
+
+    /// <summary>
+    /// Switches to typing the details in. A blank CardData is used as the form's model so
+    /// the rest of the flow - visit details, save, the report - needs no second path;
+    /// captureMethod is what keeps the two kinds of record apart.
+    /// </summary>
+    private void StartManualEntry()
+    {
+        manual = new CardData();
+        card = manual;
+        signatureDataUrl = null;
+        captureMethod = "Manual";
+        message = null;
+        step = 1;
     }
 
     /// <summary>
@@ -530,21 +713,36 @@ else if (step == 3 && saved is not null)
     private async Task ReadCard()
     {
         reading = true;
+        readingPhase = "Starting…";
         message = null;
+
+        /* Progress<T> posts its callbacks to the circuit's dispatcher, so setting state
+           and re-rendering from here is safe. */
+        var progress = new Progress<string>(phase =>
+        {
+            readingPhase = phase;
+            StateHasChanged();
+        });
+
         try
         {
-            card = await Reader.ReadAsync();
+            card = await Reader.ReadAsync(progress);
             signatureDataUrl = ImageConverter.ToDisplayableDataUrl(card.CardSignature, Logger);
+            captureMethod = "CardReader";
+            failedReads = 0;
             step = 1;
         }
         catch (Exception ex)
         {
+            failedReads++;
+            Logger.LogWarning(ex, "Card read failed (attempt {Attempt})", failedReads);
             Fail(ex.Message);
             readerState = await Reader.GetStateAsync();
         }
         finally
         {
             reading = false;
+            readingPhase = null;
         }
     }
 
@@ -558,7 +756,10 @@ else if (step == 3 && saved is not null)
         {
             var entry = new VisitorEntry
             {
-                IdNumber = card.IdNumber,
+                /* Digits only, so a typed record and a chip read of the same person land
+                   on the same IdNumber - which is indexed, and is how a repeat visitor is
+                   found. The chip returns it unpunctuated; a person types the dashes. */
+                IdNumber = IsManual ? IdDigits : card.IdNumber,
                 CardNumber = card.CardNumber,
                 Photo = card.Photo,
                 CardSignature = card.CardSignature,
@@ -586,7 +787,7 @@ else if (step == 3 && saved is not null)
                 DiEntityId = entityId,
                 PersonToVisit = personToVisit.Trim(),
                 RecordedAtUtc = DateTimeOffset.UtcNow,
-                CaptureMethod = "CardReader",
+                CaptureMethod = captureMethod,
             };
 
             await using var db = await DbFactory.CreateDbContextAsync();
@@ -615,6 +816,11 @@ else if (step == 3 && saved is not null)
         entityId = 0;
         personToVisit = string.Empty;
         message = null;
+
+        // A fresh visitor starts from the reader, and gets its own three attempts.
+        captureMethod = "CardReader";
+        failedReads = 0;
+
         await CheckReader();
     }
 
