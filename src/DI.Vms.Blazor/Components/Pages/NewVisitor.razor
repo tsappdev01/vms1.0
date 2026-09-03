@@ -1,5 +1,6 @@
 @page "/"
 @rendermode InteractiveServer
+@implements IDisposable
 @inject CardReaderService Reader
 @inject ILogger<NewVisitor> Logger
 @inject IDbContextFactory<VmsDbContext> DbFactory
@@ -583,7 +584,7 @@ else if (step == 2 && card is not null)
 
             <div class="actions">
                 <button @onclick="() => step = 1">Back</button>
-                <button class="primary" @onclick="Save"
+                <button class="primary" @onclick="AskToSave"
                         disabled="@(saving || !VisitIsComplete)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
                         <path d="M5 12.5l4.5 4.5L19 7" />
@@ -644,6 +645,78 @@ else if (step == 3 && saved is not null)
             </div>
         </div>
     </section>
+}
+
+@* --------------------------------------------------- Confirm before committing *@
+
+@* A last look rather than a bare "are you sure": the whole point of the pause is to
+   catch the wrong entity or the wrong host, so the dialog restates what will be
+   written. Escape and Cancel both back out. *@
+@if (confirming && card is not null)
+{
+    <div class="backdrop" @onclick="() => confirming = false"></div>
+
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title"
+         @onkeydown="OnConfirmKeyDown" tabindex="-1">
+        <div class="modal-head">
+            <h2 id="confirm-title">Save this entry?</h2>
+            @if (IsManual)
+            {
+                <span class="badge-manual">Entered manually</span>
+            }
+        </div>
+
+        <div class="modal-body">
+            <div class="readout compact">
+                <dt>Visitor</dt><dd>@card.FullNameEnglish</dd>
+                <dt>ID Number</dt><dd class="mono">@(IsManual ? IdDigits : card.IdNumber)</dd>
+                <dt>Entity</dt><dd>@(entities.FirstOrDefault(e => e.Id == entityId)?.Name ?? "—")</dd>
+                <dt>Person to visit</dt>
+                <dd>
+                    @personToVisit@(host?.Title is { Length: > 0 } t ? $" · {t}" : "")
+                    @if (host is null)
+                    {
+                        <span class="picked typed">typed, not from the list</span>
+                    }
+                </dd>
+                <dt>Purpose</dt>
+                <dd>@purpose@(purpose == OtherPurpose ? $" — {purposeOther}" : "")</dd>
+            </div>
+
+            <p class="hint mt">Recorded with the time it is saved, in Gulf Standard Time.</p>
+        </div>
+
+        <div class="modal-actions">
+            <button @onclick="() => confirming = false" disabled="@saving">Cancel</button>
+            <button class="primary" @onclick="Save" disabled="@saving" @ref="confirmButton">
+                @if (saving)
+                {
+                    <span class="spinner" aria-hidden="true"></span>
+                    <text>Saving…</text>
+                }
+                else
+                {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                        <path d="M5 12.5l4.5 4.5L19 7" />
+                    </svg>
+                    <text>Confirm and save</text>
+                }
+            </button>
+        </div>
+    </div>
+}
+
+@* ------------------------------------------------------------------- Toast *@
+
+@if (toast is not null)
+{
+    <div class="toast" role="status" aria-live="polite">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M8.4 12.4l2.6 2.6 4.6-5.2" />
+        </svg>
+        <span>@toast</span>
+        <button class="toast-close" @onclick="DismissToast" aria-label="Dismiss">&times;</button>
+    </div>
 }
 
 @code {
@@ -724,6 +797,22 @@ else if (step == 3 && saved is not null)
 
     private bool searchAllEntities;
 
+    /// <summary>True while the confirmation is up. Saving is only reachable through it.</summary>
+    private bool confirming;
+
+    private ElementReference confirmButton;
+    private bool confirmNeedsFocus;
+
+    /// <summary>The toast's text, or null when nothing is being shown.</summary>
+    private string? toast;
+
+    /// <summary>
+    /// Hides the toast after a few seconds. Cancelled and replaced when a new toast
+    /// arrives, so an earlier one cannot dismiss a later one, and on dispose, so a
+    /// closed circuit is not rendered into.
+    /// </summary>
+    private CancellationTokenSource? toastTimer;
+
     /// <summary>
     /// True when the last search found nobody in the selected entity but would have found
     /// somebody elsewhere - which is the only case worth telling the attendant about.
@@ -802,6 +891,74 @@ else if (step == 3 && saved is not null)
     {
         await LoadEntities();
         await CheckReader();
+    }
+
+    /// <summary>
+    /// Puts the keyboard in the dialog as it opens, so Enter confirms and Escape backs
+    /// out without reaching for the mouse - and so the confirmation is not a step that
+    /// slows a queue down.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!confirmNeedsFocus) return;
+
+        confirmNeedsFocus = false;
+        try
+        {
+            await confirmButton.FocusAsync();
+        }
+        catch
+        {
+            // The dialog closed between render and focus; nothing to focus.
+        }
+    }
+
+    private void AskToSave()
+    {
+        confirming = true;
+        confirmNeedsFocus = true;
+    }
+
+    private void OnConfirmKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") confirming = false;
+    }
+
+    private void DismissToast()
+    {
+        toastTimer?.Cancel();
+        toast = null;
+    }
+
+    /// <summary>
+    /// Shows a toast and takes it away again after a moment. Deliberately not awaited by
+    /// the caller: the message is feedback, not part of the save.
+    /// </summary>
+    private void ShowToast(string text)
+    {
+        toastTimer?.Cancel();
+        toastTimer?.Dispose();
+        toastTimer = new CancellationTokenSource();
+        var token = toastTimer.Token;
+
+        toast = text;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), token);
+                await InvokeAsync(() =>
+                {
+                    toast = null;
+                    StateHasChanged();
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                // Replaced by a newer toast, dismissed by hand, or the circuit is gone.
+            }
+        });
     }
 
     /// <summary>The ID number reduced to digits, for the length check and for storage.</summary>
@@ -958,7 +1115,10 @@ else if (step == 3 && saved is not null)
             await db.SaveChangesAsync();
 
             saved = entry;
+            confirming = false;
             step = 3;
+
+            ShowToast("Visitor has been saved.");
         }
         catch (Exception ex)
         {
@@ -1000,6 +1160,12 @@ else if (step == 3 && saved is not null)
 
     private static string ToDataUrl(byte[] bytes, string mime) =>
         $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+
+    public void Dispose()
+    {
+        toastTimer?.Cancel();
+        toastTimer?.Dispose();
+    }
 
     private static string ToGst(DateTimeOffset instant) =>
         instant.ToOffset(TimeSpan.FromHours(4)).ToString("dd MMM yyyy HH:mm:ss");

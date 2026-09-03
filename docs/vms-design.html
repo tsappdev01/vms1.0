@@ -744,7 +744,8 @@
         <li><strong>Insert card.</strong> Reader and card presence, toolkit version and licence expiry. "No card" and "no reader" are both normal idle states, not errors.</li>
         <li><strong>Visitor information.</strong> An identity strip first — photograph, name in English and Arabic, ID number, nationality, card expiry, signature — answering <em>who am I looking at</em> before the field-by-field readout does. Then everything the chip returned, grouped exactly as the vendor's own tool groups it: Identity, Non-Modifiable Data, Home Address.</li>
         <li><strong>Visit details.</strong> Entity from a dropdown read live from the database, person to visit as free text. Save stays disabled until both are set.</li>
-        <li><strong>Saved.</strong> Reference number, visitor, entity, person, and the stamp rendered in Gulf Standard Time.</li>
+        <li><strong>Confirm.</strong> Save asks first, and the dialog restates what will be written — visitor, ID, entity, host and purpose. Not a bare <em>are you sure</em>: the point of the pause is to catch the wrong entity or the wrong host, which only a restatement can do. Enter confirms, Escape backs out.</li>
+        <li><strong>Saved.</strong> Reference number, visitor, entity, person, purpose, source, and the stamp rendered in Gulf Standard Time. A toast confirms the write at the moment it happens, since the screen changes underneath it.</li>
       </ol>
 
       <div class="decision">
