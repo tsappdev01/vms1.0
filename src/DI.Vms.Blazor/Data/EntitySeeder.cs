@@ -6,9 +6,8 @@ namespace DI.Vms.Blazor.Data;
 /// Makes the entity table match <see cref="Names"/>, on every startup, so the dropdown on
 /// the New Visitor screen is driven entirely from the database.
 ///
-/// Deliberately not EF's HasData: that seeds only when the database is created, so a
-/// change to the list would never reach a database that already exists - and VMS on
-/// UATWEB01 already does.
+/// Deliberately not EF's HasData: that only ever runs when the table is created, so a
+/// change to the list would never reach a database that already holds one.
 ///
 /// Entities no longer listed are retired rather than deleted: visitor entries reference
 /// them, and a report covering last month must still be able to name the entity that was

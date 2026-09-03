@@ -16,18 +16,17 @@ builder.Services.AddSingleton<CardReaderService>();
 
 var app = builder.Build();
 
-/* Applies the schema on startup so a fresh database needs no separate step. Migrations
-   would be the right answer once the schema is stable and shared. */
+/* Brings the database up to what the code expects on startup, so neither a fresh
+   database nor UATWEB01 - which already exists, holding tables from an earlier design -
+   needs a separate step. Both are deliberately not EnsureCreated / HasData; see each. */
 using (var scope = app.Services.CreateScope())
 {
     var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<VmsDbContext>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
     await using var db = await factory.CreateDbContextAsync();
-    await db.Database.EnsureCreatedAsync();
 
-    // Additive, and runs every start, so the entity list can be changed in code and
-    // reaches an existing database - which HasData would not.
+    await DbBootstrapper.EnsureSchemaAsync(db, logger);
     await EntitySeeder.SyncAsync(db, logger);
 }
 

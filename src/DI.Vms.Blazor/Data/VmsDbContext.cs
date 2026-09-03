@@ -17,10 +17,9 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
             e.HasIndex(x => x.Name).IsUnique();
 
-            /* Not seeded with HasData. EnsureCreated only seeds at creation, so a
-               HasData change never reaches a database that already exists - and this one
-               does. EntitySeeder syncs the list on every startup instead, which works on
-               both a fresh and an existing database. */
+            /* Not seeded with HasData: it only ever runs when a table is created, so a
+               change to the list would never reach a database that already holds one.
+               EntitySeeder syncs it on every startup instead. */
         });
 
         b.Entity<VisitorEntry>(e =>

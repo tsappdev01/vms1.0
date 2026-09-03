@@ -69,10 +69,24 @@ keeps those DLLs elsewhere, set `Toolkit:NativeDirectory`.
 dotnet run --project src/DI.Vms.Blazor
 ```
 
-`https://localhost:7100`. The schema is created on first start via `EnsureCreated`, and
-the DI entities are synced on **every** start by `Data/EntitySeeder.cs` — no separate
-script. Deliberately not EF's `HasData`, which seeds only at database creation: the list
-would then never reach a database that already exists.
+`https://localhost:7100`. Startup brings the database up to what the code expects, so
+there is no separate step: `Data/DbBootstrapper.cs` creates `vms.Entity` and
+`vms.VisitorEntry` if they are absent, then `Data/EntitySeeder.cs` syncs the entity list.
+
+Neither uses the obvious EF mechanism, and both for the same reason — those only run when
+something is *created*:
+
+- **Not `EnsureCreated`.** It creates the schema only when it creates the database, and
+  does nothing at all against a database that already exists, missing tables included.
+  `VMS` on UATWEB01 exists and holds ten tables from an earlier design, so it created
+  nothing and the first query failed with `Invalid object name 'vms.Entity'`. The
+  bootstrapper checks `sys.tables` against the model and generates the DDL from the model,
+  so there is no second copy of the schema to drift.
+- **Not `HasData`.** It only ever runs when the table is created, so a change to the
+  entity list would never reach a database that already holds one.
+
+Both are bootstraps, not migration tools: they create what is absent and never alter what
+is present.
 
 `EntitySeeder.Names` is the single source of truth for the dropdown. The sync inserts what
 is missing, reactivates anything listed again, and **retires** — `IsActive = false`, never
