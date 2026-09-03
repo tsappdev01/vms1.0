@@ -12,7 +12,12 @@ card-reading or database-bootstrap paths.
 
 Every SQL script goes in `db/`, committed, so it can be pulled and run — never pasted into
 chat only. One file per job, numbered and named for what it does, so the order to run them
-in is obvious: `001_seed_entities.sql`, `002_add_visit_purpose.sql`.
+in is obvious. `db/README.md` lists them and what each one is for.
+
+A script derived from a data file is **generated, never hand-written** — see
+`db/tools/generate_seed_people.py`, which turns the AD export into
+`004_seed_people.sql`. Regenerate it when the source changes rather than editing the SQL,
+and have the generator fail loudly if the source's shape is not what it expects.
 
 Scripts must be **re-runnable**: guard DDL with `IF OBJECT_ID(...) IS NULL` and
 `sys.indexes`, guard inserts with `NOT EXISTS`, and put `CREATE SCHEMA` and each

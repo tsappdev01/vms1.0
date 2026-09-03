@@ -82,6 +82,20 @@ and generates the DDL from the model, so there is no second copy of the schema t
 It is a bootstrap, not a migration tool: it creates what is absent and never alters what
 is present.
 
+### The host list is data too
+
+**Person to visit** is a type-ahead over `vms.Person`, seeded from the AD export by
+`db/004_seed_people.sql` — 725 people. Suggestions are narrowed to the selected entity,
+with *Search all entities* to widen them, because 436 of those people belong to a company
+that has no entity in the list; see `db/README.md`. A name that is not in the list can
+still be typed, and the entry records which it was: an unlisted contractor must not stop a
+check-in at the desk.
+
+The visit stores the host twice over — `PersonToVisitId` when one was picked, and a copy of
+the name, title, email and company either way. The key makes the link traceable; the copy
+makes the record stable, because a host who changes title or leaves must not rewrite what
+an earlier report said.
+
 ### The entity list is data, not code
 
 The companies in the **Entity being visited** dropdown live only in `vms.Entity`. Nothing
