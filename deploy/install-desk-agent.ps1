@@ -53,7 +53,41 @@ $process = Start-Process msiexec.exe -Wait -PassThru -ArgumentList @(
 
 # 3010 is success-but-reboot-required, which is not a failure.
 if ($process.ExitCode -notin @(0, 3010)) {
-    throw "msiexec returned $($process.ExitCode). The verbose log is at $log."
+
+    <#
+        1603 in particular means nothing on its own - it is msiexec's "something went
+        wrong". The reason is in the verbose log, and the way to find it is the action
+        recorded just before the first "Return value 3": that is the one that failed, and
+        everything after it is the rollback. Digging it out by hand across a dozen desks
+        is a waste of somebody's evening.
+    #>
+    Write-Host ''
+    Write-Warning "msiexec returned $($process.ExitCode). From the log:"
+
+    $failure = Select-String -Path $log -Pattern 'Return value 3\.' -Context 12, 0 -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+
+    if ($failure) {
+        # Only the lines that name something: the log's timing and property noise is not
+        # what anyone is reading this for.
+        $failure.Context.PreContext |
+            Where-Object { $_ -match 'Action (start|ended)|Error|Note: 1:|MSI \(s\).*Product:' } |
+            Select-Object -Last 6 |
+            ForEach-Object { Write-Host "    $($_.Trim())" }
+    }
+
+    Select-String -Path $log -Pattern 'Installation (failed|success)|Error 1[0-9]{3}' -ErrorAction SilentlyContinue |
+        Select-Object -Last 3 |
+        ForEach-Object { Write-Host "    $($_.Line.Trim())" }
+
+    Write-Host ''
+    Write-Host 'Things that produce 1603 here, commonest first:'
+    Write-Host '  - A version is already installed. Uninstall it in Apps & Features, then re-run.'
+    Write-Host '  - A prerequisite is missing - usually the VC++ 2013 x64 redistributable.'
+    Write-Host '  - The installer wants to be interactive. Try:  msiexec /i "<path to msi>"'
+    Write-Host ''
+
+    throw "msiexec returned $($process.ExitCode). The full verbose log is at $log."
 }
 if ($process.ExitCode -eq 3010) { Write-Warning 'The installer wants a reboot before the agent will run.' }
 
