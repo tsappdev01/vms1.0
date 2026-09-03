@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
 using System.Text;
+using System.Xml;
 using System.Threading;
 using System.Web.Script.Serialization;
 using AE.EmiratesId.IdCard;
@@ -228,7 +231,7 @@ namespace DI.Vms.CardBridge
             // The holder's signature and address are deliberately not read. BRD 3 says
             // capture only what visitor management needs, and the acknowledgement
             // signature is drawn fresh at check-in.
-            var requestId = Guid.NewGuid().ToString("N");
+            var requestId = GenerateRequestId();
 
             var cardReader = _toolkit.GetReaderWithEmiratesId();
             cardReader.Connect();
@@ -236,6 +239,11 @@ namespace DI.Vms.CardBridge
             try
             {
                 var data = cardReader.ReadPublicData(requestId, true, false, wantPhoto, false, false);
+
+                // The response must echo our request id and carry a valid signature.
+                // Without this an identity read is only as trustworthy as the channel
+                // it arrived on, which for a security system is not good enough.
+                var signatureWarning = ValidateResponse(requestId, data.XmlString);
 
                 var nonModifiable = data.NonModifiablePublicData;
                 var result = new Dictionary<string, object>
@@ -252,6 +260,7 @@ namespace DI.Vms.CardBridge
                     { "gender", nonModifiable == null ? null : nonModifiable.Gender },
                     { "idType", nonModifiable == null ? null : nonModifiable.IdType },
                     { "photoBase64", null },
+                    { "signatureWarning", signatureWarning },
                 };
 
                 if (wantPhoto && data.CardHolderPhoto != null)
@@ -276,9 +285,20 @@ namespace DI.Vms.CardBridge
 
                 try
                 {
-                    var genuine = cardReader.IsCardGenuine(Guid.NewGuid().ToString("N"));
-                    verification["isGenuine"] = genuine != null;
+                    var genuineRequestId = GenerateRequestId();
+                    var genuine = cardReader.IsCardGenuine(genuineRequestId);
+                    ValidateResponse(genuineRequestId, genuine == null ? null : genuine.XmlString);
+
+                    var verdict = StatusOf(genuine);
+                    verification["isGenuine"] = verdict != null &&
+                        verdict.IndexOf("genuine", StringComparison.OrdinalIgnoreCase) >= 0;
+                    verification["genuineStatus"] = verdict;
                     verification["vgAvailable"] = true;
+                }
+                catch (ToolkitException ex)
+                {
+                    verification["verificationError"] = ex.Message;
+                    verification["verificationVgResponse"] = ex.VGResponse;
                 }
                 catch (Exception ex)
                 {
@@ -287,9 +307,17 @@ namespace DI.Vms.CardBridge
 
                 try
                 {
-                    var status = cardReader.CheckCardStatus(Guid.NewGuid().ToString("N"));
-                    verification["cardStatus"] = status == null ? "Unknown" : status.ToString();
+                    var statusRequestId = GenerateRequestId();
+                    var status = cardReader.CheckCardStatus(statusRequestId);
+                    ValidateResponse(statusRequestId, status == null ? null : status.XmlString);
+
+                    verification["cardStatus"] = StatusOf(status) ?? "Unknown";
                     verification["vgAvailable"] = true;
+                }
+                catch (ToolkitException ex)
+                {
+                    verification["statusError"] = ex.Message;
+                    verification["statusVgResponse"] = ex.VGResponse;
                 }
                 catch (Exception ex)
                 {
@@ -302,6 +330,93 @@ namespace DI.Vms.CardBridge
             finally
             {
                 try { cardReader.Disconnect(); } catch { /* the card may already be out */ }
+            }
+        }
+
+        /// <summary>The card status string, falling back to the numeric response status.</summary>
+        private static string StatusOf(ToolkitResponse response)
+        {
+            if (response == null) return null;
+            return !string.IsNullOrEmpty(response.Status)
+                ? response.Status
+                : response.ResponseStatus.ToString();
+        }
+
+        /// <summary>40 cryptographically random bytes, as the vendor sample uses.</summary>
+        private static string GenerateRequestId()
+        {
+            var bytes = new byte[40];
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                rng.GetBytes(bytes);
+            }
+            return Convert.ToBase64String(bytes);
+        }
+
+        /// <summary>
+        /// Checks the toolkit's XML response against the request that produced it.
+        ///
+        /// A mismatched request id means the response does not belong to this request, so
+        /// it is rejected outright. A failed signature is returned as a warning rather
+        /// than thrown, matching the vendor sample: CheckSignature() validates against the
+        /// key carried inside the response, so on its own it proves internal consistency
+        /// rather than provenance. Pinning it to the licence's server certificate would be
+        /// the stronger control, and is not possible until ICP supply ServerTLSCert.
+        /// </summary>
+        private static string ValidateResponse(string requestId, string xml)
+        {
+            if (string.IsNullOrEmpty(xml)) return null;
+
+            if (!RequestIdMatches(requestId, xml))
+            {
+                throw new InvalidOperationException(
+                    "Request ID verification failed - the response may have been tampered with.");
+            }
+
+            return VerifySignature(xml) ? null : "Response signature verification failed.";
+        }
+
+        private static bool RequestIdMatches(string requestId, string xml)
+        {
+            try
+            {
+                // DTD processing off and no resolver: this XML is parsed before it is
+                // trusted, so it must not be able to fetch anything.
+                var settings = new XmlReaderSettings
+                {
+                    DtdProcessing = DtdProcessing.Prohibit,
+                    XmlResolver = null,
+                };
+
+                using (var reader = XmlReader.Create(new StringReader(xml), settings))
+                {
+                    if (!reader.ReadToFollowing("RequestID")) return false;
+                    return string.Equals(requestId, reader.ReadElementContentAsString(), StringComparison.Ordinal);
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool VerifySignature(string xml)
+        {
+            try
+            {
+                var document = new XmlDocument { XmlResolver = null, PreserveWhitespace = false };
+                document.LoadXml(xml);
+
+                var nodes = document.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
+                if (nodes.Count == 0) return false;
+
+                var signedXml = new SignedXml(document);
+                signedXml.LoadXml((XmlElement)nodes[0]);
+                return signedXml.CheckSignature();
+            }
+            catch
+            {
+                return false;
             }
         }
 

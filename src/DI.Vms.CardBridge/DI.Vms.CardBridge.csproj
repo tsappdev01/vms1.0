@@ -23,6 +23,8 @@
       <Private>true</Private>
     </Reference>
     <Reference Include="System.Net.Http" />
+    <!-- SignedXml, for verifying the toolkit response signature -->
+    <Reference Include="System.Security" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 

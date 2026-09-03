@@ -92,6 +92,28 @@ VITE_CARD_READER=bridge
 
 Then reload the portal. **New Visitor → Read Emirates ID** now uses the real card.
 
+## Response validation
+
+Every toolkit call returns signed XML, and the bridge checks it before trusting the
+contents, following `EIDAToolkitModernApp/Services/ToolkitService.cs`:
+
+| Check | On failure |
+|---|---|
+| The response echoes the **request id** we sent | **Rejected.** A mismatch means the response does not belong to this request. |
+| The XML **signature** verifies | Returned as `signatureWarning`. |
+
+Request ids are 40 cryptographically random bytes, as the vendor sample uses — not a
+GUID, which is shorter and not required to be generated from a CSPRNG.
+
+The signature check is the weaker of the two, and deliberately non-fatal.
+`SignedXml.CheckSignature()` validates against the key carried **inside the response**,
+so on its own it proves internal consistency rather than provenance. Pinning it to the
+licence's server certificate would be the real control, and needs `ServerTLSCert`, which
+the current licence does not contain. Worth raising with ICP.
+
+The XML is parsed with DTD processing prohibited and no resolver: it is parsed before it
+is trusted, so it must not be able to fetch anything.
+
 ## Not yet verified
 
 This has never been compiled or run — it was written in an environment with no Windows,
