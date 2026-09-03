@@ -42,6 +42,7 @@
   --radius-lg: 14px;
   --shadow-sm: 0 1px 2px rgba(15, 27, 38, .05);
   --shadow:    0 1px 2px rgba(15, 27, 38, .05), 0 6px 18px rgba(15, 27, 38, .045);
+  --scroll-shadow: rgba(15, 27, 38, .17);
   --font: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
@@ -78,6 +79,7 @@
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
     --shadow:    0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
+    --scroll-shadow: rgba(0, 0, 0, .6);
   }
 }
 
@@ -112,6 +114,7 @@
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
   --shadow:    0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
+  --scroll-shadow: rgba(0, 0, 0, .6);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -299,7 +302,7 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 }
 .card.narrow { max-width: 640px; }
 .card-head {
-  display: flex; align-items: baseline; gap: 10px;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
   padding: 14px 20px;
   border-bottom: 1px solid var(--gridline);
   background: var(--surface);
@@ -443,10 +446,74 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
   font-size: 11.5px; color: var(--text-muted); text-align: center; padding: 8px;
 }
 
-.saved-mark {
-  font-size: 15px; font-weight: 650; color: var(--status-good); margin-bottom: 18px;
+/* ---------------------------------------------------------------- identity strip */
+
+/* Photo, name, and the three facts an attendant actually needs, above the
+   field-by-field readout rather than inside it. */
+.identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 20px; align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--gridline);
+  background: linear-gradient(120deg, var(--accent-tint), var(--surface) 62%);
 }
-.saved-mark::before { content: "✓ "; }
+@media (max-width: 760px) {
+  .identity { grid-template-columns: auto minmax(0, 1fr); }
+  .identity-sig { grid-column: 1 / -1; }
+}
+
+.identity-photo {
+  width: 84px; height: 106px; object-fit: cover;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface-2); display: block;
+}
+.identity-photo.placeholder {
+  display: grid; place-items: center; padding: 8px;
+  font-size: 11px; color: var(--text-muted); text-align: center;
+}
+
+.identity-who { min-width: 0; }
+.identity-name {
+  font-size: 20px; font-weight: 650; letter-spacing: -.02em;
+  margin: 0; overflow-wrap: anywhere;
+}
+/* dir="rtl" for correct character ordering, but aligned left so the name stays
+   under the English one instead of drifting across to the signature. */
+.identity-name-ar {
+  font-size: 16px; margin: 2px 0 0; color: var(--text-secondary);
+  overflow-wrap: anywhere; text-align: left;
+}
+.identity-facts {
+  display: flex; flex-wrap: wrap; gap: 5px 20px; margin-top: 11px;
+  font-size: 12.5px; color: var(--text-primary);
+}
+.identity-facts .k {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text-muted); margin-right: 3px;
+}
+
+.identity-sig { text-align: right; }
+.identity-sig .signature { width: 168px; margin-left: auto; }
+
+/* ---------------------------------------------------------------- saved */
+
+.saved-mark {
+  display: flex; align-items: flex-start; gap: 13px;
+  margin-bottom: 20px;
+}
+.saved-ring {
+  display: grid; place-items: center; flex: none;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--good-tint); color: var(--status-good);
+  box-shadow: 0 0 0 1px currentColor;
+}
+.saved-ring svg { width: 18px; height: 18px; }
+.saved-mark strong {
+  display: block; font-size: 16px; font-weight: 650;
+  letter-spacing: -.015em; color: var(--text-primary);
+}
+.saved-mark span span { display: block; font-size: 12.5px; color: var(--text-secondary); }
 
 /* ---------------------------------------------------------------- forms */
 
@@ -477,12 +544,29 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 .toolbar .field.grow { flex: 1 1 190px; min-width: 150px; }
 .toolbar .field label { font-size: 10.5px; font-weight: 600; letter-spacing: .06em;
   text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-.toolbar button { margin-bottom: 1px; }
+/* One height across inputs, selects and buttons: the date picker's icon makes a
+   date input taller than a select, and flex-end alignment then staggers the labels. */
+.toolbar input, .toolbar select, .toolbar button { height: 38px; }
 
 /* ---------------------------------------------------------------- tables */
 
-.table-wrap { overflow-x: auto; }
-table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-wrap {
+  overflow-x: auto;
+  /* Covers scroll with the content and hide the shadow at each end; the shadows are
+     pinned to the container. So the shadow appears only on the side there is more to
+     see - the overflow reads as scrollable rather than cut off. */
+  background:
+    linear-gradient(to right, var(--surface), rgba(0, 0, 0, 0)) 0 0 / 34px 100% no-repeat local,
+    linear-gradient(to left,  var(--surface), rgba(0, 0, 0, 0)) 100% 0 / 34px 100% no-repeat local,
+    linear-gradient(to right, var(--scroll-shadow), rgba(0, 0, 0, 0)) 0 0 / 17px 100% no-repeat scroll,
+    linear-gradient(to left,  var(--scroll-shadow), rgba(0, 0, 0, 0)) 100% 0 / 17px 100% no-repeat scroll;
+}
+
+/* max-content, so a row is one line and the columns keep their natural widths rather
+   than compressing until names and ID numbers break mid-token. */
+table.data { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data td, table.data th { white-space: nowrap; }
+table.data td.wrap { white-space: normal; max-width: 240px; }
 table.data th {
   text-align: left; font-size: 10.5px; font-weight: 650;
   letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted);
@@ -491,7 +575,7 @@ table.data th {
 }
 table.data td { padding: 10px 12px; border-bottom: 1px solid var(--gridline); vertical-align: top; }
 table.data tbody tr:last-child td { border-bottom: none; }
-table.data tbody tr:hover { background: var(--surface-2); }
+table.data tbody tr:hover td { background: var(--surface-2); }
 
 /* ---------------------------------------------------------------- banners */
 

@@ -197,36 +197,55 @@
 
 else if (step == 1 && card is not null)
 {
+    @* The identity strip answers "who am I looking at" before the field-by-field
+       readout does. Same values, read in the order the attendant needs them. *@
     <section class="card">
-        <div class="card-head"><h2>Identity</h2></div>
+        <div class="identity">
+            @if (card.Photo is { Length: > 0 })
+            {
+                <img class="identity-photo" src="@ToDataUrl(card.Photo, "image/jpeg")" alt="Cardholder photograph" />
+            }
+            else
+            {
+                <div class="identity-photo placeholder">No photo on card</div>
+            }
+
+            <div class="identity-who">
+                <h2 class="identity-name">@card.FullNameEnglish</h2>
+                @if (!string.IsNullOrWhiteSpace(card.FullNameArabic))
+                {
+                    <p class="identity-name-ar" dir="rtl">@card.FullNameArabic</p>
+                }
+                <div class="identity-facts">
+                    <span><span class="k">ID</span> <span class="mono">@card.IdNumber</span></span>
+                    @if (!string.IsNullOrWhiteSpace(card.NationalityEnglish))
+                    {
+                        <span><span class="k">Nationality</span> @card.NationalityEnglish</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(card.ExpiryDate))
+                    {
+                        <span><span class="k">Card expires</span> <span class="mono">@card.ExpiryDate</span></span>
+                    }
+                </div>
+            </div>
+
+            <div class="identity-sig">
+                <div class="field-label">Signature</div>
+                @if (signatureDataUrl is not null)
+                {
+                    <img class="signature" src="@signatureDataUrl" alt="Cardholder signature" />
+                }
+                else
+                {
+                    <div class="signature placeholder">Not on card</div>
+                }
+            </div>
+        </div>
+
         <div class="card-body">
             <div class="grid-3">
                 <Field Label="ID Number" Value="@card.IdNumber" Mono="true" />
                 <Field Label="Card Number" Value="@card.CardNumber" Mono="true" />
-            </div>
-            <div class="images">
-                <div>
-                    <div class="field-label">Card Holder Photo</div>
-                    @if (card.Photo is { Length: > 0 })
-                    {
-                        <img class="photo" src="@ToDataUrl(card.Photo, "image/jpeg")" alt="Cardholder photograph" />
-                    }
-                    else
-                    {
-                        <div class="photo placeholder">Not on card</div>
-                    }
-                </div>
-                <div>
-                    <div class="field-label">Signature</div>
-                    @if (signatureDataUrl is not null)
-                    {
-                        <img class="signature" src="@signatureDataUrl" alt="Cardholder signature" />
-                    }
-                    else
-                    {
-                        <div class="signature placeholder">Not on card</div>
-                    }
-                </div>
             </div>
         </div>
     </section>
@@ -276,7 +295,12 @@ else if (step == 1 && card is not null)
 
     <div class="actions">
         <button @onclick="Restart">Read a different card</button>
-        <button class="primary" @onclick="ToVisitDetails">Continue</button>
+        <button class="primary" @onclick="ToVisitDetails">
+            Continue
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                <path d="M5 12h13M13 6l6 6-6 6" />
+            </svg>
+        </button>
     </div>
 }
 
@@ -331,7 +355,10 @@ else if (step == 2 && card is not null)
                 <button @onclick="() => step = 1">Back</button>
                 <button class="primary" @onclick="Save"
                         disabled="@(saving || entityId == 0 || string.IsNullOrWhiteSpace(personToVisit))">
-                    @(saving ? "Saving…" : "Save")
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                        <path d="M5 12.5l4.5 4.5L19 7" />
+                    </svg>
+                    @(saving ? "Saving…" : "Save entry")
                 </button>
             </div>
         </div>
@@ -344,7 +371,17 @@ else if (step == 3 && saved is not null)
 {
     <section class="card narrow">
         <div class="card-body">
-            <div class="saved-mark">Saved</div>
+            <div class="saved-mark">
+                <span class="saved-ring">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12.5l4.5 4.5L19 7" />
+                    </svg>
+                </span>
+                <span>
+                    <strong>Entry saved</strong>
+                    <span>The visitor is recorded against the entity and the host.</span>
+                </span>
+            </div>
             <div class="readout">
                 <dt>Reference</dt><dd class="mono">#@saved.Id</dd>
                 <dt>Visitor</dt><dd>@saved.FullNameEnglish</dd>

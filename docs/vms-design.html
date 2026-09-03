@@ -742,7 +742,7 @@
       </p>
       <ol class="body-list">
         <li><strong>Insert card.</strong> Reader and card presence, toolkit version and licence expiry. "No card" and "no reader" are both normal idle states, not errors.</li>
-        <li><strong>Visitor information.</strong> Everything the chip returned, grouped exactly as the vendor's own tool groups it — Identity, Non-Modifiable Data, Home Address — with the photograph and the converted signature.</li>
+        <li><strong>Visitor information.</strong> An identity strip first — photograph, name in English and Arabic, ID number, nationality, card expiry, signature — answering <em>who am I looking at</em> before the field-by-field readout does. Then everything the chip returned, grouped exactly as the vendor's own tool groups it: Identity, Non-Modifiable Data, Home Address.</li>
         <li><strong>Visit details.</strong> Entity from a dropdown read live from the database, person to visit as free text. Save stays disabled until both are set.</li>
         <li><strong>Saved.</strong> Reference number, visitor, entity, person, and the stamp rendered in Gulf Standard Time.</li>
       </ol>
@@ -760,6 +760,10 @@
       <h3>Visitor Details by Entity</h3>
       <p>
         Grouped by entity, filtered by date range and entity, defaulting to the last thirty days.
+        Fourteen columns do not fit a screen and the requirement is that the report carries every
+        field, so each row is held to a single line at its natural column widths and the table
+        scrolls inside its own container — with a shadow on whichever edge has more to see, so the
+        overflow reads as scrollable rather than clipped.
         The date range is inclusive of the whole closing day <em>in GST</em>, because that is what
         someone means by a date on a report. Export is CSV with a UTF-8 byte-order mark, so Excel
         renders the Arabic name rather than mangling it a second time, and every value is checked
