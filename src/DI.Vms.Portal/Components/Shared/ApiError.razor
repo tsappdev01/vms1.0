@@ -1,0 +1,17 @@
+@* Shown instead of an empty table when a call fails. A page that renders nothing when
+   the API is down looks like "no visitors", which is a dangerous thing to imply on an
+   occupancy screen. *@
+
+<div class="banner critical">
+    <strong>Could not load.</strong>
+    <span>@Message</span>
+    @if (OnRetry.HasDelegate)
+    {
+        <button class="small" @onclick="OnRetry">Retry</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string? Message { get; set; }
+    [Parameter] public EventCallback OnRetry { get; set; }
+}

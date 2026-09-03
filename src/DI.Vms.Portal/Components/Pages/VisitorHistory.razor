@@ -1,0 +1,94 @@
+@page "/history"
+@rendermode InteractiveServer
+@inject VmsApiClient Api
+
+<PageTitle>Visitor History &middot; DI VMS</PageTitle>
+
+<div class="page-header">
+    <h1>Visitor History</h1>
+    <p>Search by visitor name, company or visit number.</p>
+</div>
+
+@if (error is not null) { <ApiError Message="@error" /> }
+
+<div class="toolbar">
+    <input class="grow" placeholder="Search name, company, visit number…"
+           @bind="term" @bind:event="oninput" @onkeyup="OnKey" aria-label="Search visitors" />
+    <select @bind="status" aria-label="Status">
+        <option value="">Any status</option>
+        <option value="Inside">Inside</option>
+        <option value="CheckedOut">Checked Out</option>
+        <option value="Expected">Expected</option>
+    </select>
+    <button @onclick="Search" disabled="@busy">@(busy ? "Searching…" : "Search")</button>
+</div>
+
+<section class="card">
+    <div class="card-head">
+        <h2>Results</h2>
+        @if (result is not null)
+        {
+            <span class="sub">@result.TotalCount @(result.TotalCount == 1 ? "visit" : "visits")</span>
+        }
+    </div>
+
+    @if (result is null)
+    {
+        <div class="empty"><strong>Search to begin</strong></div>
+    }
+    else if (result.Items.Count == 0)
+    {
+        <div class="empty"><strong>No visits match</strong><span>Try a shorter search term.</span></div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr><th>Visit No.</th><th>Date</th><th>Visitor</th><th>ID Number</th><th>Host</th><th>In</th><th>Out</th><th>Duration</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in result.Items)
+                    {
+                        <tr>
+                            <td class="mono">@(string.IsNullOrEmpty(v.VisitNumber) ? "—" : v.VisitNumber)</td>
+                            <td>@Gst.Date(v.InTimeUtc)</td>
+                            <td>
+                                <div class="strong">@v.VisitorName</div>
+                                @if (!string.IsNullOrEmpty(v.Company)) { <div class="sub-cell">@v.Company</div> }
+                            </td>
+                            <td><MaskedId Masked="@v.IdNumberMasked" VisitorId="@v.Id" /></td>
+                            <td>@v.HostName</td>
+                            <td class="mono">@Gst.Time(v.InTimeUtc)</td>
+                            <td class="mono">@Gst.Time(v.OutTimeUtc)</td>
+                            <td class="mono">@(v.OutTimeUtc is null ? "—" : Gst.Duration(v.InTimeUtc, v.OutTimeUtc))</td>
+                            <td><StatusBadge Status="v.Status" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    private string term = string.Empty;
+    private string status = string.Empty;
+    private Paged<VisitListItemDto>? result;
+    private string? error;
+    private bool busy;
+
+    private async Task OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Search();
+    }
+
+    private async Task Search()
+    {
+        busy = true;
+        error = null;
+        try { result = await Api.SearchVisitsAsync(term, status, null); }
+        catch (Exception ex) { error = ex.Message; }
+        finally { busy = false; }
+    }
+}

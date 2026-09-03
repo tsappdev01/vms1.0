@@ -1,0 +1,29 @@
+@* Status is a coloured dot AND a text label, never colour alone. Colours come from the
+   fixed status palette and are never reused as chart series colours. *@
+
+<span class="status">
+    <span class="dot" style="background:@Colour" aria-hidden="true"></span>
+    @Label
+</span>
+
+@code {
+    [Parameter, EditorRequired] public VisitStatus Status { get; set; }
+
+    private string Colour => Status switch
+    {
+        VisitStatus.Inside => "var(--status-good)",
+        VisitStatus.Expected => "var(--status-warning)",
+        VisitStatus.CheckedOut => "var(--text-muted)",
+        _ => "var(--baseline)",
+    };
+
+    // Checked-out is grey rather than the BRD's red: a completed checkout is not a
+    // fault, and red is reserved for verification failure and expired ID.
+    private string Label => Status switch
+    {
+        VisitStatus.Inside => "Inside",
+        VisitStatus.Expected => "Expected",
+        VisitStatus.CheckedOut => "Checked Out",
+        _ => "Cancelled",
+    };
+}

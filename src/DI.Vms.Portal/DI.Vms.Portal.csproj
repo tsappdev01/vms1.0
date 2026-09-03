@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>DI.Vms.Portal</RootNamespace>
+    <AssemblyName>DI.Vms.Portal</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The portal consumes the API's own DTOs rather than redeclaring them. A
+         contract change then breaks the build instead of drifting silently, which
+         is the main reason for choosing Blazor over a separate TypeScript client. -->
+    <ProjectReference Include="..\DI.Vms.Application\DI.Vms.Application.csproj" />
+    <ProjectReference Include="..\DI.Vms.Domain\DI.Vms.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

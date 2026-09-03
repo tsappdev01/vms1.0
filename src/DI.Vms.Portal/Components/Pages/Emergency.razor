@@ -1,0 +1,141 @@
+@page "/emergency"
+@rendermode InteractiveServer
+@inject VmsApiClient Api
+@implements IDisposable
+
+<PageTitle>People Currently Inside &middot; DI VMS</PageTitle>
+
+@* BRD 12 treats this as mandatory, not a report. Hence: one click from every screen,
+   unpaged, grouped by floor because that is how a building is swept, printable, and
+   available to every role. *@
+
+<div class="page-header row">
+    <div>
+        <h1>People Currently Inside</h1>
+        <p>Evacuation and accountability list. Grouped by floor.</p>
+    </div>
+    <div class="no-print">
+        <button @onclick="Print">Print</button>
+    </div>
+</div>
+
+@if (error is not null)
+{
+    <ApiError Message="@error" OnRetry="Load" />
+}
+
+<div class="kpi-row">
+    <StatTile Label="Total On Site" Value="@people?.Count" Note="@($"Updated {Gst.Time(updated)}")" />
+    <StatTile Label="Floors Occupied" Value="@(byFloor.Count == 0 ? null : byFloor.Count)" Note="Sweep in this order" />
+</div>
+
+<div class="banner no-print">
+    <strong>Employees are not yet included.</strong>
+    <span>
+        This list covers visitors, contractors and service providers. Employee presence
+        requires the directory integration scheduled for Phase 3.
+    </span>
+</div>
+
+<section class="card">
+    <div class="card-body">
+        @if (people is null)
+        {
+            <div class="empty">Loading…</div>
+        }
+        else if (byFloor.Count == 0)
+        {
+            <div class="empty"><strong>The building is empty</strong><span>Nobody is currently checked in.</span></div>
+        }
+        else
+        {
+            @* One table with a group row per floor, so the columns line up down the whole
+               page - which is what makes a sweep list scannable under pressure. *@
+            <div class="table-wrap">
+                <table class="data occupancy">
+                    <colgroup>
+                        <col style="width:22%" /><col style="width:20%" />
+                        <col style="width:18%" /><col style="width:14%" />
+                        <col style="width:10%" /><col style="width:16%" />
+                    </colgroup>
+                    <thead>
+                        <tr><th>Name</th><th>Company</th><th>Host</th><th>Category</th><th>In Time</th><th>Visit No.</th></tr>
+                    </thead>
+                    @foreach (var floor in byFloor)
+                    {
+                        <tbody>
+                            <tr class="group-row">
+                                <th colspan="6" scope="colgroup">
+                                    Floor @floor.Key
+                                    <span class="count"> &middot; @floor.Value.Count @(floor.Value.Count == 1 ? "person" : "people")</span>
+                                </th>
+                            </tr>
+                            @foreach (var p in floor.Value)
+                            {
+                                <tr>
+                                    <td class="strong">@p.Name</td>
+                                    <td>@(p.Company ?? "—")</td>
+                                    <td>@(p.HostName ?? "—")</td>
+                                    <td>@p.Category</td>
+                                    <td class="mono">@Gst.Time(p.InTimeUtc)</td>
+                                    <td class="mono">@(p.VisitNumber ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    }
+                </table>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    private List<OccupancyPersonDto>? people;
+    private DateTimeOffset? updated;
+    private string? error;
+    private Timer? refresh;
+
+    private List<KeyValuePair<string, List<OccupancyPersonDto>>> byFloor = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+
+        refresh = new Timer(async _ =>
+        {
+            try
+            {
+                await Load();
+                await InvokeAsync(StateHasChanged);
+            }
+            catch { /* see Dashboard */ }
+        }, null, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
+    }
+
+    private async Task Load()
+    {
+        error = null;
+        try
+        {
+            people = await Api.GetOccupancyAsync();
+            updated = DateTimeOffset.UtcNow;
+
+            byFloor = (people ?? [])
+                .GroupBy(p => p.Floor ?? "Unknown")
+                .OrderBy(g => int.TryParse(g.Key, out var n) ? n : int.MaxValue)
+                .ThenBy(g => g.Key, StringComparer.Ordinal)
+                .Select(g => new KeyValuePair<string, List<OccupancyPersonDto>>(g.Key, g.ToList()))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    private async Task Print() => await Js.InvokeVoidAsync("window.print");
+
+    public void Dispose() => refresh?.Dispose();
+}

@@ -1,0 +1,16 @@
+@inherits LayoutComponentBase
+
+<div class="app">
+    <NavMenu />
+
+    <div class="main">
+        <header class="topbar">
+            <div class="muted">DIP Office &middot; Times shown in Gulf Standard Time</div>
+            <RoleSwitcher />
+        </header>
+
+        <main class="content">
+            @Body
+        </main>
+    </div>
+</div>

@@ -1,0 +1,49 @@
+<nav class="sidebar">
+    <div class="brand">
+        Dubai Investments
+        <span>Visitor Management</span>
+    </div>
+
+    @foreach (var group in Groups)
+    {
+        <div>
+            <div class="nav-group-label">@group.Name</div>
+            @foreach (var item in group.Items)
+            {
+                <NavLink class="@("nav-link" + (item.Emergency ? " emergency" : ""))"
+                         href="@item.Href"
+                         Match="@(item.Href == "" ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                    @item.Label
+                </NavLink>
+            }
+        </div>
+    }
+</nav>
+
+@code {
+    private sealed record NavItem(string Href, string Label, bool Emergency = false);
+    private sealed record NavGroup(string Name, NavItem[] Items);
+
+    private static readonly NavGroup[] Groups =
+    [
+        new("Monitoring",
+        [
+            new("", "Dashboard"),
+            new("current", "Current Visitors"),
+            new("expected", "Expected Visitors"),
+            new("emergency", "Emergency", Emergency: true),
+        ]),
+        new("Records",
+        [
+            new("history", "Visitor History"),
+            new("reports", "Reports"),
+            new("audit", "Audit Log"),
+        ]),
+        new("Administration",
+        [
+            new("entities", "DI Entities"),
+            new("employees", "Employees / Hosts"),
+            new("users", "Users & Roles"),
+        ]),
+    ];
+}

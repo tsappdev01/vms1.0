@@ -1,0 +1,96 @@
+@page "/current"
+@rendermode InteractiveServer
+@inject VmsApiClient Api
+
+<PageTitle>Current Visitors &middot; DI VMS</PageTitle>
+
+<div class="page-header row">
+    <div>
+        <h1>Current Visitors</h1>
+        <p>Everyone checked in and not yet checked out.</p>
+    </div>
+    <div class="no-print"><button @onclick="Load" disabled="@loading">Refresh</button></div>
+</div>
+
+@if (error is not null)
+{
+    <ApiError Message="@error" OnRetry="Load" />
+}
+
+<section class="card">
+    @if (loading && visits is null)
+    {
+        <div class="empty">Loading…</div>
+    }
+    else if (visits is { Count: > 0 })
+    {
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>Visit No.</th><th>Visitor</th><th>ID Number</th><th>Type</th>
+                        <th>Visiting</th><th>Floor</th><th>In Time</th><th>Duration</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in visits)
+                    {
+                        <tr>
+                            <td class="mono">@v.VisitNumber</td>
+                            <td>
+                                <div class="strong">@v.VisitorName</div>
+                                @if (!string.IsNullOrEmpty(v.Company))
+                                {
+                                    <div class="sub-cell">@v.Company</div>
+                                }
+                            </td>
+                            <td><MaskedId Masked="@v.IdNumberMasked" VisitorId="@v.Id" /></td>
+                            <td>@Gst.Humanise(v.VisitType.ToString())</td>
+                            <td>
+                                <div>@v.HostName</div>
+                                <div class="sub-cell">@v.EntityName</div>
+                            </td>
+                            <td class="mono">@(v.Floor ?? "—")</td>
+                            <td class="mono">@Gst.Time(v.InTimeUtc)</td>
+                            <td class="mono">@Gst.Duration(v.InTimeUtc, null)</td>
+                            <td><StatusBadge Status="v.Status" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty">
+            <strong>Nobody is currently inside</strong>
+            <span>Visitors appear here as soon as reception checks them in.</span>
+        </div>
+    }
+</section>
+
+@code {
+    private List<VisitListItemDto>? visits;
+    private string? error;
+    private bool loading = true;
+
+    protected override Task OnInitializedAsync() => Load();
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            visits = await Api.GetInsideAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

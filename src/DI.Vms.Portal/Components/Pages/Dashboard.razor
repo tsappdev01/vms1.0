@@ -1,0 +1,134 @@
+@page "/"
+@rendermode InteractiveServer
+@inject VmsApiClient Api
+@implements IDisposable
+
+<PageTitle>Dashboard &middot; DI VMS</PageTitle>
+
+<div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Live visitor activity for the DIP office.</p>
+</div>
+
+@if (error is not null)
+{
+    <ApiError Message="@error" OnRetry="Load" />
+}
+
+<div class="kpi-row">
+    <StatTile Label="Total Visitors" Value="@summary?.TotalToday" Note="Today" />
+    <StatTile Label="Currently Inside" Value="@summary?.CurrentlyInside" Note="On the premises now" Accent="var(--status-good)" />
+    <StatTile Label="Checked Out" Value="@summary?.CheckedOut" Note="Today" />
+    <StatTile Label="Expected" Value="@summary?.Expected" Note="Pre-registered" Accent="var(--status-warning)" />
+</div>
+
+<div class="grid-2">
+    <section class="card">
+        <div class="card-head">
+            <h2>Currently Inside</h2>
+            <a class="sub" href="current">View all</a>
+        </div>
+        @if (loading && inside is null)
+        {
+            <div class="empty">Loading…</div>
+        }
+        else if (inside is { Count: > 0 })
+        {
+            <div class="table-wrap">
+                <table class="data">
+                    <thead>
+                        <tr><th>Visitor</th><th>Visiting</th><th>Floor</th><th>In Time</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var v in inside.Take(8))
+                        {
+                            <tr>
+                                <td>
+                                    <div class="strong">@v.VisitorName</div>
+                                    @if (!string.IsNullOrEmpty(v.Company))
+                                    {
+                                        <div class="sub-cell">@v.Company</div>
+                                    }
+                                </td>
+                                <td>@v.HostName</td>
+                                <td class="mono">@(v.Floor ?? "—")</td>
+                                <td class="mono">@Gst.Time(v.InTimeUtc)</td>
+                                <td><StatusBadge Status="v.Status" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty"><strong>Nobody is currently inside</strong></div>
+        }
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>Visitors by DI Entity</h2>
+            <span class="sub">Today</span>
+        </div>
+        <div class="card-body">
+            <BarList Data="ByEntity" CategoryHeader="DI Entity" ValueHeader="Visitors" />
+        </div>
+    </section>
+</div>
+
+@code {
+    private DashboardSummaryDto? summary;
+    private List<VisitListItemDto>? inside;
+    private string? error;
+    private bool loading = true;
+    private Timer? refresh;
+
+    private IReadOnlyList<KeyValuePair<string, int>> ByEntity =>
+        summary?.VisitorsByEntity
+            .Select(e => new KeyValuePair<string, int>(e.EntityName, e.Visitors))
+            .ToList() ?? [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+
+        /* Refreshed on a timer rather than pushed: SignalR notifications from the API
+           are not built yet, and a stale occupancy figure is exactly what must not
+           happen on a security dashboard. */
+        refresh = new Timer(async _ =>
+        {
+            try
+            {
+                await Load();
+                await InvokeAsync(StateHasChanged);
+            }
+            catch
+            {
+                /* A failed background refresh must not tear down the circuit; the
+                   error is already surfaced by Load. */
+            }
+        }, null, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(20));
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            summary = await Api.GetDashboardSummaryAsync();
+            inside = await Api.GetInsideAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    public void Dispose() => refresh?.Dispose();
+}

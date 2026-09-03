@@ -1,0 +1,58 @@
+@* Ranked horizontal bar: the job is comparing magnitude, so the colour is sequential
+   (one hue), not categorical. A single series needs no legend - the card title says what
+   is plotted. A table view is always available. *@
+
+@if (Data.Count == 0)
+{
+    <div class="empty"><strong>No data</strong></div>
+}
+else if (asTable)
+{
+    <div class="table-wrap">
+        <table class="data">
+            <thead>
+                <tr><th>@CategoryHeader</th><th class="right">@ValueHeader</th><th class="right">Share</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Data)
+                {
+                    <tr>
+                        <td>@d.Key</td>
+                        <td class="num">@d.Value</td>
+                        <td class="num">@(total == 0 ? 0 : (int)Math.Round(d.Value * 100.0 / total))%</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="right mt"><button class="small" @onclick="() => asTable = false">Show chart</button></div>
+}
+else
+{
+    <div class="bar-row" role="img" aria-label="@($"{ValueHeader} by {CategoryHeader}")">
+        @foreach (var d in Data)
+        {
+            <div class="bar-track" title="@($"{d.Key}: {d.Value}")">
+                <div class="cat">@d.Key</div>
+                <div class="bar-shell">
+                    <div class="bar-fill" style="width:@(Percent(d.Value))%"></div>
+                </div>
+                <div class="val">@d.Value</div>
+            </div>
+        }
+    </div>
+    <div class="right mt"><button class="small" @onclick="() => asTable = true">Show as table</button></div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<KeyValuePair<string, int>> Data { get; set; } = [];
+    [Parameter] public string CategoryHeader { get; set; } = "Category";
+    [Parameter] public string ValueHeader { get; set; } = "Count";
+
+    private bool asTable;
+
+    private int total => Data.Sum(d => d.Value);
+    private int max => Math.Max(1, Data.Count == 0 ? 1 : Data.Max(d => d.Value));
+
+    private int Percent(int value) => (int)Math.Round(value * 100.0 / max);
+}

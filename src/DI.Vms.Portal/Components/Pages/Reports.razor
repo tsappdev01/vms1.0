@@ -1,0 +1,189 @@
+@page "/reports"
+@rendermode InteractiveServer
+@inject VmsApiClient Api
+@inject IJSRuntime Js
+
+<PageTitle>Reports &middot; DI VMS</PageTitle>
+
+<div class="page-header">
+    <h1>Reports</h1>
+    <p>Exports carry the same ID masking as the screen.</p>
+</div>
+
+@if (error is not null)
+{
+    <ApiError Message="@error" />
+}
+
+<div class="toolbar no-print">
+    <label class="muted">From <input type="date" @bind="from" /></label>
+    <label class="muted">To <input type="date" @bind="to" /></label>
+    @if (selected?.TakesDateRange == true)
+    {
+        <button @onclick="() => Run(selected)" disabled="@busy">Re-run with this range</button>
+    }
+</div>
+
+<div class="grid-2">
+    <section class="card">
+        <div class="card-head"><h2>Available reports</h2></div>
+        @if (definitions is null)
+        {
+            <div class="empty">Loading…</div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="data">
+                    <tbody>
+                        @foreach (var d in definitions)
+                        {
+                            <tr class="@(selected?.Name == d.Name ? "selected" : "")">
+                                <td>
+                                    <div class="strong">@d.Title</div>
+                                    <div class="sub-cell">@d.Description</div>
+                                    @if (!d.TakesDateRange)
+                                    {
+                                        <div class="sub-cell">Not date-ranged.</div>
+                                    }
+                                </td>
+                                <td class="right narrow">
+                                    <button class="small" @onclick="() => Run(d)" disabled="@busy">
+                                        @(busy && selected?.Name == d.Name ? "…" : "Run")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>@(result?.Title ?? "Result")</h2>
+            @if (result is not null)
+            {
+                <div class="row gap">
+                    <span class="sub">@result.Rows.Count @(result.Rows.Count == 1 ? "row" : "rows")</span>
+                    <button class="small" @onclick="DownloadCsv" disabled="@(result.Rows.Count == 0)">Export CSV</button>
+                </div>
+            }
+        </div>
+
+        @if (busy)
+        {
+            <div class="empty">Running…</div>
+        }
+        else if (result is null)
+        {
+            <div class="empty"><strong>Choose a report</strong><span>Pick one from the list and press Run.</span></div>
+        }
+        else if (result.Rows.Count == 0)
+        {
+            <div class="empty"><strong>No rows</strong><span>Nothing matched.</span></div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="data">
+                    <thead>
+                        <tr>@foreach (var c in result.Columns) { <th>@c</th> }</tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in result.Rows)
+                        {
+                            <tr>
+                                @foreach (var cell in row)
+                                {
+                                    <td>@(cell ?? "—")</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-foot">Generated @Gst.DateTime(result.GeneratedAtUtc) GST</div>
+        }
+    </section>
+</div>
+
+@code {
+    private List<ReportDefinition>? definitions;
+    private ReportDefinition? selected;
+    private ReportResult? result;
+    private string? error;
+    private bool busy;
+
+    private DateOnly from = DateOnly.FromDateTime(System.DateTime.UtcNow);
+    private DateOnly to = DateOnly.FromDateTime(System.DateTime.UtcNow);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            definitions = await Api.GetReportsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    private async Task Run(ReportDefinition definition)
+    {
+        selected = definition;
+        busy = true;
+        error = null;
+        result = null;
+        try
+        {
+            result = definition.TakesDateRange
+                ? await Api.RunReportAsync(definition.Name, from, to)
+                : await Api.RunReportAsync(definition.Name, null, null);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task DownloadCsv()
+    {
+        if (result is null) return;
+
+        var lines = new List<string>
+        {
+            Escape(result.Title),
+            result.From is { } f && result.To is { } t ? $"{f:dd MMM yyyy} to {t:dd MMM yyyy}" : string.Empty,
+            $"Generated {Gst.DateTime(result.GeneratedAtUtc)} GST",
+            string.Empty,
+            string.Join(',', result.Columns.Select(Escape)),
+        };
+        lines.AddRange(result.Rows.Select(r => string.Join(',', r.Select(Escape))));
+
+        var csv = string.Join('\n', lines);
+        await Js.InvokeVoidAsync("vms.downloadCsv", $"{result.Name}-{result.From:yyyy-MM-dd}.csv", csv);
+    }
+
+    /// <summary>
+    /// RFC 4180 quoting, plus neutralising values a spreadsheet would treat as a formula:
+    /// a company name beginning with '=' must not execute when the export is opened.
+    /// </summary>
+    private static string Escape(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+
+        var v = value;
+        if (v[0] is '=' or '+' or '-' or '@' or '\t' or '\r') v = "'" + v;
+
+        return v.Contains(',') || v.Contains('"') || v.Contains('\n') || v.Contains('\r')
+            ? '"' + v.Replace("\"", "\"\"") + '"'
+            : v;
+    }
+}

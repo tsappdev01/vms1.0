@@ -1,0 +1,69 @@
+@page "/audit"
+@rendermode InteractiveServer
+@inject VmsApiClient Api
+
+<PageTitle>Audit Log &middot; DI VMS</PageTitle>
+
+<div class="page-header row">
+    <div>
+        <h1>Audit Log</h1>
+        <p>Append-only record of every modification. Viewing an unmasked ID number is itself an audited event.</p>
+    </div>
+    <div class="no-print"><button @onclick="Load" disabled="@busy">Refresh</button></div>
+</div>
+
+@if (error is not null) { <ApiError Message="@error" OnRetry="Load" /> }
+
+<section class="card">
+    @if (page is null)
+    {
+        <div class="empty">Loading…</div>
+    }
+    else if (page.Items.Count == 0)
+    {
+        <div class="empty"><strong>No audit entries</strong></div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr><th>When</th><th>User</th><th>Action</th><th>Entity</th><th>Record</th><th>Old</th><th>New</th><th>IP</th><th>Device</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in page.Items)
+                    {
+                        <tr>
+                            <td class="mono">@Gst.DateTime(a.TimestampUtc)</td>
+                            <td class="mono">@a.UserName</td>
+                            <td><span class="chip">@a.Action</span></td>
+                            <td>@a.EntityName</td>
+                            <td class="mono">@(a.RecordRef ?? "—")</td>
+                            <td>@(a.OldValue ?? "—")</td>
+                            <td>@(a.NewValue ?? "—")</td>
+                            <td class="mono">@(a.IpAddress ?? "—")</td>
+                            <td class="mono">@(a.DeviceId ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    private Paged<AuditEntryDto>? page;
+    private string? error;
+    private bool busy;
+
+    protected override Task OnInitializedAsync() => Load();
+
+    private async Task Load()
+    {
+        busy = true;
+        error = null;
+        try { page = await Api.GetAuditAsync(); }
+        catch (Exception ex) { error = ex.Message; }
+        finally { busy = false; }
+    }
+}
