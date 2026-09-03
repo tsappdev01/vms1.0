@@ -1,11 +1,23 @@
 # VMS Documentation
 
 Design documentation for the Dubai Investments Visitor Management System.
-Source requirements: the BRD (26 sections); each document cites the sections it implements.
+
+## Current
 
 | Document | Contents |
 |---|---|
-| [00-sdk-analysis.md](00-sdk-analysis.md) | **Read first.** Analysis of the ICP ID Card Toolkit v3.1.6 and where it contradicts the BRD's assumptions. |
+| [vms-design.html](vms-design.html) | **Design of record.** The system as built: why it runs at the desk, the capture path, the two screens, the data model, the constraints discovered rather than chosen, and the security gaps stated plainly. Open it in a browser. |
+| [00-sdk-analysis.md](00-sdk-analysis.md) | Analysis of the ICP ID Card Toolkit v3.1.6. Still current — it is SDK fact, not architecture. |
+| [icp-support-request.md](icp-support-request.md) | The licence escalation sent to ICP, and what came back. |
+
+## Superseded
+
+Documents 01–07 describe the Android, React and REST architecture that preceded the
+reset. That design no longer exists; they are kept for the requirement tracing and the
+BRD section references, not as a description of the system.
+
+| Document | Contents |
+|---|---|
 | [01-architecture.md](01-architecture.md) | Components, projects, stack, database target. |
 | [02-data-model.md](02-data-model.md) | Entities, lifecycle, indexing, deviations from BRD §17. |
 | [03-api-specification.md](03-api-specification.md) | REST contract and authorisation matrix. |

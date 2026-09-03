@@ -1,0 +1,1196 @@
+<title>DIP Visitor Desk Design</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+
+    /* Dubai Investments navy and gold, the same two colours the application uses.
+       Navy numbers the sections and rules the decisions; gold marks the one line
+       above the title. Neither is spent anywhere else. */
+    --page:        #f5f7f9;
+    --surface:     #ffffff;
+    --surface-2:   #eef2f7;
+    --ink:         #0f1b26;
+    --ink-2:       #4c5c6b;
+    --ink-3:       #8695a3;
+    --gridline:    #e0e7ee;
+    --rule:        rgba(15, 27, 38, 0.12);
+    --accent:      #0e3453;
+    --accent-soft: #eaf0f6;
+    --gold:        #b8912e;
+    --good:        #12854a;
+    --warn:        #a9761a;
+    --critical:    #c1372f;
+
+    --display: "Archivo", "Segoe UI", system-ui, sans-serif;
+    --prose:   "Source Serif 4", Georgia, "Times New Roman", serif;
+    --data:    "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+    --measure: 68ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      /* Navy becomes the ground here, so it cannot also carry the accent. */
+      --page:        #0b1218;
+      --surface:     #131c24;
+      --surface-2:   #1a2530;
+      --ink:         #eef3f7;
+      --ink-2:       #adbcc8;
+      --ink-3:       #7d8d9a;
+      --gridline:    #24333f;
+      --rule:        rgba(255, 255, 255, 0.13);
+      --accent:      #6fa9e4;
+      --accent-soft: #14293c;
+      --gold:        #d3ac4e;
+      --good:        #4cc07a;
+      --warn:        #e0af52;
+      --critical:    #e8756b;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:        #0b1218;
+    --surface:     #131c24;
+    --surface-2:   #1a2530;
+    --ink:         #eef3f7;
+    --ink-2:       #adbcc8;
+    --ink-3:       #7d8d9a;
+    --gridline:    #24333f;
+    --rule:        rgba(255, 255, 255, 0.13);
+    --accent:      #6fa9e4;
+    --accent-soft: #14293c;
+    --gold:        #d3ac4e;
+    --good:        #4cc07a;
+    --warn:        #e0af52;
+    --critical:    #e8756b;
+  }
+
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--prose);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 22px 96px;
+  }
+
+  @media (min-width: 1100px) {
+    .shell {
+      grid-template-columns: 202px minmax(0, 1fr);
+      column-gap: 56px;
+      padding-right: 34px;
+    }
+  }
+
+  /* ---------------------------------------------------------------- masthead */
+
+  .masthead {
+    grid-column: 1 / -1;
+    padding: 60px 0 34px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 44px;
+  }
+
+  .eyebrow {
+    font-family: var(--data);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 18px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(34px, 6vw, 55px);
+    line-height: 1.03;
+    letter-spacing: -.026em;
+    text-wrap: balance;
+    margin: 0 0 18px;
+  }
+
+  .standfirst {
+    max-width: var(--measure);
+    font-size: 19.5px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  .masthead-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 30px;
+    margin-top: 30px;
+    font-family: var(--data);
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  .masthead-meta b {
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  /* ---------------------------------------------------------------- contents */
+
+  .contents { display: none; }
+
+  @media (min-width: 1100px) {
+    .contents {
+      display: block;
+      position: sticky;
+      top: 26px;
+      align-self: start;
+      padding-top: 6px;
+    }
+  }
+  .contents h2 {
+    font-family: var(--data);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 14px;
+  }
+  .contents ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    counter-reset: toc;
+  }
+  .contents a {
+    font-family: var(--display);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--ink-2);
+    text-decoration: none;
+    display: block;
+  }
+  .contents a::before {
+    counter-increment: toc;
+    content: counter(toc) "  ";
+    font-family: var(--data);
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .contents a:hover { color: var(--accent); }
+
+  /* ---------------------------------------------------------------- sections */
+
+  main { min-width: 0; counter-reset: sec; }
+
+  section {
+    padding-top: 8px;
+    margin-bottom: 62px;
+    scroll-margin-top: 24px;
+  }
+
+  h2.sec {
+    counter-increment: sec;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 27px;
+    line-height: 1.16;
+    letter-spacing: -.018em;
+    text-wrap: balance;
+    max-width: var(--measure);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  h2.sec::before {
+    content: counter(sec);
+    display: block;
+    font-family: var(--data);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: .13em;
+    color: var(--accent);
+    margin-bottom: 9px;
+  }
+
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 16.5px;
+    letter-spacing: -.008em;
+    margin: 34px 0 10px;
+    max-width: var(--measure);
+  }
+
+  p, ul, ol.body-list {
+    max-width: var(--measure);
+    margin: 0 0 15px;
+  }
+  ul, ol.body-list { padding-left: 22px; }
+  li { margin-bottom: 7px; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  code, .m {
+    font-family: var(--data);
+    font-size: .855em;
+    font-weight: 400;
+  }
+  code {
+    padding: 1px 4px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  strong { font-weight: 600; }
+
+  /* ---------------------------------------------------------------- decision */
+
+  .decision {
+    max-width: var(--measure);
+    border-left: 3px solid var(--accent);
+    padding: 2px 0 2px 20px;
+    margin: 26px 0;
+  }
+  .decision .label {
+    font-family: var(--data);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .decision p:last-child { margin-bottom: 0; }
+
+  .decision.caution { border-left-color: var(--warn); }
+  .decision.caution .label { color: var(--warn); }
+  .decision.gap { border-left-color: var(--critical); }
+  .decision.gap .label { color: var(--critical); }
+
+  /* ---------------------------------------------------------------- figures */
+
+  figure {
+    margin: 34px 0;
+    padding: 0;
+  }
+  figure svg {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--gridline);
+    border-radius: 7px;
+  }
+  figcaption {
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    margin-top: 12px;
+    max-width: var(--measure);
+  }
+  figcaption b {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-right: 8px;
+  }
+
+  svg .bx { fill: var(--surface-2); stroke: currentColor; stroke-width: 1.2; }
+  svg .bx-accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; }
+  svg .bx-crit { fill: none; stroke: #d9544a; stroke-width: 1.4; }
+  svg .bx-warn { fill: none; stroke: #c9942c; stroke-width: 1.4; }
+  svg .boundary { fill: none; stroke: currentColor; stroke-width: 1.1; stroke-dasharray: 5 4; opacity: .5; }
+  svg .ln { stroke: currentColor; stroke-width: 1.3; fill: none; }
+  svg .ln-crit { stroke: #d9544a; stroke-width: 1.3; fill: none; }
+  svg .ln-warn { stroke: #c9942c; stroke-width: 1.3; fill: none; }
+  svg text { font-family: "IBM Plex Mono", ui-monospace, monospace; fill: currentColor; }
+  svg .t { font-size: 12.5px; font-weight: 500; }
+  svg .t-sub { font-size: 11px; fill: var(--ink-3); }
+  svg .t-edge { font-size: 10.5px; fill: var(--ink-3); }
+  svg .t-zone { font-size: 10.5px; font-weight: 500; letter-spacing: .1em; fill: var(--ink-3); }
+  svg .t-crit { font-size: 12px; font-weight: 500; fill: #d9544a; }
+  svg .t-warn { font-size: 12px; font-weight: 500; fill: #c9942c; }
+
+  /* ---------------------------------------------------------------- tables */
+
+  .scroll {
+    overflow-x: auto;
+    border: 1px solid var(--gridline);
+    border-radius: 7px;
+    background: var(--surface);
+    margin: 26px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--display);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 11px 15px;
+    border-bottom: 1px solid var(--gridline);
+    white-space: nowrap;
+    background: var(--surface-2);
+  }
+  tbody td {
+    padding: 11px 15px;
+    border-bottom: 1px solid var(--gridline);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.k, td .k {
+    font-family: var(--data);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  td.narrow { white-space: nowrap; }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--data);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .pill.built   { color: var(--good); }
+  .pill.partial { color: var(--warn); }
+  .pill.open    { color: var(--critical); }
+  .pill.chip    { color: var(--accent); }
+
+  /* ---------------------------------------------------------------- fields */
+
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+    gap: 22px 28px;
+    margin: 26px 0;
+  }
+  .fieldgroup {
+    border-top: 2px solid var(--ink);
+    padding-top: 12px;
+  }
+  .fieldgroup h4 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: .02em;
+    margin: 0 0 4px;
+  }
+  .fieldgroup .note {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ink-3);
+    margin: 0 0 12px;
+  }
+  .fieldgroup ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    font-family: var(--data);
+    font-size: 12.5px;
+    line-height: 1.75;
+  }
+  .fieldgroup li { margin: 0; }
+  .fieldgroup li.empty { color: var(--ink-3); }
+  .fieldgroup li.empty::after {
+    content: " ·  empty on card tested";
+    font-size: 10.5px;
+    letter-spacing: .02em;
+  }
+
+  /* ---------------------------------------------------------------- footer */
+
+  footer {
+    grid-column: 1 / -1;
+    margin-top: 26px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--data);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink-3);
+    max-width: var(--measure);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="shell">
+
+  <header class="masthead">
+    <p class="eyebrow">Dubai Investments · DIP office · design of record</p>
+    <h1>Visitor Desk</h1>
+    <p class="standfirst">
+      A reception attendant puts an Emirates ID into a reader, the chip's own data appears on
+      screen, they name the entity and the person being visited, and the entry is stamped. This
+      is how that is built, and which of the constraints behind it were discovered rather than
+      chosen.
+    </p>
+    <div class="masthead-meta">
+      <span><b>Platform</b> Blazor Server, .NET 8</span>
+      <span><b>Database</b> UATWEB01 · VMS</span>
+      <span><b>Toolkit</b> ICP ID Card v3.1.6</span>
+      <span><b>Revised</b> 3 September 2026</span>
+    </div>
+  </header>
+
+  <nav class="contents" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#scope">Scope</a></li>
+      <li><a href="#locality">Why it runs at the desk</a></li>
+      <li><a href="#capture">The capture path</a></li>
+      <li><a href="#screens">The two screens</a></li>
+      <li><a href="#fields">What the chip gives</a></li>
+      <li><a href="#data">Data model</a></li>
+      <li><a href="#state">Schema, data, config</a></li>
+      <li><a href="#discovered">Discovered constraints</a></li>
+      <li><a href="#security">Security posture</a></li>
+      <li><a href="#open">Open and not built</a></li>
+      <li><a href="#runbook">Prerequisites</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ============================================================ 1 -->
+    <section id="scope">
+      <h2 class="sec">Scope</h2>
+
+      <p>
+        Three modules were asked for. Two were specified and are built; the third has not been
+        named yet, and nothing has been assumed in its place.
+      </p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Module</th><th>Route</th><th>What it does</th><th class="narrow">State</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Visitor Management</strong></td>
+              <td class="k">/</td>
+              <td>Insert card → read chip → show the visitor's data, photograph and signature → select entity → enter the person to visit → save with a date-time stamp.</td>
+              <td><span class="pill built">Built</span></td>
+            </tr>
+            <tr>
+              <td><strong>Visitor Details by Entity</strong></td>
+              <td class="k">/report</td>
+              <td>Every stored field plus the stamp, grouped by entity, filtered by date range and entity, exportable and printable.</td>
+              <td><span class="pill built">Built</span></td>
+            </tr>
+            <tr>
+              <td><strong>Third module</strong></td>
+              <td class="k">—</td>
+              <td>Not specified.</td>
+              <td><span class="pill open">Awaiting</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Everything outside those two screens is deliberately absent — no visitor pre-registration,
+        no badge printing, no host notification, no blacklist, no sign-out. This is a first
+        increment against a real reader, not a reduced version of the full BRD.
+      </p>
+    </section>
+
+    <!-- ============================================================ 2 -->
+    <section id="locality">
+      <h2 class="sec">Why it runs at the desk, not on a server</h2>
+
+      <p>
+        The Emirates ID is a <strong>contact smart card</strong>. Data comes off the chip over
+        PC/SC through a locally attached reader — it is not photographed and it is not read by
+        OCR. That single fact determines the shape of the whole application.
+      </p>
+
+      <p>
+        The toolkit's managed binding is a thin P/Invoke wrapper over a native
+        <code>EIDAToolkit.dll</code>, and the process that loads it must be on the machine holding
+        the reader. In Blazor Server, component code runs on the server side of the circuit — so
+        if the server side <em>is</em> the reception PC, the component can call the toolkit
+        directly.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 880 348" role="img" aria-label="The Emirates ID card connects through a USB PC/SC reader into the reception PC, where the browser, the Blazor Server application and the ID Card Toolkit all run in one process on one machine; from there the application reaches SQL Server on UATWEB01 and the toolkit reaches the ICP Validation Gateway.">
+          <defs>
+            <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+
+          <!-- reception PC boundary -->
+          <rect class="boundary" x="300" y="30" width="330" height="284" rx="8"></rect>
+          <text class="t-zone" x="306" y="22">RECEPTION PC — ONE MACHINE, ONE PROCESS</text>
+
+          <!-- card -->
+          <rect class="bx" x="20" y="222" width="104" height="52" rx="5"></rect>
+          <text class="t" x="72" y="245" text-anchor="middle">Emirates ID</text>
+          <text class="t-sub" x="72" y="261" text-anchor="middle">chip</text>
+
+          <line class="ln" x1="124" y1="248" x2="148" y2="248" marker-end="url(#a1)"></line>
+
+          <!-- reader -->
+          <rect class="bx" x="152" y="222" width="118" height="52" rx="5"></rect>
+          <text class="t" x="211" y="245" text-anchor="middle">ACR39U</text>
+          <text class="t-sub" x="211" y="261" text-anchor="middle">USB reader</text>
+
+          <line class="ln" x1="270" y1="248" x2="318" y2="248" marker-end="url(#a1)"></line>
+          <text class="t-edge" x="294" y="240" text-anchor="middle">PC/SC</text>
+
+          <!-- browser -->
+          <rect class="bx" x="320" y="50" width="290" height="52" rx="5"></rect>
+          <text class="t" x="465" y="73" text-anchor="middle">Browser at localhost</text>
+          <text class="t-sub" x="465" y="89" text-anchor="middle">no card access of its own</text>
+
+          <line class="ln" x1="465" y1="136" x2="465" y2="106" marker-end="url(#a1)"></line>
+          <text class="t-edge" x="475" y="124" text-anchor="start">circuit</text>
+
+          <!-- app -->
+          <rect class="bx-accent" x="320" y="136" width="290" height="52" rx="5"></rect>
+          <text class="t" x="465" y="159" text-anchor="middle">Blazor Server app</text>
+          <text class="t-sub" x="465" y="175" text-anchor="middle">CardReaderService, singleton, gated</text>
+
+          <line class="ln" x1="465" y1="188" x2="465" y2="218" marker-end="url(#a1)"></line>
+          <text class="t-edge" x="475" y="207" text-anchor="start">in-process</text>
+
+          <!-- toolkit -->
+          <rect class="bx" x="320" y="222" width="290" height="52" rx="5"></rect>
+          <text class="t" x="465" y="245" text-anchor="middle">IDCardToolkit → EIDAToolkit.dll</text>
+          <text class="t-sub" x="465" y="261" text-anchor="middle">native, x64, APP_INPROC</text>
+
+          <!-- externals -->
+          <line class="ln" x1="610" y1="162" x2="674" y2="162" marker-end="url(#a1)"></line>
+          <text class="t-edge" x="642" y="154" text-anchor="middle">EF Core</text>
+
+          <rect class="bx" x="678" y="136" width="182" height="52" rx="5"></rect>
+          <text class="t" x="769" y="159" text-anchor="middle">SQL Server</text>
+          <text class="t-sub" x="769" y="175" text-anchor="middle">UATWEB01 · VMS</text>
+
+          <line class="ln" x1="610" y1="248" x2="674" y2="248" marker-end="url(#a1)"></line>
+          <text class="t-edge" x="642" y="240" text-anchor="middle">HTTPS</text>
+
+          <rect class="bx" x="678" y="222" width="182" height="52" rx="5"></rect>
+          <text class="t" x="769" y="245" text-anchor="middle">ICP Validation</text>
+          <text class="t-sub" x="769" y="261" text-anchor="middle">Gateway · enforced</text>
+
+          <text class="t-edge" x="678" y="300" text-anchor="start">reached on every read, offline mode included</text>
+        </svg>
+        <figcaption>
+          <b>Figure 1</b>
+          The reader's locality forces the deployment. Because the toolkit is loaded in-process,
+          the arrow from the app to the toolkit never crosses a machine boundary — which is what
+          removes the bridge service, the browser interop and the CORS surface that a
+          server-hosted portal would have needed. The cost is that this is desk software: it
+          cannot be hosted centrally and browsed to from elsewhere.
+        </figcaption>
+      </figure>
+
+      <div class="decision">
+        <span class="label">Decision</span>
+        <p>
+          One project, no API tier. A REST layer between the screen and the card would sit
+          entirely inside one machine and buy nothing; if a second reception point is ever
+          added, each gets its own instance pointed at the same database.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 3 -->
+    <section id="capture">
+      <h2 class="sec">The capture path</h2>
+
+      <p>
+        A read is not one call. The toolkit returns both a set of field structures and a signed
+        XML response, and both need work before they are fit to show or to trust.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 736 424" role="img" aria-label="A read generates a forty-byte random request identifier, calls ReadPublicData, then validates the response two ways: a request identifier that is not echoed back rejects the read, an unverified XML signature only raises a note. Text is then repaired from Windows-1252 to UTF-8 and the signature image converted from TIFF to PNG before reaching the screen.">
+          <defs>
+            <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"></path>
+            </marker>
+            <marker id="a2c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="#d9544a"></path>
+            </marker>
+            <marker id="a2w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="#c9942c"></path>
+            </marker>
+          </defs>
+
+          <rect class="bx" x="24" y="18" width="304" height="46" rx="5"></rect>
+          <text class="t" x="176" y="46" text-anchor="middle">requestId ← 40 random bytes</text>
+
+          <line class="ln" x1="176" y1="64" x2="176" y2="82" marker-end="url(#a2)"></line>
+
+          <rect class="bx" x="24" y="84" width="304" height="46" rx="5"></rect>
+          <text class="t" x="176" y="105" text-anchor="middle">ReadPublicData(requestId, …)</text>
+          <text class="t-sub" x="176" y="121" text-anchor="middle">field structs + signed XML</text>
+
+          <line class="ln" x1="176" y1="130" x2="176" y2="148" marker-end="url(#a2)"></line>
+
+          <rect class="bx-accent" x="24" y="150" width="304" height="46" rx="5"></rect>
+          <text class="t" x="176" y="171" text-anchor="middle">Validate the response</text>
+          <text class="t-sub" x="176" y="187" text-anchor="middle">echoed request id · XML dsig</text>
+
+          <!-- failure branches -->
+          <path class="ln-crit" d="M 328 165 L 380 165 L 380 141 L 414 141" marker-end="url(#a2c)"></path>
+          <rect class="bx-crit" x="418" y="118" width="292" height="46" rx="5"></rect>
+          <text class="t-crit" x="564" y="139" text-anchor="middle">id not echoed → reject</text>
+          <text class="t-sub" x="564" y="155" text-anchor="middle">treated as tampering, no data shown</text>
+
+          <path class="ln-warn" d="M 328 181 L 380 181 L 380 205 L 414 205" marker-end="url(#a2w)"></path>
+          <rect class="bx-warn" x="418" y="182" width="292" height="46" rx="5"></rect>
+          <text class="t-warn" x="564" y="203" text-anchor="middle">dsig unverified → note only</text>
+          <text class="t-sub" x="564" y="219" text-anchor="middle">key travels inside the response</text>
+
+          <line class="ln" x1="176" y1="196" x2="176" y2="214" marker-end="url(#a2)"></line>
+
+          <rect class="bx" x="24" y="216" width="304" height="46" rx="5"></rect>
+          <text class="t" x="176" y="237" text-anchor="middle">Repair text · CP1252 → UTF-8</text>
+          <text class="t-sub" x="176" y="253" text-anchor="middle">fields and the XML alike</text>
+
+          <line class="ln" x1="176" y1="262" x2="176" y2="280" marker-end="url(#a2)"></line>
+
+          <rect class="bx" x="24" y="282" width="304" height="46" rx="5"></rect>
+          <text class="t" x="176" y="303" text-anchor="middle">Convert signature · TIFF → PNG</text>
+          <text class="t-sub" x="176" y="319" text-anchor="middle">never throws; falls back to a message</text>
+
+          <line class="ln" x1="176" y1="328" x2="176" y2="346" marker-end="url(#a2)"></line>
+
+          <rect class="bx" x="24" y="348" width="304" height="46" rx="5"></rect>
+          <text class="t" x="176" y="376" text-anchor="middle">Visitor Information screen</text>
+        </svg>
+        <figcaption>
+          <b>Figure 2</b>
+          The two integrity checks are not equivalent, and the design treats them differently. A
+          request identifier that does not come back is conclusive and aborts the read. The XML
+          signature validates against a key carried inside the same response, so it proves
+          well-formedness rather than provenance — failing it raises a visible note and keeps the
+          data, because refusing a visitor on that basis would be theatre.
+        </figcaption>
+      </figure>
+
+      <h3>Serialisation</h3>
+      <p>
+        The native toolkit context is single-threaded and expensive to create, so
+        <code>CardReaderService</code> is a singleton holding one initialised context behind a
+        <code>SemaphoreSlim</code>. Initialisation failure is remembered rather than retried, so a
+        misconfigured desk reports the same clear reason every time instead of looping on a native
+        init.
+      </p>
+    </section>
+
+    <!-- ============================================================ 4 -->
+    <section id="screens">
+      <h2 class="sec">The two screens</h2>
+
+      <h3>New Visitor — four steps</h3>
+      <p>
+        The wizard mirrors what the attendant physically does, one step per action, with the
+        reader's state shown before anything is asked of them.
+      </p>
+      <ol class="body-list">
+        <li><strong>Insert card.</strong> Reader and card presence, toolkit version and licence expiry. "No card" and "no reader" are both normal idle states, not errors.</li>
+        <li><strong>Visitor information.</strong> Everything the chip returned, grouped exactly as the vendor's own tool groups it — Identity, Non-Modifiable Data, Home Address — with the photograph and the converted signature.</li>
+        <li><strong>Visit details.</strong> Entity from a dropdown read live from the database, person to visit as free text. Save stays disabled until both are set.</li>
+        <li><strong>Saved.</strong> Reference number, visitor, entity, person, and the stamp rendered in Gulf Standard Time.</li>
+      </ol>
+
+      <div class="decision">
+        <span class="label">Decision</span>
+        <p>
+          Card fields are read-only on screen. The attendant cannot correct a name or a nationality,
+          because the value's worth is that it came off the chip. Where a card is unreadable, the
+          record carries <code>CaptureMethod</code> so a manual entry is never mistaken for a chip
+          read.
+        </p>
+      </div>
+
+      <h3>Visitor Details by Entity</h3>
+      <p>
+        Grouped by entity, filtered by date range and entity, defaulting to the last thirty days.
+        The date range is inclusive of the whole closing day <em>in GST</em>, because that is what
+        someone means by a date on a report. Export is CSV with a UTF-8 byte-order mark, so Excel
+        renders the Arabic name rather than mangling it a second time, and every value is checked
+        for a leading <code>=</code>, <code>+</code>, <code>-</code> or <code>@</code> so a name
+        cannot execute as a formula when the file is opened.
+      </p>
+      <p>
+        The entity filter keeps a deactivated entity for as long as it still has visits behind it,
+        so a report over an earlier period can still be narrowed to one.
+      </p>
+
+      <h3>The shell and the brand</h3>
+      <p>
+        Both screens sit in one shell: a sidebar carrying the Dubai Investments lockup and the two
+        routes, and a header naming the office and holding a Gulf Standard Time clock. The clock
+        ticks in the browser — a per-second server render for a wall clock would be circuit traffic
+        for nothing.
+      </p>
+      <p>
+        The palette is the corporate mark's two colours. <strong>Navy</strong>
+        <span class="m">#0e3453</span> carries action — the primary button, the active route, the
+        current step. <strong>Gold</strong> <span class="m">#b8912e</span> carries emphasis — the
+        wordmark's second line, and a field that held data where its neighbours did not. Neither is
+        spent on anything else, which is what keeps them meaning something. In dark mode navy
+        becomes the ground, so it cannot also be the action colour; the accent lifts to a legible
+        blue and every token is declared before either the media query or the
+        <code>data-theme</code> block redefines it.
+      </p>
+
+      <div class="decision">
+        <span class="label">Decision</span>
+        <p>
+          The artwork lives in exactly one file, <code>wwwroot/brand/di-mark.svg</code>, currently a
+          placeholder rendition drawn to the brand colours. The sidebar and the favicon both point at
+          it and nothing else references it, so dropping the official asset over that one file
+          updates the whole application.
+        </p>
+      </div>
+
+      <div class="decision caution">
+        <span class="label">Deliberately absent</span>
+        <p>
+          The reference layout carried a panel reading <em>"all visitor data is secure and
+          encrypted."</em> It is not — see section 9 — so the three panels below the reader state say
+          what the system actually does instead: identity comes off the chip, two fields are typed,
+          each entry is stamped. An interface should not assert a control that does not exist.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 5 -->
+    <section id="fields">
+      <h2 class="sec">What the chip actually gives</h2>
+
+      <p>
+        Read from the card: non-modifiable data, the photograph, the holder's signature image and
+        the home address. Modifiable data — occupation, sponsor, passport details — is deliberately
+        <em>not</em> requested. It is on the chip, and it is none of a visitor log's business.
+      </p>
+
+      <div class="fields">
+        <div class="fieldgroup">
+          <h4>Identity</h4>
+          <p class="note">Always present.</p>
+          <ul>
+            <li>IdNumber</li>
+            <li>CardNumber</li>
+            <li>Photo — JPEG</li>
+            <li>CardSignature — TIFF</li>
+          </ul>
+        </div>
+
+        <div class="fieldgroup">
+          <h4>Non-modifiable</h4>
+          <p class="note">Names arrive comma-delimited with empty positions.</p>
+          <ul>
+            <li>FullNameEnglish</li>
+            <li>FullNameRaw</li>
+            <li>FullNameArabic</li>
+            <li>IssueDate</li>
+            <li>ExpiryDate</li>
+            <li>Gender</li>
+            <li>DateOfBirth</li>
+            <li>NationalityEnglish</li>
+            <li>NationalityCode</li>
+            <li class="empty">IdType</li>
+            <li class="empty">TitleEnglish</li>
+            <li class="empty">PlaceOfBirthEnglish</li>
+          </ul>
+        </div>
+
+        <div class="fieldgroup">
+          <h4>Home address</h4>
+          <p class="note">Almost entirely empty on the one card tested.</p>
+          <ul>
+            <li>AddressMobile</li>
+            <li>AddressEmail</li>
+            <li class="empty">AddressEmirate</li>
+            <li class="empty">AddressCity</li>
+            <li class="empty">AddressArea</li>
+            <li class="empty">AddressStreet</li>
+            <li class="empty">AddressBuilding</li>
+            <li class="empty">AddressPoBox</li>
+            <li class="empty">AddressPhone</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="decision caution">
+        <span class="label">Unresolved</span>
+        <p>
+          "Fetch home address" was an explicit requirement, and on the card tested every postal
+          field came back blank — only mobile and email carried anything. It is not yet known
+          whether that is this card or every card. Until a second card says otherwise, the screen
+          states <em>"No postal address held on this card"</em> rather than rendering nine empty
+          boxes that look like a failed read, and highlights the two fields that did carry data.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 6 -->
+    <section id="data">
+      <h2 class="sec">Data model</h2>
+
+      <p>
+        Two tables in schema <code>vms</code>. Card values are stored exactly as the chip presented
+        them, including the dates, which arrive as strings — so the record reflects what was read
+        rather than an interpretation of it.
+      </p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Table</th><th>Column</th><th>Type</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="3"><strong>vms.Entity</strong></td>
+              <td class="k">Id</td><td class="k">int identity</td>
+              <td>Visits reference the row, not the text, so a rename propagates everywhere.</td>
+            </tr>
+            <tr>
+              <td class="k">Name</td><td class="k">nvarchar(200)</td>
+              <td>Unique index <code>IX_Entity_Name</code>.</td>
+            </tr>
+            <tr>
+              <td class="k">IsActive</td><td class="k">bit, default 1</td>
+              <td>0 retires an entity from the dropdown and keeps its history.</td>
+            </tr>
+            <tr>
+              <td rowspan="6"><strong>vms.VisitorEntry</strong></td>
+              <td class="k">IdNumber</td><td class="k">nvarchar(30)</td>
+              <td>Indexed. Not unique — the same person visits more than once.</td>
+            </tr>
+            <tr>
+              <td class="k">Photo, CardSignature</td><td class="k">varbinary(max)</td>
+              <td>As they came off the chip. The signature is converted only for display.</td>
+            </tr>
+            <tr>
+              <td class="k">DiEntityId</td><td class="k">int, FK</td>
+              <td>To <code>vms.Entity</code>. Prevents an entity with visits being deleted.</td>
+            </tr>
+            <tr>
+              <td class="k">PersonToVisit</td><td class="k">nvarchar(200)</td>
+              <td>Free text. Not joined to an employee table — there isn't one.</td>
+            </tr>
+            <tr>
+              <td class="k">RecordedAtUtc</td><td class="k">datetimeoffset</td>
+              <td>Stored UTC, displayed GST. Composite index with <code>DiEntityId</code>, which is exactly how the report reads.</td>
+            </tr>
+            <tr>
+              <td class="k">CaptureMethod</td><td class="k">nvarchar(30)</td>
+              <td><code>CardReader</code> today; distinguishes a future manual entry.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The remaining twenty-odd columns are the card fields listed in section 5, all nullable, all
+        capped at their observed lengths. Nullable is not laziness: the card in section 5 proves
+        most of them can be absent.
+      </p>
+    </section>
+
+    <!-- ============================================================ 7 -->
+    <section id="state">
+      <h2 class="sec">Schema, reference data and configuration</h2>
+
+      <p>
+        Three kinds of state, three owners. Conflating them is what made the first attempt fail on
+        a database that already existed.
+      </p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Kind</th><th>Owner</th><th>Changed by</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Table schema</strong></td>
+              <td class="k">Data/DbBootstrapper.cs</td>
+              <td>Editing the EF model. DDL is generated from it at startup, so there is no second copy of the schema to drift.</td>
+            </tr>
+            <tr>
+              <td><strong>Entity list</strong></td>
+              <td class="k">db/seed_entities.sql</td>
+              <td>A SQL insert and a page refresh. Never a rebuild — the list of group companies must not need a deployment.</td>
+            </tr>
+            <tr>
+              <td><strong>Toolkit config</strong></td>
+              <td class="k">appsettings.Development.json</td>
+              <td>Per machine. Left blank, the app searches for a folder holding <code>config_li</code>, preferring one that also has <code>config_ag</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="decision caution">
+        <span class="label">Discovered the hard way</span>
+        <p>
+          <code>EnsureCreated</code> does not do what its name suggests. It creates the schema only
+          when it creates the <em>database</em>, and does nothing at all against a database that
+          already exists — missing tables included. <code>VMS</code> existed, so it returned
+          <code>false</code> silently and the first query failed with
+          <code>Invalid object name 'vms.Entity'</code>. Likewise <code>HasData</code> runs only
+          when a table is created, so it can never deliver a changed reference list.
+        </p>
+      </div>
+
+      <p>
+        The bootstrapper is honest about its limits: it creates tables that are absent and never
+        alters ones that are present. If it finds the model half-applied it throws with the list of
+        missing tables rather than starting an application whose reports would be incomplete. Once
+        the database holds anything that cannot be dropped, this gives way to EF migrations.
+      </p>
+    </section>
+
+    <!-- ============================================================ 8 -->
+    <section id="discovered">
+      <h2 class="sec">Constraints discovered, not chosen</h2>
+
+      <p>
+        Each of these cost a debugging cycle and each now shapes code. They are recorded because
+        the next person will otherwise pay for them again.
+      </p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Symptom</th><th>Cause</th><th>Consequence in the design</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="k">Invalid or incomplete configuration data</td>
+              <td>The toolkit config is newline-separated <code>key = value</code>. The SDK's own quickstart README documents a JSON example, which the toolkit rejects.</td>
+              <td>Config is built as <code>key = value</code>, with <code>config_directory</code> pointing at <code>quickstart\64</code> rather than the bundle folder.</td>
+            </tr>
+            <tr>
+              <td class="k">Failed to get response from server</td>
+              <td>Licence type <code>PRE-PRODUCTION</code>, HTTP 401 <em>licence not found or not active</em>. The telemetry POST is enforced, so <code>read_publicdata_offline</code> does <strong>not</strong> avoid the Validation Gateway.</td>
+              <td>No degraded offline mode is offered, because there isn't one. Network reachability to ICP is a hard prerequisite. Resolved by ICP's <code>IDCARDOFFLINE_config_2026-04-14</code> bundle.</td>
+            </tr>
+            <tr>
+              <td class="k">Unable to load DLL 'EIDAToolkit.dll' (0x8007007E)</td>
+              <td>The managed binding loaded; the native library and its thirteen companions were not beside the executable.</td>
+              <td>The build copies them from the SDK, warns if they are missing, and the runtime error names the missing native files rather than the assembly.</td>
+            </tr>
+            <tr>
+              <td class="k">Ù†ÙŠØ± Ø¬ÙˆØ§Ø¯</td>
+              <td>The binding repairs its own ANSI marshalling via <code>Encoding.GetEncoding(0)</code>, which is the OS code page on .NET Framework — its own target — but UTF-8 on .NET 8, making the repair an identity.</td>
+              <td><code>CardText</code> inverts the ANSI <em>decode</em> byte by byte. Not the encoder: Windows-1252 leaves <code>0x81</code> undefined, and <code>0x81</code> is the second byte of <span class="m" dir="rtl">ف</span>.</td>
+            </tr>
+            <tr>
+              <td class="k">SCARD_E_NO_READERS_AVAILABLE</td>
+              <td>The Smart Card service stopped, then the reader unplugged.</td>
+              <td>Reader state is reported from PC/SC and card presence alone. Other service checks proved to be false negatives and were removed.</td>
+            </tr>
+            <tr>
+              <td class="k">Signature renders in WPF, not in a browser</td>
+              <td>The holder's signature is TIFF.</td>
+              <td><code>ImageConverter</code> makes a PNG server-side and never throws; failure shows a message, not a broken image.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        On Windows any PC/SC-compliant reader works through the generic plugin — the confirmed unit
+        is an <span class="m">ACS ACR39U ICC Reader 0</span>. Mobile is different: there the reader
+        must match a shipped plugin. Toolkits exist for Android and iOS as well as Windows, so a
+        mobile client stays possible; the Windows binding is the only one needing no binding layer.
+      </p>
+    </section>
+
+    <!-- ============================================================ 9 -->
+    <section id="security">
+      <h2 class="sec">Security posture, stated plainly</h2>
+
+      <p>
+        This increment was built to prove a card read end to end, and its protections are the ones
+        that fell out of that. The gaps below are real and are listed so they are decided rather
+        than discovered.
+      </p>
+
+      <h3>What is in place</h3>
+      <ul>
+        <li>Request identifiers are 40 cryptographically random bytes, and a response that does not echo one is rejected.</li>
+        <li>Response XML is parsed with DTD processing prohibited and no resolver, so a card response cannot pull an external entity.</li>
+        <li>Modifiable card data — passport, sponsor, occupation — is never requested, so it is never stored.</li>
+        <li>CSV export neutralises formula injection.</li>
+        <li>Card values are read-only on screen; nothing that came off the chip can be edited.</li>
+      </ul>
+
+      <h3>What is not</h3>
+
+      <div class="decision gap">
+        <span class="label">Gap · no authentication</span>
+        <p>
+          There is no sign-in and no roles. Anyone who can reach the application can read every
+          visitor record. This is defensible only while it runs on one attended desk, and it is the
+          first thing to fix before a second machine or any wider network exposure.
+        </p>
+      </div>
+
+      <div class="decision gap">
+        <span class="label">Gap · plaintext personal data</span>
+        <p>
+          Emirates ID numbers, dates of birth, photographs and signatures are stored unencrypted and
+          unmasked, with no retention limit. Transparent database encryption, column encryption for
+          the ID number, and a retention job are all outstanding. The connection string uses Windows
+          authentication and <code>TrustServerCertificate=True</code> — acceptable inside UAT, not
+          for production.
+        </p>
+      </div>
+
+      <div class="decision gap">
+        <span class="label">Gap · no audit trail</span>
+        <p>
+          Reads and exports are not logged, so there is no record of who looked at a visitor's data.
+        </p>
+      </div>
+
+      <p>
+        One capability worth adopting deliberately: the toolkit can assert that a card is
+        <strong>genuine</strong> and <strong>not reported lost or stolen</strong>. Neither check is
+        called today. Both are cheap and both are the difference between recording an identity and
+        verifying one.
+      </p>
+    </section>
+
+    <!-- ============================================================ 10 -->
+    <section id="open">
+      <h2 class="sec">Open, and deliberately not built</h2>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Item</th><th class="narrow">State</th><th>What it needs</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>The third module</td>
+              <td><span class="pill open">Blocked</span></td>
+              <td>A specification. Three were asked for; two were described.</td>
+            </tr>
+            <tr>
+              <td>Home address on the chip</td>
+              <td><span class="pill partial">Unproven</span></td>
+              <td>A second card, to establish whether the empty postal fields are universal.</td>
+            </tr>
+            <tr>
+              <td>Entity list completeness</td>
+              <td><span class="pill partial">Partial</span></td>
+              <td>The source dropdown was cut off after <span class="m">TechSource</span>; anything sorting later is missing.</td>
+            </tr>
+            <tr>
+              <td>Authentication and audit</td>
+              <td><span class="pill open">Not built</span></td>
+              <td>See section 9. Required before a second desk.</td>
+            </tr>
+            <tr>
+              <td>EF migrations</td>
+              <td><span class="pill partial">Deferred</span></td>
+              <td>Required before the database holds data that cannot be dropped.</td>
+            </tr>
+            <tr>
+              <td>Card genuineness and lost/stolen checks</td>
+              <td><span class="pill open">Available, unused</span></td>
+              <td>A decision on whether a failed check refuses entry or only warns.</td>
+            </tr>
+            <tr>
+              <td>Ten orphaned tables in <span class="m">vms</span></td>
+              <td><span class="pill partial">Cleanup</span></td>
+              <td>Left over from the design that preceded the reset. Nothing reads them.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ 11 -->
+    <section id="runbook">
+      <h2 class="sec">Prerequisites</h2>
+
+      <p>Everything below is per reception machine.</p>
+
+      <ol class="body-list">
+        <li><strong>x64 Windows</strong>, with the Smart Card service running. The host process must be x64 — the binding P/Invokes an x64 native library.</li>
+        <li><strong>A PC/SC reader</strong>, visible to <code>SCardListReaders</code>. Any compliant unit; the generic plugin covers it.</li>
+        <li><strong>The ICP config bundle</strong>, in a folder holding <code>config_li</code> and <code>config_ag</code>. Licence expiry is monitored on screen — the current one runs to 29 July 2027.</li>
+        <li><strong>Network reach to the ICP Validation Gateway.</strong> Not optional, offline mode notwithstanding.</li>
+        <li><strong>The native toolkit DLLs</strong> beside the executable. The build copies them and warns if the SDK folder is absent.</li>
+        <li><strong>A connection to <code>UATWEB01 · VMS</code></strong> under an account that may create tables on first run.</li>
+      </ol>
+
+      <p>
+        Then <code>db/seed_entities.sql</code> for the entity list, and the application on
+        <code>https://localhost:7100</code>.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    Design of record for the DIP visitor desk, superseding the pre-reset documents 01–07, which
+    describe an Android, React and REST architecture that no longer exists. The SDK analysis in
+    <span class="m">docs/00-sdk-analysis.md</span> remains current. Engineering detail and the
+    reasoning behind each non-obvious choice live in
+    <span class="m">src/DI.Vms.Blazor/README.md</span>.
+  </footer>
+
+</div>
