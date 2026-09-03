@@ -33,7 +33,18 @@ It must be the folder containing `config_li` and `config_ag`.
 
 **2. Check the connection string.** `Server=UATWEB01;Database=VMS`.
 
-**3. Run.**
+**3. Run.** The build copies the native toolkit DLLs (`EIDAToolkit.dll`, `PCSCLib.dll`,
+the Morpho runtime and the VC++ 2013 redistributable) from the SDK's `quickstart\64` into
+the output folder, because Windows resolves a P/Invoke target from the executable's own
+directory. Without them the app starts and then fails on first use with:
+
+```
+Unable to load DLL 'EIDAToolkit.dll' or one of its dependencies (0x8007007E)
+```
+
+That message names the assembly it could not load, not the dependency that was actually
+missing — which is why the service now reports the real cause instead. If a deployment
+keeps those DLLs elsewhere, set `Toolkit:NativeDirectory`.
 
 ```
 dotnet run --project src/DI.Vms.Blazor

@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Xml;
@@ -147,6 +148,19 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
 
         try
         {
+            /* The native DLLs are normally copied beside the executable by the build. If a
+               deployment keeps them elsewhere, Toolkit:NativeDirectory points at them -
+               added to the search path rather than replacing it, so the app's own
+               directory still works. */
+            var nativeDirectory = configuration["Toolkit:NativeDirectory"];
+            if (!string.IsNullOrWhiteSpace(nativeDirectory) && Directory.Exists(nativeDirectory))
+            {
+                if (!SetDllDirectory(nativeDirectory))
+                {
+                    logger.LogWarning("SetDllDirectory failed for {Directory}", nativeDirectory);
+                }
+            }
+
             var configDirectory = configuration["Toolkit:ConfigDirectory"];
 
             if (string.IsNullOrWhiteSpace(configDirectory) || !Directory.Exists(configDirectory))
@@ -171,6 +185,18 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
             _toolkit = new Toolkit(true, config);
             logger.LogInformation("Toolkit initialised from {ConfigDirectory}", configDirectory);
             return true;
+        }
+        catch (DllNotFoundException ex)
+        {
+            /* The managed binding loaded but its native dependency did not. Saying which
+               files are missing is far more useful than repeating the DLL name. */
+            _initialisationError =
+                "The native toolkit libraries are not beside the application. " +
+                "EIDAToolkit.dll, PCSCLib.dll and the VC++ 2013 runtime (msvcp120.dll, " +
+                "msvcr120.dll) must be in the output folder - the build copies them from " +
+                "the SDK's quickstart\\64. Original error: " + ex.Message;
+            logger.LogError(ex, "Native toolkit libraries missing");
+            return false;
         }
         catch (Exception ex)
         {
@@ -256,6 +282,10 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
             return false;
         }
     }
+
+    [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetDllDirectory(string lpPathName);
 
     public void Dispose()
     {

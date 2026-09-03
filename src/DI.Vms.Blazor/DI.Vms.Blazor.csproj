@@ -33,6 +33,31 @@
 
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU1701;CS1591</NoWarn>
+    <ToolkitNativeDir>$(MSBuildThisFileDirectory)..\..\id-card-toolkit-windows-sdk-v3.1.6\quickstart\64</ToolkitNativeDir>
   </PropertyGroup>
+
+  <!-- IDCardToolkit.dll P/Invokes native EIDAToolkit.dll, which in turn needs its reader
+       plugin (PCSCLib), the Morpho runtime and the VC++ 2013 redistributable. Windows
+       resolves those from the executable's own directory, so they are copied there.
+
+       Without this the app starts and then fails on first use with
+       "Unable to load DLL 'EIDAToolkit.dll' ... (0x8007007E)", which names the assembly
+       it could not load rather than the dependency that was actually missing.
+
+       IDCardToolkit.dll is excluded: it is already present as an assembly reference, and
+       copying a second instance invites a load conflict. -->
+  <ItemGroup>
+    <ToolkitNative Include="$(ToolkitNativeDir)\*.dll"
+                   Exclude="$(ToolkitNativeDir)\IDCardToolkit.dll" />
+    <None Include="@(ToolkitNative)">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="WarnIfToolkitNativeMissing" BeforeTargets="Build">
+    <Warning Condition="!Exists('$(ToolkitNativeDir)\EIDAToolkit.dll')"
+             Text="Native toolkit DLLs not found at $(ToolkitNativeDir). Card reading will fail at runtime with 0x8007007E." />
+  </Target>
 
 </Project>
