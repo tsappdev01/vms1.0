@@ -1,7 +1,10 @@
 @page "/"
 @rendermode InteractiveServer
-@implements IDisposable
+@implements IAsyncDisposable
+@inject CardCaptureOptions Capture
 @inject CardReaderService Reader
+@inject AgentCardReader AgentReader
+@inject IJSRuntime JS
 @inject ILogger<NewVisitor> Logger
 @inject IDbContextFactory<VmsDbContext> DbFactory
 
@@ -129,7 +132,7 @@
                    has. The alternative - leaving the Read Card button there - costs three
                    failed attempts per visitor before the manual fallback appears, and
                    teaches the desk that the app is broken. See docs/deployment.md. *@
-                @if (!Reader.Enabled)
+                @if (!Capture.ReadsCards)
                 {
                     <span class="ready waiting">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -216,7 +219,7 @@
                     }
                 }
 
-                @if (!Reader.Enabled)
+                @if (!Capture.ReadsCards)
                 {
                     <div class="actions">
                         <button class="primary large" @onclick="StartManualEntry">
@@ -267,12 +270,22 @@
                     }
                     else
                     {
-                        @* Offered only after three failures. Before that, the reader is the
-                           better answer and a manual shortcut would only invite skipping it. *@
-                        @if (failedReads >= 3)
+                        @* Offered after three failures - before that the reader is the
+                           better answer and a shortcut only invites skipping it - or at
+                           once when the desk has no agent, where waiting out three
+                           failures teaches nothing anyone did not already know. *@
+                        @if (failedReads >= 3 || agentMissing)
                         {
                             <div class="fallback">
-                                <strong>The card has not been read after @failedReads attempts.</strong>
+                                @if (agentMissing)
+                                {
+                                    <strong>This PC cannot read the card.</strong>
+                                    <p>@readerState?.Detail</p>
+                                }
+                                else
+                                {
+                                    <strong>The card has not been read after @failedReads attempts.</strong>
+                                }
                                 <p>
                                     Enter the visitor's details by hand instead? The entry will be
                                     marked as entered manually, so it is never taken for a chip read.
@@ -308,7 +321,7 @@
             </span>
             @* The claim has to match the host: on one with no reader nothing is read off
                a chip, and a visitor can read this panel. *@
-            @if (Reader.Enabled)
+            @if (Capture.ReadsCards)
             {
                 <div>
                     <strong>Straight from the chip</strong>
@@ -331,7 +344,7 @@
             </span>
             <div>
                 <strong>Fast &amp; Efficient</strong>
-                <p>@(Reader.Enabled
+                <p>@(Capture.ReadsCards
                         ? "Two fields to fill. Everything else is already on the card, so check-in takes seconds."
                         : "Only what the visit needs: the ID number, the name, and who is being visited.")</p>
             </div>
@@ -789,7 +802,7 @@ else if (step == 3 && saved is not null)
     /// The first step is not "Insert Card" on a host that cannot read one.
     /// </summary>
     private string StepLabel(int index) =>
-        index == 0 && !Reader.Enabled ? "Visitor Details" : Steps[index].Label;
+        index == 0 && !Capture.ReadsCards ? "Visitor Details" : Steps[index].Label;
 
     private int step;
     private bool reading;
@@ -801,6 +814,16 @@ else if (step == 3 && saved is not null)
     /// Reset by a successful read and by starting over.
     /// </summary>
     private int failedReads;
+
+    /// <summary>
+    /// True when the desk has no ICP agent answering. Distinct from a failed read: no
+    /// number of retries will fix it, so manual entry is offered immediately.
+    /// </summary>
+    private bool agentMissing;
+
+    private bool UsesAgent => Capture.Mode == CardCaptureMode.Agent;
+
+    private IJSObjectReference? agentModule;
 
     /// <summary>
     /// How the identity in front of us was obtained. Stored on the entry, so a typed
@@ -1025,6 +1048,43 @@ else if (step == 3 && saved is not null)
         IdDigits.Length > 0 && !string.IsNullOrWhiteSpace(manual.FullNameEnglish);
 
     /// <summary>
+    /// Reads the card through the agent on the desk, and hands the response straight to
+    /// the server to be verified.
+    ///
+    /// The browser returns one thing: the signed XML. Everything the screen then shows was
+    /// parsed on this side of the circuit, from a document whose signature and request ID
+    /// were checked here - see AgentCardReader. A browser-parsed field would make the
+    /// signature decorative, so none is accepted.
+    /// </summary>
+    private async Task<CardData> ReadThroughAgentAsync(IProgress<string> progress)
+    {
+        var module = await AgentModule();
+
+        /* Issued here, spent here. The gateway stamps it into the response, so a document
+           from an earlier visitor cannot be replayed into this check-in. */
+        var requestId = AgentReader.BeginRead();
+
+        progress.Report("Reading the card at the desk…");
+
+        /* Generous: the timeout is for an agent that has stopped answering, not for a
+           slow chip - and a read that is cut off looks to the attendant exactly like a
+           card that will not read. */
+        var result = await module.InvokeAsync<AgentReadResult>(
+            "read", TimeSpan.FromSeconds(120), AgentReader.Options.ForBrowser(), requestId);
+
+        progress.Report("Checking the response…");
+
+        return AgentReader.Complete(requestId, result.Xml);
+    }
+
+    /// <summary>
+    /// Imported on first use rather than at start-up: the report screen has no use for
+    /// 120 KB of card-reading JavaScript, and in in-process mode nor does this one.
+    /// </summary>
+    private async Task<IJSObjectReference> AgentModule() =>
+        agentModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/card-agent.js");
+
+    /// <summary>
     /// Switches to typing the details in. A blank CardData is used as the form's model so
     /// the rest of the flow - visit details, save, the report - needs no second path;
     /// captureMethod is what keeps the two kinds of record apart.
@@ -1075,8 +1135,54 @@ else if (step == 3 && saved is not null)
 
     private async Task CheckReader()
     {
-        readerState = await Reader.GetStateAsync();
         message = null;
+        readerState = UsesAgent ? await ProbeAgentAsync() : await Reader.GetStateAsync();
+    }
+
+    /// <summary>
+    /// Asks the browser what the desk has. In agent mode the reader is on the attendant's
+    /// machine, so only the browser can answer - the server has no way to see it.
+    /// </summary>
+    private async Task<ReaderState> ProbeAgentAsync()
+    {
+        try
+        {
+            var module = await AgentModule();
+
+            var probe = await module.InvokeAsync<AgentProbe>(
+                "probe", TimeSpan.FromSeconds(30), AgentReader.Options.ForBrowser());
+
+            var (licence, licenceDays) = CardReaderService.ReadLicence(probe.LicenceExpiry);
+
+            /* Set here, where the two states are still distinguishable. "No agent on this
+               PC" and "an agent, but no card in the reader" both leave Available false,
+               and only the first one means retrying is pointless. */
+            agentMissing = !probe.AgentAvailable;
+
+            return new ReaderState
+            {
+                Available = probe is { AgentAvailable: true, CardPresent: true },
+                ReaderName = probe.ReaderName,
+                Detail = probe.Detail ?? "The agent gave no detail.",
+                ToolkitVersion = probe.ToolkitVersion,
+                LicenceExpiry = licence,
+                LicenceDaysRemaining = licenceDays,
+            };
+        }
+        catch (JSDisconnectedException)
+        {
+            // The browser has gone. There is nobody to show a state to.
+            return new ReaderState { Available = false, Detail = "The browser disconnected." };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Probing the desk's ICP agent failed");
+
+            /* The probe itself failing is not evidence either way about the agent, so it
+               does not claim the desk cannot read cards - it says what went wrong and
+               leaves Read Card available. */
+            return new ReaderState { Available = false, Detail = ex.Message };
+        }
     }
 
     private async Task ReadCard()
@@ -1095,18 +1201,21 @@ else if (step == 3 && saved is not null)
 
         try
         {
-            card = await Reader.ReadAsync(progress);
+            card = UsesAgent ? await ReadThroughAgentAsync(progress) : await Reader.ReadAsync(progress);
             signatureDataUrl = ImageConverter.ToDisplayableDataUrl(card.CardSignature, Logger);
             captureMethod = "CardReader";
             failedReads = 0;
+            agentMissing = false;
             step = 1;
         }
         catch (Exception ex)
         {
             failedReads++;
             Logger.LogWarning(ex, "Card read failed (attempt {Attempt})", failedReads);
+            /* Re-probed before the message is set, because CheckReader clears it: the
+               attendant needs the reason the read failed, not the state that follows. */
+            await CheckReader();
             Fail(ex.Message);
-            readerState = await Reader.GetStateAsync();
         }
         finally
         {
@@ -1216,10 +1325,19 @@ else if (step == 3 && saved is not null)
     private static string ToDataUrl(byte[] bytes, string mime) =>
         $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         toastTimer?.Cancel();
         toastTimer?.Dispose();
+
+        if (agentModule is not null)
+        {
+            /* A circuit that has already gone cannot be told to drop a module, and
+               throwing out of disposal would bury whatever actually ended the circuit. */
+            try { await agentModule.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+            catch (Exception ex) { Logger.LogDebug(ex, "Disposing the card agent module failed"); }
+        }
     }
 
     private static string ToGst(DateTimeOffset instant) =>

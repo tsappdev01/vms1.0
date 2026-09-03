@@ -979,6 +979,20 @@ button.link:hover { background: none; color: var(--accent-hover); }
 .empty { padding: 48px 16px; text-align: center; color: var(--text-secondary); }
 .empty strong { display: block; color: var(--text-primary); margin-bottom: 4px; }
 
+/* Running prose, for the pages that have to explain something rather than collect it -
+   the reader-setup page. Read standing at a desk, so the measure is short and the type is
+   the body size rather than the compact size the forms use. */
+.prose { padding: 24px 28px; max-width: 62ch; color: var(--text-secondary); font-size: 13.5px; line-height: 1.65; }
+.prose h2 { margin: 22px 0 8px; font-size: 13px; letter-spacing: .02em; text-transform: uppercase; color: var(--text-primary); }
+.prose p, .prose ul, .prose ol { margin: 0 0 10px; }
+.prose ul, .prose ol { padding-left: 20px; }
+.prose li { margin-bottom: 6px; }
+.prose strong { color: var(--text-primary); }
+.prose code {
+  padding: 1px 5px; border-radius: 4px; font-size: 12.5px;
+  background: var(--accent-tint); color: var(--text-primary);
+}
+
 #blazor-error-ui {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
   padding: 12px 20px; background: var(--status-warning); color: #0b0b0b;

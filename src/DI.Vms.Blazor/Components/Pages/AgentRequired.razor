@@ -1,0 +1,47 @@
+@page "/agent-required"
+@inject CardCaptureOptions Capture
+
+<PageTitle>Card reader setup &middot; DI VMS</PageTitle>
+
+<h1>This PC cannot read the card yet</h1>
+<p class="page-sub">One component has to be installed on this machine</p>
+
+<section class="card">
+    <div class="prose">
+        <p>
+            The Emirates ID is read from the chip in the card, by the reader plugged into
+            <strong>this</strong> PC. The visitor management system runs on a server, so it
+            cannot reach that reader by itself: ICP's agent has to be installed here to do it.
+        </p>
+
+        @* The reason this page exists at all: eidatoolkit.js, left to itself, offers a Java
+           download when no agent answers. An attendant mid-check-in should get an
+           explanation and a person to call, not a JNLP file. *@
+        <h2>What needs installing</h2>
+        <ol>
+            <li><strong>ICAToolkitService.msi</strong> — ICP's ID Card Toolkit agent, from the toolkit v3.1.6 bundle.</li>
+            <li>The <strong>driver for the card reader</strong>, if Windows has not already found it. An ACS ACR39U works with the driver Windows supplies.</li>
+        </ol>
+        <p>Both need an administrator, so this is a job for IT rather than for the desk.</p>
+
+        <h2>If it is already installed</h2>
+        <p>Then it is not answering. Worth checking, in this order:</p>
+        <ul>
+            <li>The <strong>EIDA Toolkit</strong> service is running in Services.</li>
+            <li>Nothing else is on ports <strong>9004</strong>, <strong>9005</strong> or <strong>9020</strong>.</li>
+            <li>
+                The agent's certificate is trusted on this PC. The page reaches the agent at
+                <code>@(Capture.Agent.HostName is { Length: > 0 } host ? host : (Capture.Agent.TlsEnabled ? "toolkitagent.emiratesid.ae" : "127.0.0.1"))</code>
+                over @(Capture.Agent.TlsEnabled ? "a secure WebSocket (wss://)" : "a plain WebSocket (ws://)"), and a
+                certificate the browser will not accept fails in a way that looks exactly like an agent that is not there.
+            </li>
+        </ul>
+
+        <h2>Meanwhile</h2>
+        <p>
+            A visitor should not wait for this. Go back to
+            <a href="">New Visitor</a> and use <strong>Enter manually</strong> — the entry
+            is recorded and marked as entered by hand, so it is never mistaken for a chip read.
+        </p>
+    </div>
+</section>

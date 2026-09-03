@@ -1,13 +1,16 @@
 /*  006_grant_app_login.sql
     Gives the VMS application's Windows identity access to the VMS database.
 
-    Run on UATWEB01 as an administrator, once, when deploying to a new reception PC.
+    Run on UATWEB01 as an administrator, once per identity the app runs as.
 
     Set @Login below to the identity the app runs as:
 
-      DI\svc-vms      a domain service account - the simplest to grant and to audit
-      DI\RECEPTION1$  the reception PC's machine account, if the service runs as
-                      LocalSystem or NetworkService; note the trailing $
+      IIS APPPOOL\DIVms   the IIS application pool, when the app is on UATWEB01 - SQL
+                          Server is on that same machine, so the pool identity is a
+                          principal it can see. This is the UATWEB01 case.
+      DI\svc-vms          a domain service account - the simplest to grant and to audit
+      DI\RECEPTION1$      the reception PC's machine account, if the app runs there as a
+                          service under LocalSystem or NetworkService; note the trailing $
 
     Re-runnable: it creates only what is absent and adds only the roles that are missing.
 
@@ -25,7 +28,7 @@ GO
 
 SET NOCOUNT ON;
 
-DECLARE @Login sysname = N'DI\svc-vms';   -- <<< EDIT THIS
+DECLARE @Login sysname = N'IIS APPPOOL\DIVms';   -- <<< EDIT THIS
 DECLARE @sql nvarchar(max);
 
 /* 1. Server login. CREATE LOGIN is a server-level statement and runs from any database

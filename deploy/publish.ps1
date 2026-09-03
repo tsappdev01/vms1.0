@@ -7,6 +7,9 @@
     build reads the ICP SDK from id-card-toolkit-windows-sdk-v3.1.6\, so it cannot be
     published from anywhere else.
 
+    The same output serves both deployments: the app on UATWEB01 with the reader on each
+    desk, or the app installed on a reception PC. Toolkit:Mode decides which it is.
+
     The verification is the point. The app loads EIDAToolkit.dll by P/Invoke, which
     Windows resolves from the executable's own directory; if those files are absent the
     app starts, serves both screens, and fails only when someone inserts a card, with a
@@ -61,4 +64,4 @@ and that the ToolkitNative items in DI.Vms.Blazor.csproj still set CopyToPublish
 $count = (Get-ChildItem -Path $Output -Filter *.dll -File).Count
 Write-Host ''
 Write-Host "Published to $Output ($count DLLs, all required toolkit files present)."
-Write-Host 'Next: copy the folder to the reception PC, then follow docs/deployment.md.'
+Write-Host 'Next: copy the folder to UATWEB01, then follow docs/deployment.md.'

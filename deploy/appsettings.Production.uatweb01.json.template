@@ -1,0 +1,62 @@
+{
+  // Copy to appsettings.Production.json in the app's folder on UATWEB01 and edit.
+  // appsettings.Production.json is gitignored: it holds this machine's paths and, if
+  // Windows authentication is not used, a database credential.
+  //
+  // This is the CENTRAL SERVER template - the app on UATWEB01, the card reader on each
+  // reception desk, ICP's agent bridging the two. docs/deployment.md is the runbook.
+
+  "ConnectionStrings": {
+    // SQL Server is on this same machine, so this stays local. The app pool identity
+    // needs a login - db/006_grant_app_login.sql, with @Login set to the app pool.
+    "Vms": "Server=localhost;Database=VMS;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
+  },
+
+  "Toolkit": {
+    // Agent: the reader is on the attendant's PC, not here. UATWEB01 has no reader and
+    // InProcess would look for one, find nothing, and blame the card.
+    "Mode": "Agent",
+
+    "Agent": {
+      // The page is served over HTTPS, so the socket to the agent must be wss:// - a
+      // browser blocks a plain ws:// from an HTTPS page as mixed content and the read
+      // never starts. Requires the agent's certificate to be trusted on each desk.
+      "TlsEnabled": true,
+
+      // Blank uses the SDK's own default for the scheme: toolkitagent.emiratesid.ae
+      // under TLS, which resolves to the desk's own loopback address.
+      "HostName": "",
+
+      // Normally blank: the agent installed by ICAToolkitService.msi carries its own
+      // config, and the paths inside it are the desk's, not this server's.
+      "ToolkitConfig": "",
+
+      "DebugEnabled": false,
+
+      // THE ONE SETTING THAT MAKES THIS MODE SAFE. A card read now arrives from a
+      // browser, and the certificate that signed it travels inside it - so a signature
+      // that verifies proves nothing until the signer is one you named here.
+      //
+      // Leave it empty and reads still work, each marked with a warning, and the first
+      // one logs the thumbprint to paste in. Fill it in before you trust the data.
+      "TrustedSignerThumbprints": [],
+
+      "MaximumResponseAge": "00:10:00"
+    }
+  },
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    },
+    "EventLog": {
+      "LogLevel": { "Default": "Warning" }
+    }
+  }
+
+  // No Kestrel section: under IIS the binding belongs to the site, not to the app.
+  // Bind HTTPS only. The app has NO AUTHENTICATION of its own - on a server that
+  // reception desks can reach, that is a real exposure and not a theoretical one.
+  // Turn on Windows Authentication in IIS and turn Anonymous off; see docs/deployment.md.
+}

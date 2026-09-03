@@ -17,9 +17,20 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddDbContextFactory<VmsDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Vms")));
 
+/* Where the reader is, relative to this process - the deployment's central decision.
+   Resolved once here so both readers and every screen agree on it. */
+var capture = CardCaptureOptions.FromConfiguration(builder.Configuration);
+
+builder.Services.AddSingleton(capture);
+builder.Services.AddSingleton(capture.Agent);
+
 /* Singleton: the toolkit is a native context that is expensive to create and must not be
    initialised concurrently. The service serialises access internally. */
 builder.Services.AddSingleton<CardReaderService>();
+
+/* Singleton because it holds the outstanding request IDs a browser's read is redeemed
+   against. Scoped per circuit would let a second tab replay the first tab's read. */
+builder.Services.AddSingleton<AgentCardReader>();
 
 var app = builder.Build();
 
@@ -34,6 +45,8 @@ using (var scope = app.Services.CreateScope())
     await using var db = await factory.CreateDbContextAsync();
 
     await DbBootstrapper.EnsureSchemaAsync(db, logger);
+
+    capture.LogTo(logger);
 
     BrandAssets.Locate(app.Environment.WebRootPath, logger);
 }

@@ -1,8 +1,6 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
-using System.Xml;
 using AE.EmiratesId.IdCard;
 
 namespace DI.Vms.Blazor.Services;
@@ -16,27 +14,28 @@ namespace DI.Vms.Blazor.Services;
 ///
 /// The toolkit is native and single-threaded per context, so access is serialised.
 /// </summary>
-public sealed class CardReaderService(IConfiguration configuration, ILogger<CardReaderService> logger)
-    : IDisposable
+public sealed class CardReaderService(
+    IConfiguration configuration,
+    CardCaptureOptions capture,
+    ILogger<CardReaderService> logger) : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private Toolkit? _toolkit;
     private string? _initialisationError;
 
     /// <summary>
-    /// Whether this host reads cards at all. False on a machine with no reader attached -
-    /// a central server, for instance - where the toolkit would only ever fail and the
-    /// desk should be typing the details in instead. Set <c>Toolkit:Enabled</c> to false
-    /// there; see docs/deployment.md.
+    /// Whether this host reads cards through the toolkit in this process. False on a
+    /// machine with no reader attached - a central server, for instance - where the
+    /// toolkit would only ever fail. <c>Toolkit:Mode</c> decides; see docs/deployment.md.
     ///
     /// It is configuration rather than detection because the toolkit cannot tell "no
     /// reader on this machine" from "no card in the reader": both arrive as an exception
     /// out of GetReaderWithEmiratesId, and only the first one means stop offering to read.
     /// </summary>
-    public bool Enabled { get; } = configuration.GetValue("Toolkit:Enabled", true);
+    public bool Enabled => capture.Mode == CardCaptureMode.InProcess;
 
     private const string DisabledDetail =
-        "Card reading is turned off on this host, which has no reader. Visitor details are entered by hand.";
+        "This host does not read cards in-process. Toolkit:Mode decides how it reads them; see docs/deployment.md.";
 
     public async Task<ReaderState> GetStateAsync()
     {
@@ -152,9 +151,9 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
                     IdType = CardText.Fix(nm?.IdType),
                     IssueDate = nm?.IssueDate,
                     ExpiryDate = nm?.ExpiryDate,
-                    FullNameEnglish = CleanName(nm?.FullNameEnglish),
+                    FullNameEnglish = CardResponseParser.CleanName(nm?.FullNameEnglish),
                     FullNameRaw = CardText.Fix(nm?.FullNameEnglish),
-                    FullNameArabic = CleanName(nm?.FullNameArabic),
+                    FullNameArabic = CardResponseParser.CleanName(nm?.FullNameArabic),
                     TitleEnglish = CardText.Fix(nm?.TitleEnglish),
                     Gender = nm?.Gender,
                     DateOfBirth = nm?.DateOfBirth,
@@ -363,7 +362,7 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
     /// gives up: an unreadable date is shown verbatim with no count, because a wrong
     /// count is worse than none.
     /// </summary>
-    private static (string? Display, int? Days) ReadLicence(string? expiry)
+    internal static (string? Display, int? Days) ReadLicence(string? expiry)
     {
         if (string.IsNullOrWhiteSpace(expiry)) return (null, null);
 
@@ -395,23 +394,6 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
         }
     }
 
-    /// <summary>
-    /// The chip stores names as comma-delimited segments, most of them empty:
-    /// "NAYYAR JAWAID,,,,,ALI KHAN," is one person, not seven fields. The Arabic name is
-    /// delimited the same way, so it is repaired first and then joined identically.
-    /// </summary>
-    private static string CleanName(string? value)
-    {
-        value = CardText.Fix(value);
-        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
-
-        var joined = string.Join(' ', value
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(p => p.Length > 0));
-
-        return joined.Length > 0 ? joined : value.Trim();
-    }
-
     /// <summary>40 cryptographically random bytes, as the vendor sample uses.</summary>
     private static string NewRequestId() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(40));
 
@@ -419,59 +401,28 @@ public sealed class CardReaderService(IConfiguration configuration, ILogger<Card
     /// Checks the toolkit's signed XML response against the request that produced it.
     ///
     /// A mismatched request id means the response does not belong to this request, so it
-    /// is rejected. A failed signature is returned as a warning rather than thrown:
-    /// CheckSignature validates against the key inside the response, so alone it shows
-    /// internal consistency rather than provenance. Pinning it to the licence's server
-    /// certificate is the stronger control and needs ServerTLSCert, which the current
-    /// licence does not carry.
+    /// is rejected.
+    ///
+    /// The signature is a warning here, not a refusal, and the agent path treats the same
+    /// failure as fatal. The difference is not inconsistency: these bytes were produced
+    /// by the toolkit inside this process and never crossed a boundary, so a signature
+    /// that will not verify means something is wrong with the response rather than that
+    /// someone made it up. From a browser it means the opposite - which is why
+    /// AgentCardReader refuses the read and insists on a pinned signer as well.
     /// </summary>
     private static string? ValidateResponse(string requestId, string? xml)
     {
         if (string.IsNullOrEmpty(xml)) return null;
 
-        if (!RequestIdMatches(requestId, xml))
+        if (!string.Equals(requestId, CardResponseParser.ReadRequestId(xml), StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
                 "Request ID verification failed - the response may have been tampered with.");
         }
 
-        return VerifySignature(xml) ? null : "The response signature could not be verified.";
-    }
-
-    private static bool RequestIdMatches(string requestId, string xml)
-    {
-        try
-        {
-            // Parsed before it is trusted, so it must not be able to fetch anything.
-            var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
-            using var reader = XmlReader.Create(new StringReader(xml), settings);
-            return reader.ReadToFollowing("RequestID")
-                && string.Equals(requestId, reader.ReadElementContentAsString(), StringComparison.Ordinal);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static bool VerifySignature(string xml)
-    {
-        try
-        {
-            var document = new XmlDocument { XmlResolver = null, PreserveWhitespace = false };
-            document.LoadXml(xml);
-
-            var nodes = document.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
-            if (nodes.Count == 0) return false;
-
-            var signedXml = new SignedXml(document);
-            signedXml.LoadXml((XmlElement)nodes[0]!);
-            return signedXml.CheckSignature();
-        }
-        catch
-        {
-            return false;
-        }
+        return CardResponseParser.VerifySignature(xml).Valid
+            ? null
+            : "The response signature could not be verified.";
     }
 
     [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]

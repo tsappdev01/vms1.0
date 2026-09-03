@@ -1,202 +1,237 @@
 # Deploying VMS
 
-## Read this first: the reader decides where the app runs
+**The decision taken:** the app runs on **UATWEB01**, and each reception desk runs
+**ICP's agent** so the browser there can read the card. This is ICP's own architecture for
+a server-hosted web app, and it is what the rest of this document describes.
 
-The app reads the Emirates ID **chip**, in-process, through the ICP toolkit
-(`application_type = APP_INPROC`). In Blazor Server every line of component code runs on
-the server. So the machine that runs the app is the machine that must have the card
-reader plugged into it.
+Everything about it follows from one fact, so it is worth stating before the steps.
 
-Deploy this build to a central server and the two screens will render perfectly, the
-database will fill, and **Read Card will look for a reader attached to the server**. It
-will report no reader, or read whatever card is sitting in a reader in the data centre.
+## Why the desk needs anything installed at all
 
-That leaves three options, and they are different amounts of work.
+The Emirates ID is read from the **chip**, over PC/SC, by a reader plugged into a physical
+machine. In Blazor Server every line of component code runs on the server, so a server
+that calls the toolkit in-process is a server looking for a reader in the data centre.
 
-### A. Run it on the reception PC — works today, no code change
+ICP solves this by putting a small agent on the machine the reader is on:
 
-The app runs as a Windows Service on the reception machine, serving `http://127.0.0.1`
-to the browser on that same desk. The **database stays central** on UATWEB01, so the
-report is the whole office's data however many desks there are.
-
-This is what the current build is designed for and what the rest of this document covers.
-For one or two reception desks it is the right answer, and it is the only option that is
-ready now.
-
-Cost: an app folder per desk, and a redeploy per desk when a version ships. `deploy\`
-scripts make each one a two-command job.
-
-### B. Central server + the ICP agent on each desk — the vendor's web architecture
-
-ICP ships this for exactly this problem. The SDK includes:
-
-| Piece | Where |
+| Piece | Where it lives |
 |---|---|
-| The agent | `id-card-toolkit-windows-sdk-v3.1.6\bin\agent\64\EIDAToolkitService.exe` |
-| Its installer | `...\installer\ICAToolkitService\64\ICAToolkitService.msi` |
-| The browser library | `id-card-toolkit-windows-web-javascript-sdk-v3.1.6\...\lib\web\eidatoolkit.js` |
+| The agent's installer | `id-card-toolkit-windows-sdk-v3.1.6\installer\ICAToolkitService\64\ICAToolkitService.msi` |
+| The browser library | `id-card-toolkit-windows-web-javascript-sdk-v3.1.6\...\lib\web\eidatoolkit.js`, now served from `wwwroot/lib/eidatoolkit/` |
 
-`eidatoolkit.js` does not talk to a server. It opens a WebSocket to an agent on the
-**user's own machine** — `ws://` or `wss://` per `agent_tls_enabled`, against
-`127.0.0.1:9004`, `:9005` or `:9020`, protocol `eida-toolkit`, with a JNLP download as
-the fallback when no agent answers. The card is read by the desk, the result is posted to
-the server.
+`eidatoolkit.js` never talks to our server. It opens a WebSocket to `127.0.0.1` — or to
+`toolkitagent.emiratesid.ae`, which resolves to loopback, when TLS is on — on ports 9004,
+9005 and 9020 in turn, subprotocol `eida-toolkit`. The desk reads the card; the page posts
+the result to UATWEB01.
 
-What it costs:
+So: **the app is deployed once, to UATWEB01. The agent is deployed to every reception PC.**
 
-1. `ICAToolkitService.msi` installed on every reception PC, and the reader driver with it.
-   The app folder disappears from the desks; an MSI takes its place.
-2. `Services/CardReaderService.cs` is replaced by JS interop against `eidatoolkit.js`.
-   The service's shape — one call in, a filled model out, progress reported per phase —
-   can survive; its body cannot.
-3. **The signed XML has to be validated on the server.** Today the read happens inside
-   the app's own process, so the data is trusted by construction. In B it arrives from a
-   browser, which can send anything: a forged visitor record is a POST away unless the
-   server checks ICP's signature over the XML itself.
-4. Certificates: `wss://` from an HTTPS page needs the agent's certificate trusted on
-   every desk, or the page must be served over HTTP, or mixed content blocks the socket.
+## The security consequence, which is not optional
 
-Point 3 is the real work, and it is worth doing if there will be more than a handful of
-desks — but it is a project, not a deployment.
+In-process, the toolkit's output can be trusted because it never left the process. Through
+an agent it arrives **from a browser**, and a browser is a program someone can replace.
+Three things stand between that and a fabricated visitor record, and all three are
+implemented in `Services/AgentCardReader.cs`:
 
-### C. A bridge process of our own — don't
+1. **The server issues the request ID.** It is random, single-use, and expires in five
+   minutes. The gateway stamps it into the signed response, so a response captured from an
+   earlier visitor no longer matches anything outstanding.
+2. **The signature is verified server-side, against a signer we name.** This is the part
+   that is easy to get wrong: the certificate that signed the response travels *inside*
+   the response, so `CheckSignature()` on its own says only "this document has not changed
+   since whoever signed it did". Anyone can produce a document that passes. Only the
+   signer's identity separates a real card from an invention — which is
+   `Toolkit:Agent:TrustedSignerThumbprints`, and **step 6 below is where you fill it in**.
+3. **Nothing the browser parsed is believed.** `wwwroot/js/card-agent.js` returns exactly
+   one thing: the signed XML. Every field the screen shows — name, ID number, photograph,
+   signature image — is parsed on the server out of that document
+   (`Services/CardResponseParser.cs`). A field taken from browser-side JSON would make the
+   signature decorative.
 
-A small local HTTP service on each desk wrapping the in-process toolkit. This is what
-`src/DI.Vms.CardBridge/` was going to be. It is option B with a component we would have
-to write, sign, install and maintain, replacing one ICP already ships and supports. The
-empty folder is removed in this commit.
+Until a thumbprint is pinned, reads still work — refusing them would leave the deployment
+with no working path at all — but each one is flagged on screen and the observed thumbprint
+is logged with the exact configuration line to paste in.
 
 ---
 
-## A: deploying to a reception PC
+## A: deploy the app to UATWEB01
 
-### 1. Publish (on a machine with the .NET 8 SDK and this repo)
+### 1. Publish
+
+On a machine with the .NET 8 SDK and this repository (the build reads the ICP SDK out of
+`id-card-toolkit-windows-sdk-v3.1.6\`, so it cannot be published from anywhere else):
 
 ```powershell
 .\deploy\publish.ps1 -Output C:\Deploy\vms
 ```
 
-`publish.ps1` runs `dotnet publish -r win-x64 --self-contained false` and then **verifies
-that `EIDAToolkit.dll` and `PCSCLib.dll` are in the output**. That check is not
-ceremonial: `CopyToOutputDirectory` does not imply `CopyToPublishDirectory`, and a publish
-without those files starts, serves both screens, and fails on the first card with
-`0x8007007E`, blaming an assembly that is present for a native file that is not. The
-csproj now sets both; the script is the belt to that braces.
+The script verifies that `EIDAToolkit.dll` and `PCSCLib.dll` came with the publish.
+UATWEB01 does not use them — nothing there reads a card — but the same output is what a
+reception-PC install would need, and a publish that silently drops them is the defect that
+prompted the check.
 
-Self-contained is off, so the reception PC needs the **ASP.NET Core 8 Runtime**
-(`dotnet-hosting-8.0.x-win.exe` or the Windows Hosting Bundle) and, for the toolkit, the
-**VC++ 2013 x64 redistributable**. Publish with `--self-contained true` instead if
-installing a runtime on the desk is not an option; the toolkit's native dependencies come
-along either way.
+UATWEB01 needs the **ASP.NET Core 8 Hosting Bundle** (`dotnet-hosting-8.0.x-win.exe`).
+That installs the runtime and the IIS module together; without the module every request
+returns 500.19 or 502.5.
 
-### 2. Copy to the reception PC
+### 2. Copy it over
 
-Copy `C:\Deploy\vms` to, say, `C:\Program Files\DI VMS`. Also copy the ICP toolkit config
-bundle — the folder holding `config_li`, ideally the complete one with `config_ag` beside
-it — somewhere stable such as `C:\Program Files\DI VMS\toolkit-config`.
+Copy the folder to UATWEB01, e.g. `C:\inetpub\vms`.
 
 ### 3. Configure
 
-Copy `deploy\appsettings.Production.json.template` next to `DI.Vms.Blazor.exe` as
-`appsettings.Production.json` and edit three things: the connection string, the toolkit
-config directory on that machine, and the URL.
+Copy `deploy\appsettings.Production.uatweb01.json.template` into that folder as
+`appsettings.Production.json` and edit it. The three things that matter:
 
-Keep the URL on **loopback**:
-
-```json
-"Kestrel": { "Endpoints": { "Http": { "Url": "http://127.0.0.1:5100" } } }
+```jsonc
+"ConnectionStrings": { "Vms": "Server=localhost;Database=VMS;Trusted_Connection=True;…" },
+"Toolkit": {
+  "Mode": "Agent",
+  "Agent": { "TlsEnabled": true, "TrustedSignerThumbprints": [] }
+}
 ```
 
-The app has **no authentication**. On loopback the only client is the browser on that
-desk. Bind `0.0.0.0` and every visitor record — Emirates ID numbers, photographs, dates
-of birth — is readable by anyone who can route to the PC. Do not change this without
-adding sign-in first.
+`Mode: Agent` is the one that must not be missed. Left at `InProcess`, UATWEB01 will hunt
+for a card reader it does not have and report it as a card that will not read.
 
-The service reads `appsettings.Production.json` only when `ASPNETCORE_ENVIRONMENT` is
-`Production`, which is the default when the variable is unset. Leave it unset.
-
-### 4. Give the service identity a SQL login
-
-The service will not run as the receptionist, so the connection string's
-`Trusted_Connection=True` authenticates as whatever the service runs as. Edit `@Login` at
-the top of `db\006_grant_app_login.sql` and run it on UATWEB01:
-
-```
-sqlcmd -S UATWEB01 -E -i db\006_grant_app_login.sql
-```
-
-A **domain service account** (`DI\svc-vms`) is the simpler grant and the clearer audit
-trail. The alternative is the PC's machine account (`DI\RECEPTION1$`) with the service
-left as LocalSystem — one login per desk, and it changes if the PC is rebuilt.
-
-It grants `db_datareader` + `db_datawriter` and `SELECT, INSERT, UPDATE` on schema `vms`.
-Not `db_owner`: see the note in the script about what a permission error from the
-bootstrapper is telling you.
-
-### 5. Run the database scripts
-
-In number order, once, on UATWEB01 — see [`db/README.md`](../db/README.md). Outstanding as
-of this commit: `004_seed_people.sql` needs a re-run (the first run hit the `GO` bug and
-set no entity links), and `005_add_group_companies.sql` is a decision, not a step.
-
-### 6. Install the service
-
-Elevated, on the reception PC:
+### 4. IIS
 
 ```powershell
-.\install-service.ps1 -Path 'C:\Program Files\DI VMS' -ServiceAccount 'DI\svc-vms' -PromptForPassword
+.\install-iis.ps1 -Path 'C:\inetpub\vms' -HostHeader vms.dubaiinvestments.local `
+                  -CertificateThumbprint <thumbprint in LocalMachine\My>
 ```
 
-It refuses to install if `EIDAToolkit.dll` is not beside the exe, sets automatic start,
-configures restart-on-failure, starts the service, and tells you where the reason is if it
-did not start. `Program.cs` calls `AddWindowsService`, so the process reports ready to the
-service control manager instead of being killed after 30 seconds — and its content root
-becomes the exe's folder rather than `C:\Windows\System32`.
+**HTTPS is required, not preferred.** A page served over plain HTTP cannot open the
+`wss://` socket to the agent — and a page served over HTTPS cannot open a plain `ws://`
+one, because the browser blocks it as mixed content and gives no visible reason. HTTPS on
+the site plus `TlsEnabled: true` is the combination that works.
 
-To reinstall a new version: stop the service, copy the files over, start it. The script is
-re-runnable and reconfigures rather than duplicating.
+The script also, by default, turns on **Windows Authentication and turns Anonymous off**.
+Read the next paragraph before overriding that.
 
-### 7. The desk browser
+> The application has **no authentication of its own**. On a reception PC bound to
+> loopback that was contained by the network. On UATWEB01 it is not: every desk, and
+> everything else that can route to the server, can reach it. IIS Windows Authentication
+> is the cheapest real control available and needs no change to the app — it makes the
+> server demand a domain identity before a request reaches a page. Without it, every
+> visitor record, Emirates ID numbers and photographs included, is readable by anyone on
+> the network.
 
-Open `http://127.0.0.1:5100`. For a kiosk, Edge in kiosk mode against that URL:
+It also disables app-pool idle timeout and nightly recycling. Blazor Server keeps a
+circuit per open screen in memory; a recycle drops the desk's screen mid-check-in.
+
+### 5. The database
+
+SQL Server is on this same machine, so the app pool identity is a principal it can see.
+Set `@Login` at the top of `db\006_grant_app_login.sql` to `IIS APPPOOL\DIVms` and run it:
 
 ```
-msedge.exe --kiosk http://127.0.0.1:5100 --edge-kiosk-type=fullscreen --no-first-run
+sqlcmd -S localhost -E -i db\006_grant_app_login.sql
 ```
 
-### 8. Check it
+Then the rest of `db/`, in number order — see [`db/README.md`](../db/README.md). Still
+outstanding: `004_seed_people.sql` needs a re-run (the first hit the `GO` bug and set no
+entity links), and `005_add_group_companies.sql` is a decision rather than a step.
 
-- The sidebar's build stamp matches what you published. If it does not, you are looking at
-  an older folder — that has happened before.
-- The reader shows ready and the licence date reads *14 Apr 2027*.
-- Insert a real card: photograph, signature, both names, all present.
-- Save a visitor, then open the report and see the row.
+### 6. Pin the signer
 
-If the service will not start, the reason is in the Application event log — the template
-turns on the Event Log provider at Warning for this. The three that actually happen are a
-wrong connection string, a service identity with no SQL login (step 4), and
-`Toolkit:ConfigDirectory` pointing at a folder with no `config_li`.
+Do this once a desk has read one real card, and do not skip it — it is control 2 above.
+
+1. Read a card at a desk that has the agent installed.
+2. On UATWEB01, find the warning in the log. It names the certificate and prints the line
+   to add:
+   `Toolkit:Agent:TrustedSignerThumbprints to [ "‹thumbprint›" ]`
+3. Put that in `appsettings.Production.json` and restart the app pool.
+4. Read a card again. The on-screen warning should be gone.
+
+From then on a response signed by anything else is refused rather than warned about.
 
 ---
 
-## What is not ready for a live deployment
+## B: the agent, on every reception PC
 
-These are in the design document's section 9 and none of them is fixed by this commit.
-They are decisions, and they belong to you, not to the deployment:
+Elevated, on each desk:
 
-1. **No authentication.** Anyone who reaches the app can read every visitor record. The
-   loopback binding is a containment measure, not a control.
+```powershell
+.\install-desk-agent.ps1 -MsiPath \\uatweb01\deploy\ICAToolkitService.msi
+```
+
+It installs ICP's MSI, optionally trusts an agent certificate you supply
+(`-AgentCertificatePath`), checks that `toolkitagent.emiratesid.ae` resolves to loopback on
+that PC, starts the service, and reports whether anything is listening on 9004/9005/9020.
+
+Two things it cannot do for you:
+
+- **The reader driver**, if Windows has not found the reader by itself. An ACS ACR39U works
+  with the driver Windows supplies.
+- **The certificate**, if ICP does not ship one. `wss://` to a certificate the desk does
+  not trust fails *silently* — indistinguishable, from the page's side, from an agent that
+  was never installed. That is why `install-desk-agent.ps1` checks name resolution and why
+  the app's own `/agent-required` page lists it as a cause.
+
+Then open the site on that PC. The reader panel should name the reader and show the licence
+date. If it does not, `/agent-required` on the site itself is the checklist.
+
+### What the desk sees when the agent is missing
+
+Not three failed reads. The page probes the agent before offering to read, so a desk with
+no agent gets **"This PC cannot read the card"**, the reason, and **Enter manually**
+straight away. A visitor should not wait on a rollout.
+
+---
+
+## The fallback, and the alternative
+
+**`Toolkit:Mode` has three values**, and they are how this deployment degrades:
+
+| Mode | Reader | Use |
+|---|---|---|
+| `Agent` | On the desk, via ICP's agent | UATWEB01. What this document is about. |
+| `InProcess` | On this machine | The app installed on a reception PC; `deploy\install-service.ps1` and `appsettings.Production.reception-pc.json.template` are for that. |
+| `Off` | None | A server before the agent rollout. Card reading disappears from the screen entirely and every entry is typed — honestly labelled as such, rather than a Read Card button that cannot work. |
+
+`Off` is worth knowing about: it makes UATWEB01 useful on day one, before a single MSI has
+been installed, instead of blocking the deployment on the desks. Switch to `Agent` when the
+first desk is ready — a restart, not a rebuild.
+
+---
+
+## What is not ready, and is a decision rather than a step
+
+1. **The app has no authentication.** IIS Windows Authentication (step 4) is a real
+   control, but it is authentication *of the domain*, not authorisation: any domain user
+   who finds the URL sees every visitor record. Roles belong in the app.
 2. **Emirates ID numbers, photographs and dates of birth are stored in plain text.** No
    column encryption, no Always Encrypted, no TDE unless UATWEB01 already has it.
-3. **No audit trail.** Nothing records who read the report or when.
+3. **No audit trail.** Nothing records who read the report, or when.
 4. **No retention limit.** The screen tells the visitor their data is kept "only for this
    visit". Nothing deletes it. Either add the job or change the wording.
 5. **`DbBootstrapper` is not a migration tool.** It creates absent tables and never alters
-   a present one. Move to EF migrations before the database holds anything you cannot
-   drop — a new property on `VisitorEntry` needs an `ALTER TABLE` script in `db/` today,
-   and if one is forgotten the app fails at startup naming the missing column. That is the
-   design working, but it is not a migration story.
+   a present one, so a new property needs an `ALTER TABLE` script in `db/`. Move to EF
+   migrations before the database holds anything you cannot drop.
 6. **Pre-reset `vms` tables are still in the database** from the earlier design.
 
-Item 1 is the one that should block a deployment reachable from the network. On loopback
-at a staffed desk it is a documented risk; on `0.0.0.0` it is an incident waiting.
+## Not yet verified against a real desk
+
+The agent path is written from ICP's SDK — `eidatoolkit.js`'s own request formats,
+callbacks and defaults, and its `NonModifiablePublicData` / `HomeAddress` /
+`CardPublicData` accessors, which is where the XML element names in
+`CardResponseParser.cs` come from. None of it has been run against a real agent, a real
+reader or a real card, because that needs Windows, the MSI and a card, and none of the
+three is available here.
+
+What to expect to adjust on the first real read, in order of likelihood:
+
+1. **`Toolkit:Agent:ToolkitConfig`.** Left blank, on the assumption that the MSI's agent
+   carries its own configuration and that the paths in it are the desk's. If the agent
+   reports missing or incomplete configuration, this is where the newline-separated
+   `key = value` block goes — the format, and why it is not JSON, is in
+   [`src/DI.Vms.Blazor/README.md`](../src/DI.Vms.Blazor/README.md).
+2. **Element names in the response.** If a field comes through blank while the photograph
+   arrives, the name in `CardResponseParser.Parse` is wrong for the gateway's actual
+   document. `Toolkit:Agent:DebugEnabled: true` puts the SDK's own log in the desk's
+   browser console, where the raw response is visible.
+3. **The certificate and the host name**, per the section above.
+
+Turn `DebugEnabled` back off afterwards: it logs card contents to the console of a machine
+a visitor stands in front of.

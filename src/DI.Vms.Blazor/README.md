@@ -9,22 +9,46 @@ Visitor Management System — Blazor Server, .NET 8.
 | `/` | **New Visitor** — insert card → read card → visitor information → entity and person → save |
 | `/report` | **Visitor Details by Entity** — all information plus the date-time stamp |
 
-## Why one project, and why no bridge
+## Where the reader is: `Toolkit:Mode`
 
-The toolkit is called **in-process**. That works because the application runs *on the
-reception machine*, so its server-side code is on the same machine as the reader. No
-separate bridge process, no browser interop, no CORS.
+The Emirates ID is read from the **chip**, by a reader plugged into a physical machine. In
+Blazor Server all component code runs server-side, so the machine running the app and the
+machine holding the reader have to be reconciled somehow. One setting says how:
 
-The consequence is that this application must run on the reception PC. It is not a
-server-hosted portal that reception connects to from elsewhere — the reader is local by
-nature, so the app is too.
+| Mode | Reader | Read path |
+|---|---|---|
+| `InProcess` | On this machine | `Services/CardReaderService.cs` calls the toolkit directly. The app runs at the desk. |
+| `Agent` | On the desk; this process is on a server | The browser talks to ICP's agent over a WebSocket and posts the signed response back. `wwwroot/js/card-agent.js` + `Services/AgentCardReader.cs`. |
+| `Off` | None | Details are typed in, and the entry says so. |
 
-[`docs/deployment.md`](../../docs/deployment.md) is the runbook for that — publish, the
-service, the SQL login, the loopback binding — and sets out what moving to a central
-server would actually cost. ICP ships an agent and a browser library for exactly that
-case (`EIDAToolkitService.exe` and `eidatoolkit.js`, a WebSocket to `127.0.0.1:9004`), so
-the work is replacing `CardReaderService` with JS interop and validating ICP's signature
-over the XML on the server, which the in-process read makes unnecessary today.
+`InProcess` is what the system was built for and needs no bridge process, no browser
+interop and no CORS. **`Agent` is what UATWEB01 uses** — see
+[`docs/deployment.md`](../../docs/deployment.md).
+
+### Agent mode inverts who is trusted, and that is the whole of the work
+
+In-process the toolkit's output is trustworthy because it never left the process. Through
+an agent it arrives from a browser, which is a program someone can replace. So the server
+issues the request ID (random, single-use, five-minute life, stamped into the response by
+the gateway, so an old response matches nothing outstanding), verifies the XML signature
+itself, and parses **every** field out of that signed document.
+
+The trap is the signature. The certificate that signed the response travels *inside* it,
+so a bare `CheckSignature()` proves only that the document has not changed since whoever
+signed it did — anyone can produce one that passes. `Toolkit:Agent:TrustedSignerThumbprints`
+is therefore not hardening, it is the control: without it there is nothing to tell a real
+card from an invention. Unpinned, reads are accepted and flagged, and the thumbprint is
+logged with the line to paste in, because a deployment with no working read path is worse
+than one with a stated risk.
+
+`card-agent.js` returns the signed XML and nothing else, for the same reason: a field taken
+from browser-side JSON would make the signature decorative. It also probes the agent before
+constructing ICP's `Toolkit`, because `eidatoolkit.js` left to itself puts up a `confirm()`
+and navigates to a JNLP download when no agent answers — an attendant mid-check-in should
+get an explanation, which is what `/agent-required` is.
+
+The two paths meet at `Services/CardResponseParser.cs`, which holds the element names (taken
+from the vendor SDK's own accessors, not from a sample response) and the signature check.
 
 ## Setup
 
