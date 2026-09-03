@@ -279,8 +279,9 @@
                             <div class="fallback">
                                 @if (agentMissing)
                                 {
+                                    @* The reader panel above already carries the reason.
+                                       This is the offer, not a second account of it. *@
                                     <strong>This PC cannot read the card.</strong>
-                                    <p>@readerState?.Detail</p>
                                 }
                                 else
                                 {
@@ -1181,8 +1182,23 @@ else if (step == 3 && saved is not null)
             /* The probe itself failing is not evidence either way about the agent, so it
                does not claim the desk cannot read cards - it says what went wrong and
                leaves Read Card available. */
-            return new ReaderState { Available = false, Detail = ex.Message };
+            return new ReaderState { Available = false, Detail = Readable(ex) };
         }
+    }
+
+    /// <summary>
+    /// The first line of an exception message.
+    ///
+    /// A JSException carries the browser's stack trace in its Message: the text, then
+    /// "Error:" and the same text again, then the file and line it was thrown from. HTML
+    /// collapses the newlines, so it reaches the desk as one long duplicated sentence
+    /// ending in a URL. The first line is the part that was written for a person; the
+    /// rest is in the log, where it belongs.
+    /// </summary>
+    private static string Readable(Exception exception)
+    {
+        var first = exception.Message.Split('\n')[0].Trim();
+        return first.Length > 0 ? first : exception.Message;
     }
 
     private async Task ReadCard()
@@ -1215,7 +1231,11 @@ else if (step == 3 && saved is not null)
             /* Re-probed before the message is set, because CheckReader clears it: the
                attendant needs the reason the read failed, not the state that follows. */
             await CheckReader();
-            Fail(ex.Message);
+
+            /* A desk with no agent has already been told, in the reader panel and in the
+               offer of manual entry. A third copy in the error banner is noise with a
+               visitor waiting. */
+            if (!agentMissing) Fail(Readable(ex));
         }
         finally
         {
