@@ -799,6 +799,12 @@ INSERT INTO @map (CompanyName, EntityName) VALUES
 (N'Properties Investment', N'PI'),
 (N'TechSource', N'TechSource');
 
+DECLARE @inserted INT, @refreshed INT, @relinked INT;
+
+/* The three steps below are ONE batch on purpose. A table variable does not
+   survive GO, so a GO anywhere between here and the last step leaves @people and
+   @map undeclared and the run fails with Msg 1087. Do not add one. */
+
 /* ---- 1. people who are new. Matched on email where there is one, because two
         people in this export share a display name and neither shares an email. */
 
@@ -810,8 +816,7 @@ WHERE NOT EXISTS (
     WHERE (p.Email <> N'' AND e.Email = p.Email)
        OR (p.Email = N'' AND e.Email IS NULL AND e.DisplayName = p.DisplayName));
 
-PRINT CONCAT(N'People inserted: ', @@ROWCOUNT);
-GO
+SET @inserted = @@ROWCOUNT;
 
 /* ---- 2. titles and companies for people already there, since a job changes
         more often than a name does. */
@@ -824,7 +829,7 @@ JOIN @people p ON p.Email <> N'' AND e.Email = p.Email
 WHERE ISNULL(e.Title, N'') <> ISNULL(NULLIF(p.Title, N''), N'')
    OR ISNULL(e.CompanyName, N'') <> ISNULL(NULLIF(p.CompanyName, N''), N'');
 
-PRINT CONCAT(N'People updated: ', @@ROWCOUNT);
+SET @refreshed = @@ROWCOUNT;
 
 /* ---- 3. the entity link, re-resolved for everyone. */
 
@@ -835,7 +840,12 @@ LEFT JOIN @map m ON m.CompanyName = p.CompanyName
 LEFT JOIN vms.Entity x ON x.Name = COALESCE(m.EntityName, p.CompanyName)
 WHERE ISNULL(p.DiEntityId, -1) <> ISNULL(x.Id, -1);
 
-PRINT CONCAT(N'Entity links changed: ', @@ROWCOUNT);
+SET @relinked = @@ROWCOUNT;
+
+PRINT CONCAT(N'People inserted:      ', @inserted);
+PRINT CONCAT(N'Titles refreshed:     ', @refreshed);
+PRINT CONCAT(N'Entity links changed: ', @relinked);
+GO
 
 SELECT ISNULL(x.Name, N'(no entity)') AS Entity, p.CompanyName, COUNT(*) AS People
 FROM vms.Person p

@@ -163,6 +163,12 @@ def main():
         w(f"({quote(company)}, {quote(entity)}){comma}")
 
     w("")
+    w("DECLARE @inserted INT, @refreshed INT, @relinked INT;")
+    w("")
+    w("/* The three steps below are ONE batch on purpose. A table variable does not")
+    w("   survive GO, so a GO anywhere between here and the last step leaves @people and")
+    w("   @map undeclared and the run fails with Msg 1087. Do not add one. */")
+    w("")
     w("/* ---- 1. people who are new. Matched on email where there is one, because two")
     w("        people in this export share a display name and neither shares an email. */")
     w("")
@@ -174,8 +180,7 @@ def main():
     w("    WHERE (p.Email <> N'' AND e.Email = p.Email)")
     w("       OR (p.Email = N'' AND e.Email IS NULL AND e.DisplayName = p.DisplayName));")
     w("")
-    w("PRINT CONCAT(N'People inserted: ', @@ROWCOUNT);")
-    w("GO")
+    w("SET @inserted = @@ROWCOUNT;")
     w("")
     w("/* ---- 2. titles and companies for people already there, since a job changes")
     w("        more often than a name does. */")
@@ -188,7 +193,7 @@ def main():
     w("WHERE ISNULL(e.Title, N'') <> ISNULL(NULLIF(p.Title, N''), N'')")
     w("   OR ISNULL(e.CompanyName, N'') <> ISNULL(NULLIF(p.CompanyName, N''), N'');")
     w("")
-    w("PRINT CONCAT(N'People updated: ', @@ROWCOUNT);")
+    w("SET @refreshed = @@ROWCOUNT;")
     w("")
     w("/* ---- 3. the entity link, re-resolved for everyone. */")
     w("")
@@ -199,7 +204,12 @@ def main():
     w("LEFT JOIN vms.Entity x ON x.Name = COALESCE(m.EntityName, p.CompanyName)")
     w("WHERE ISNULL(p.DiEntityId, -1) <> ISNULL(x.Id, -1);")
     w("")
-    w("PRINT CONCAT(N'Entity links changed: ', @@ROWCOUNT);")
+    w("SET @relinked = @@ROWCOUNT;")
+    w("")
+    w("PRINT CONCAT(N'People inserted:      ', @inserted);")
+    w("PRINT CONCAT(N'Titles refreshed:     ', @refreshed);")
+    w("PRINT CONCAT(N'Entity links changed: ', @relinked);")
+    w("GO")
     w("")
     w("SELECT ISNULL(x.Name, N'(no entity)') AS Entity, p.CompanyName, COUNT(*) AS People")
     w("FROM vms.Person p")
@@ -208,11 +218,32 @@ def main():
     w("ORDER BY CASE WHEN x.Name IS NULL THEN 1 ELSE 0 END, People DESC;")
     w("GO")
 
+    script = "\n".join(out) + "\n"
+    check_batches(script)
+
     with open("db/004_seed_people.sql", "w", encoding="utf-8", newline="\n") as f:
-        f.write("\n".join(out) + "\n")
+        f.write(script)
 
     print(f"db/004_seed_people.sql: {len(people)} people, "
           f"{sum(unmapped.values())} without an entity")
+
+
+def check_batches(script):
+    """Refuses to write a script whose table variables are split across a GO.
+
+    GO ends the batch and a table variable does not survive it, so a GO between the
+    DECLARE and the last statement that reads it fails at run time with Msg 1087 -
+    "Must declare the table variable". That is exactly how the first version of this
+    generator broke, and it broke where it could only be found by running it against
+    the real database. Caught here instead.
+    """
+    for number, batch in enumerate(script.split("\nGO\n")):
+        declared = set(re.findall(r"DECLARE (@\w+) TABLE", batch))
+        used = set(re.findall(r"(@people|@map)\b", batch))
+        undeclared = used - declared
+        if undeclared:
+            sys.exit(f"Batch {number} reads {sorted(undeclared)} without declaring it. "
+                     "A GO between the DECLARE and its use would fail with Msg 1087.")
 
 
 if __name__ == "__main__":
