@@ -19,6 +19,13 @@ The consequence is that this application must run on the reception PC. It is not
 server-hosted portal that reception connects to from elsewhere — the reader is local by
 nature, so the app is too.
 
+[`docs/deployment.md`](../../docs/deployment.md) is the runbook for that — publish, the
+service, the SQL login, the loopback binding — and sets out what moving to a central
+server would actually cost. ICP ships an agent and a browser library for exactly that
+case (`EIDAToolkitService.exe` and `eidatoolkit.js`, a WebSocket to `127.0.0.1:9004`), so
+the work is replacing `CardReaderService` with JS interop and validating ICP's signature
+over the XML on the server, which the in-process read makes unnecessary today.
+
 ## Setup
 
 **1. Point it at your toolkit config.** `appsettings.Development.json`:

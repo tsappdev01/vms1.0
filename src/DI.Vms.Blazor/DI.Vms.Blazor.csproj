@@ -21,6 +21,9 @@
     <!-- .NET 8 ships only ASCII, Latin-1 and the Unicode encodings. The ANSI code page
          the toolkit binding marshalled its strings with lives here - see CardText. -->
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    <!-- Lets the published app run as a Windows Service, so the reception PC serves the
+         desk from boot with nobody logged in. A no-op when started from a console. -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +58,10 @@
     <None Include="@(ToolkitNative)">
       <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <!-- Publish as well as build. CopyToOutputDirectory alone leaves them out of
+           `dotnet publish`, so a deployed app starts and then fails on the first read
+           with the same 0x8007007E - the defect this ItemGroup exists to prevent. -->
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 

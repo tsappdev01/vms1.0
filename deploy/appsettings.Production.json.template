@@ -1,0 +1,40 @@
+{
+  // Copy to appsettings.Production.json BESIDE THE PUBLISHED EXE and edit.
+  // appsettings.Production.json is gitignored: it holds the machine's own paths and,
+  // if Windows authentication is not used, a database credential.
+
+  "ConnectionStrings": {
+    // Windows authentication, so no password is written to disk. The service's identity
+    // needs a SQL login on UATWEB01 - see docs/deployment.md, step 4.
+    "Vms": "Server=UATWEB01;Database=VMS;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
+  },
+
+  "Toolkit": {
+    // The folder holding config_li, on THIS machine. Leave blank to let the app search.
+    "ConfigDirectory": "C:\\Program Files\\DI VMS\\toolkit-config",
+    // Must exist and be writable by the service identity.
+    "LogDirectory": "C:\\ProgramData\\DI VMS\\logs",
+    // Only if the native toolkit DLLs are not beside the exe. Publish puts them there.
+    "NativeDirectory": ""
+  },
+
+  "Kestrel": {
+    "Endpoints": {
+      // Loopback only. Nothing on the network can reach the app, which matters while it
+      // has no authentication: the desk browser is the only client. Changing this to
+      // 0.0.0.0 exposes every visitor record to anyone who can route to this PC.
+      "Http": { "Url": "http://127.0.0.1:5100" }
+    }
+  },
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    },
+    // The Windows Event Log is where a service's startup failures are visible.
+    "EventLog": {
+      "LogLevel": { "Default": "Warning" }
+    }
+  }
+}
