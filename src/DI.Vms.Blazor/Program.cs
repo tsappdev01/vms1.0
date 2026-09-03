@@ -16,9 +16,9 @@ builder.Services.AddSingleton<CardReaderService>();
 
 var app = builder.Build();
 
-/* Brings the database up to what the code expects on startup, so neither a fresh
-   database nor UATWEB01 - which already exists, holding tables from an earlier design -
-   needs a separate step. Both are deliberately not EnsureCreated / HasData; see each. */
+/* Creates the tables if they are absent, so neither a fresh database nor UATWEB01 -
+   which already exists, holding tables from an earlier design - needs a separate step.
+   Schema only: the entity list is data, maintained in the database by script. */
 using (var scope = app.Services.CreateScope())
 {
     var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<VmsDbContext>>();
@@ -27,7 +27,6 @@ using (var scope = app.Services.CreateScope())
     await using var db = await factory.CreateDbContextAsync();
 
     await DbBootstrapper.EnsureSchemaAsync(db, logger);
-    await EntitySeeder.SyncAsync(db, logger);
 }
 
 if (!app.Environment.IsDevelopment())

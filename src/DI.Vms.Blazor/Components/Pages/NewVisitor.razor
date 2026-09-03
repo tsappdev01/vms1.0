@@ -166,9 +166,9 @@ else if (step == 2 && card is not null)
                         <strong>No entities.</strong>
                         <span>
                             The <code>vms.Entity</code> table has no active rows, so there is
-                            nothing to choose. It is populated on startup — check the
-                            application log for the entity sync, and the connection to
-                            <code>VMS</code> on <code>UATWEB01</code>.
+                            nothing to choose. The list is maintained in the database, not in
+                            the application — run the entity insert script against
+                            <code>VMS</code>, then retry.
                         </span>
                     </div>
                     <button @onclick="LoadEntities">Retry</button>

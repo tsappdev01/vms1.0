@@ -17,9 +17,15 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
             e.HasIndex(x => x.Name).IsUnique();
 
-            /* Not seeded with HasData: it only ever runs when a table is created, so a
-               change to the list would never reach a database that already holds one.
-               EntitySeeder syncs it on every startup instead. */
+            /* A database default, so an INSERT written by hand can leave IsActive out.
+               EF's usual caveat - that it then omits the column whenever the value is the
+               CLR default - does not bite here, because the application only ever reads
+               this table. */
+            e.Property(x => x.IsActive).HasDefaultValue(true);
+
+            /* Not seeded from code at all - no HasData, no startup sync. The entity
+               list is data owned by the database and maintained there by script, so it
+               can be changed without a rebuild and a redeploy. */
         });
 
         b.Entity<VisitorEntry>(e =>
