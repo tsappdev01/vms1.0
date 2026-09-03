@@ -109,16 +109,37 @@ if (-not $HttpOnly) {
         throw "No certificate with thumbprint $thumbprint in LocalMachine\My."
     }
 
-    $existing = Get-WebBinding -Name $SiteName -Protocol https -ErrorAction SilentlyContinue
-    if (-not $existing) {
-        New-WebBinding -Name $SiteName -Protocol https -Port $HttpsPort -HostHeader $HostHeader -SslFlags 0 | Out-Null
-    }
+    <#
+        SNI whenever there is a host name, which is what lets several HTTPS sites share
+        one address. Without it a binding claims the whole IP:port and the single
+        certificate that goes with it - so on a server that already serves another site
+        on 443, creating the binding fails with "Cannot create a file when that file
+        already exists", naming neither the port nor the site that already has it.
+
+        Bound through the binding object rather than through IIS:\SslBindings, because
+        that provider path IS the IP:port mapping and cannot express "this certificate,
+        for this host name".
+    #>
+    $sniFlag = if ($HostHeader) { 1 } else { 0 }
+
+    # Dropped and recreated, so the flags and host name are what this run says rather
+    # than what an earlier one left behind. Both spellings, since an earlier run may have
+    # made the binding without a host header.
+    Remove-WebBinding -Name $SiteName -Protocol https -Port $HttpsPort -HostHeader $HostHeader -ErrorAction SilentlyContinue
+    Remove-WebBinding -Name $SiteName -Protocol https -Port $HttpsPort -HostHeader '' -ErrorAction SilentlyContinue
+
+    New-WebBinding -Name $SiteName -Protocol https -Port $HttpsPort -HostHeader $HostHeader -SslFlags $sniFlag | Out-Null
 
     # Re-pointed on every run, so replacing an expiring certificate is just a re-run.
-    Get-Item "Cert:\LocalMachine\My\$thumbprint" |
-        New-Item -Path "IIS:\SslBindings\0.0.0.0!$HttpsPort" -Force | Out-Null
+    $binding = Get-WebBinding -Name $SiteName -Protocol https -Port $HttpsPort
+    $binding.AddSslCertificate($thumbprint, 'My')
 
-    Write-Host "HTTPS bound on port $HttpsPort."
+    if ($sniFlag -eq 1) {
+        Write-Host "HTTPS bound on port $HttpsPort for $HostHeader (SNI)."
+    }
+    else {
+        Write-Warning "HTTPS bound on port $HttpsPort with no host name, which claims the whole address. Pass -HostHeader on a server that hosts more than this site."
+    }
 }
 
 # --- authentication ---------------------------------------------------------------
