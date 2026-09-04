@@ -1083,7 +1083,12 @@ else if (step == 3 && saved is not null)
     /// 120 KB of card-reading JavaScript, and in in-process mode nor does this one.
     /// </summary>
     private async Task<IJSObjectReference> AgentModule() =>
-        agentModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/card-agent.js");
+        agentModule ??= await JS.InvokeAsync<IJSObjectReference>(
+            /* Cache-busted like the stylesheet. A module import is cached hard, and a desk
+               quietly running last week's copy of the reader code is a bug that costs an
+               afternoon before anyone suspects the browser - it has already happened once
+               on this project. */
+            "import", $"./js/card-agent.js?v={BuildInfo.CacheTag}");
 
     /// <summary>
     /// Switches to typing the details in. A blank CardData is used as the form's model so
