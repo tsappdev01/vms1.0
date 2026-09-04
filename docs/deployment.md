@@ -159,6 +159,41 @@ It installs ICP's MSI, optionally trusts an agent certificate you supply
 (`-AgentCertificatePath`), checks that `toolkitagent.emiratesid.ae` resolves to loopback on
 that PC, starts the service, and reports whether anything is listening on 9004/9005/9020.
 
+### Unsigned responses
+
+Found on the first real read at the desk: the response came back with **no XML signature
+at all**.
+
+`read_publicdata_offline = true` is why. An offline read never calls ICP's Validation
+Gateway, and the gateway is what signs. The toolkit still builds a gateway-shaped
+document - header, request ID, public data - it just isn't signed. The in-process build
+has been doing this all along; nobody noticed because there a missing signature is only a
+warning, and rightly so: those bytes never left the process.
+
+Agent mode is where it bites. Without a signature the server cannot tell a real read from
+a POST crafted in the desk's devtools. The server-issued single-use request ID still
+stops a captured response being replayed, but nothing stops one being invented.
+
+In order of preference:
+
+1. **Ask for an online read.** Set `Toolkit:Agent:ToolkitConfig` to
+   `"read_publicdata_offline = false\n"` and read a card. If the desk can reach the
+   gateway and the licence holds, the response comes back signed and everything below is
+   moot. Costs a pool restart, no rebuild.
+2. **Get production configs from ICP.** The supplied ones are QA - `config_vg_qa`,
+   `config_lv_qa`, `config_tk_qa` - and production configs were already an open item
+   before this. Signed responses are what the whole verification design is built on.
+3. **`Toolkit:Agent:RequireSignature: false`.** Reads are accepted and every one is marked
+   unverified, on screen and in the log, and stored as `CardReaderUnverified` so the
+   report shows "Card (unverified)" rather than letting it stand beside reads that were
+   checked. Take this deliberately: the server is then trusting the desk's browser.
+
+On what that last one is really worth: the desk is staffed, on the corporate network,
+behind Windows Authentication, and the receptionist could equally type a fabricated manual
+entry - which the system has always allowed. The residual risk is not that data can be
+invented; it is that invented data could wear the label of a chip read. Which is exactly
+why the label is now different.
+
 ### The socket to the agent
 
 The agent from `ICAToolkitService.msi` serves **plain `ws://` on 127.0.0.1:9004**. It can

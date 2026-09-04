@@ -1224,7 +1224,15 @@ else if (step == 3 && saved is not null)
         {
             card = UsesAgent ? await ReadThroughAgentAsync(progress) : await Reader.ReadAsync(progress);
             signatureDataUrl = ImageConverter.ToDisplayableDataUrl(card.CardSignature, Logger);
-            captureMethod = "CardReader";
+
+            /* An agent read the server could not verify is not the same record as one it
+               could, and the report must not present them as if they were. In-process is
+               excluded deliberately: there an unsigned response still came from the
+               toolkit inside this process, so the missing signature says something about
+               ICP's offline configuration, not about the data. */
+            captureMethod = UsesAgent && card.SignatureWarning is not null
+                ? "CardReaderUnverified"
+                : "CardReader";
             failedReads = 0;
             agentMissing = false;
             step = 1;

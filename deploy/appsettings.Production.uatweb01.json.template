@@ -35,8 +35,14 @@
       // though it resolves to 127.0.0.1.
       "HostName": "",
 
-      // Normally blank: the agent installed by ICAToolkitService.msi carries its own
-      // config, and the paths inside it are the desk's, not this server's.
+      // Passed to the toolkit on the desk, newline-separated "key = value" - not JSON.
+      // Normally blank: the agent carries its own config, and the paths in it are the
+      // desk's, not this server's.
+      //
+      // "read_publicdata_offline = false\n" here asks for an ONLINE read. It matters:
+      // an offline read never calls ICP's Validation Gateway, and the gateway is what
+      // signs the response - so offline reads come back unsigned and the server has
+      // nothing to verify. See docs/deployment.md, "Unsigned responses".
       "ToolkitConfig": "",
 
       "DebugEnabled": false,

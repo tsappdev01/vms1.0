@@ -100,7 +100,7 @@ else
                                 <td class="mono">@Dash(v.AddressMobile)</td>
                                 <td>@Dash(v.AddressEmail)</td>
                                 <td class="wrap">@Dash(PostalAddress(v))</td>
-                                <td>@v.CaptureMethod</td>
+                                <td>@CaptureLabel(v.CaptureMethod)</td>
                             </tr>
                         }
                     </tbody>
@@ -111,6 +111,23 @@ else
 }
 
 @code {
+    /// <summary>
+    /// How a record was captured, in words rather than in the stored token.
+    ///
+    /// "CardReaderUnverified" is an agent read whose signature the server could not
+    /// verify. It is a real chip read and the data is almost certainly the card's - but
+    /// it arrived from a browser and nothing proved it, so the report says so rather than
+    /// letting it stand beside reads that were.
+    /// </summary>
+    private static string CaptureLabel(string? method) => method switch
+    {
+        "CardReader" => "Card",
+        "CardReaderUnverified" => "Card (unverified)",
+        "Manual" => "Manual",
+        null or "" => "—",
+        _ => method,
+    };
+
     private List<VisitorEntry> entries = [];
     private List<DiEntity> entities = [];
     private List<KeyValuePair<string, List<VisitorEntry>>> grouped = [];
