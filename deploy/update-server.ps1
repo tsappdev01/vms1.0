@@ -79,16 +79,34 @@ if ($wasRunning -or $true) {
 Write-Host ''
 Write-Host "$AppPoolName is $((Get-WebAppPoolState -Name $AppPoolName).Value)."
 
-# The two files that have to move together. A DLL newer than the stylesheet is the
-# failure this script exists to prevent, so it is checked rather than assumed.
-$dll = Get-Item (Join-Path $Path 'DI.Vms.Blazor.dll')
-$css = Get-Item (Join-Path $Path 'wwwroot\app.css')
-Write-Host ("DI.Vms.Blazor.dll  {0}" -f $dll.LastWriteTime)
-Write-Host ("wwwroot\app.css    {0}" -f $css.LastWriteTime)
+<#
+    Confirm the deployment matches the source, by content.
 
-if ([math]::Abs(($dll.LastWriteTime - $css.LastWriteTime).TotalMinutes) -gt 10) {
-    Write-Warning 'Those timestamps are far apart. Check the source folder is a fresh publish rather than a partly updated one.'
+    Not by timestamp: `dotnet publish` skips files that have not changed since the last
+    build, so a stylesheet legitimately keeps a write time hours older than the DLL beside
+    it. Comparing those would warn on every normal publish and teach everyone to ignore
+    the warning - which is worse than not having one. A hash answers the question that
+    actually matters: is what the server is serving what was published.
+#>
+$mismatch = @()
+foreach ($relative in @('DI.Vms.Blazor.dll', 'web.config', 'wwwroot\app.css', 'wwwroot\js\card-agent.js')) {
+    $from = Join-Path $Source $relative
+    $to = Join-Path $Path $relative
+
+    if (-not (Test-Path $to)) { $mismatch += "$relative is missing from the deployment"; continue }
+    if (-not (Test-Path $from)) { continue }
+
+    if ((Get-FileHash $from).Hash -ne (Get-FileHash $to).Hash) {
+        $mismatch += "$relative differs from the source"
+    }
 }
+
+if ($mismatch) {
+    $mismatch | ForEach-Object { Write-Warning $_ }
+    throw 'The deployment does not match the publish folder. Re-run this script; if it persists, something else is writing to the folder.'
+}
+
+Write-Host 'Deployment matches the publish folder (checked by hash).'
 
 Write-Host ''
 Write-Host 'Now hard-reload the desk browser (Ctrl+Shift+R) and check the build stamp in the sidebar.'
