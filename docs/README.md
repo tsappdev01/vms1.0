@@ -9,6 +9,7 @@ Design documentation for the Dubai Investments Visitor Management System.
 | [vms-design.html](vms-design.html) | **Design of record.** The system as built: why it runs at the desk, the capture path, the two screens, the data model, the constraints discovered rather than chosen, and the security gaps stated plainly. Open it in a browser. |
 | [deployment.md](deployment.md) | **How to deploy it, and where it can run.** The reader is local, so the app is: the reception-PC runbook, and what a central server would cost. |
 | [00-sdk-analysis.md](00-sdk-analysis.md) | Analysis of the ICP ID Card Toolkit v3.1.6. Still current — it is SDK fact, not architecture. |
+| [icp-signed-response-request.md](icp-signed-response-request.md) | **Open with ICP.** The offline bundle returns unsigned responses, which is what stops a desk read being provably genuine. Depends on the licence activation below. |
 | [icp-support-request.md](icp-support-request.md) | The licence escalation sent to ICP, and what came back. |
 
 ## Superseded
