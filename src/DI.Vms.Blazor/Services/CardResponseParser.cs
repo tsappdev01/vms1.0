@@ -206,7 +206,7 @@ internal static class CardResponseParser
                 .OfType<Reference>()
                 .Select(reference =>
                     $"uri='{reference.Uri}' digest={Tail(reference.DigestMethod)} " +
-                    $"transforms=[{string.Join(",", reference.TransformChain.OfType<Transform>().Select(t => Tail(t.Algorithm)))}]"));
+                    $"transforms=[{Transforms(reference.TransformChain)}]"));
 
             var certificate = signedXml.KeyInfo
                 .OfType<KeyInfoX509Data>()
@@ -226,6 +226,19 @@ internal static class CardResponseParser
         // The algorithm URIs are long and all share a prefix; the tail is the identifying part.
         static string Tail(string? uri) =>
             string.IsNullOrEmpty(uri) ? "(none)" : uri[(uri.LastIndexOf('#') + 1)..];
+
+        /* TransformChain has Count and an indexer but does not implement IEnumerable, so
+           it is walked by index rather than with LINQ. */
+        static string Transforms(TransformChain chain)
+        {
+            var algorithms = new string[chain.Count];
+            for (var i = 0; i < chain.Count; i++)
+            {
+                algorithms[i] = Tail(chain[i].Algorithm);
+            }
+
+            return string.Join(",", algorithms);
+        }
     }
 
     /// <summary>True when the document carries an XML signature at all.</summary>
