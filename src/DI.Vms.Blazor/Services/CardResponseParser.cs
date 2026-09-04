@@ -57,7 +57,6 @@ internal static class CardResponseParser
             CardNumber = Text(header, "CardNumber") ?? Text(publicData, "CardNumber"),
 
             Photo = Base64(publicData, "CardHolderPhoto"),
-            CardSignature = Base64(publicData, "HolderSignatureImage"),
 
             IdType = Text(nm, "IdType"),
             IssueDate = Text(nm, "IssueDate"),

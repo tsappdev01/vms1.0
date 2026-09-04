@@ -49,6 +49,15 @@ public class VisitorEntry
     public byte[]? Photo { get; set; }
 
     /// <summary>The holder's signature as held on the card.</summary>
+    /// <summary>
+    /// The cardholder's signature image, as stored by earlier reads.
+    ///
+    /// No longer read or written: the chip's format never rendered in a browser and the
+    /// slot showed a broken image, so the read stopped asking for it. The column stays so
+    /// the rows that already carry one remain readable, and so removing it does not need
+    /// a migration. To bring it back, ask for it again in CardReaderService and
+    /// card-agent.js - both pass false for the signature image now.
+    /// </summary>
     public byte[]? CardSignature { get; set; }
 
     // ---- Non-modifiable data

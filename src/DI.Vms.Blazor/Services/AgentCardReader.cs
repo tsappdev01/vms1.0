@@ -279,8 +279,8 @@ public sealed class AgentCardReader(AgentOptions options, ILogger<AgentCardReade
         card.SignatureWarning = warning;
 
         logger.LogInformation(
-            "Agent read accepted. Signer {Subject}, photograph {Photo} bytes, signature {Signature} bytes.",
-            subject ?? "(none)", card.Photo?.Length ?? 0, card.CardSignature?.Length ?? 0);
+            "Agent read accepted. Signer {Subject}, photograph {Photo} bytes.",
+            subject ?? "(none)", card.Photo?.Length ?? 0);
 
         return card;
     }

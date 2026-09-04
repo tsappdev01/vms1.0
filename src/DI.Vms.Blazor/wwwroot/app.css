@@ -661,25 +661,6 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
   display: grid; place-items: center;
   font-size: .68em; color: var(--text-muted); text-align: center; padding: .4em;
 }
-.eid-sig {
-  border-top: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-  padding-top: .3em;
-  display: flex; flex-direction: column; gap: .15em;
-}
-/* The signature is black ink on a transparent bitmap, so it needs a light plate or it
-   disappears into a dark surface - which is exactly what the printed card gives it. */
-.eid-sig img {
-  width: 100%; height: 3.1em; display: block;
-  object-fit: contain; object-position: left center;
-  background: #fdfdfc; border-radius: .15em; padding: .1em .2em;
-}
-.eid-sig-label { font-size: .58em; color: var(--text-muted); }
-.eid-sig-missing {
-  display: grid; place-items: center; height: 3.1em;
-  background: var(--surface-2); border-radius: .15em;
-  font-size: .6em; color: var(--text-muted);
-}
-
 /* Spread down the card rather than bunching at the top, as the printed card does. */
 .eid-fields {
   margin: 0; min-width: 0;
@@ -1044,6 +1025,44 @@ button.link:hover { background: none; color: var(--accent-hover); }
 .prose code {
   padding: 1px 5px; border-radius: 4px; font-size: 12.5px;
   background: var(--accent-tint); color: var(--text-primary);
+}
+
+/* ---------------------------------------------------------------- disclosure
+   A collapsible panel that looks like a card, built on <details>. No script and no
+   component state: the keyboard, the screen reader and find-in-page all work as they
+   already do, and it opens before the circuit has finished connecting. */
+.fold {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.fold + .fold { margin-top: 14px; }
+
+.fold > summary {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; cursor: pointer; list-style: none;
+  border-bottom: 1px solid transparent;
+}
+/* Both spellings: WebKit still needs its own to drop the default triangle. */
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::marker { content: ""; }
+.fold > summary:hover { background: var(--surface-2); }
+.fold > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.fold[open] > summary { border-bottom-color: var(--gridline); }
+
+.fold-title { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+.fold-sub { flex: 1; font-size: 11.5px; color: var(--text-muted); }
+.fold-chevron {
+  flex: none; width: 17px; height: 17px; stroke: var(--text-muted);
+  transition: transform .15s ease;
+}
+.fold[open] .fold-chevron { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .fold-chevron { transition: none; } }
+
+/* Printing a visitor record must not depend on what someone happened to leave open. */
+@media print {
+  .fold > summary { cursor: auto; }
+  .fold .card-body { display: grid !important; }
+  .fold-chevron { display: none; }
 }
 
 #blazor-error-ui {

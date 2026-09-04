@@ -401,7 +401,7 @@
             {
                 <div>
                     <strong>Straight from the chip</strong>
-                    <p>Name, nationality, photograph and signature are read off the card itself, never transcribed.</p>
+                    <p>Name, nationality and photograph are read off the card itself, never transcribed.</p>
                 </div>
             }
             else
@@ -526,7 +526,7 @@ else if (step == 1 && card is not null)
     <section class="card">
         <div class="hero hero-card">
             <div class="hero-art">
-                <EmiratesIdCard Card="card" SignatureDataUrl="signatureDataUrl" />
+                <EmiratesIdCard Card="card" />
             </div>
 
             <div class="hero-panel">
@@ -573,8 +573,19 @@ else if (step == 1 && card is not null)
         </div>
     </section>
 
-    <section class="card">
-        <div class="card-head"><h2>Non-Modifiable Data</h2></div>
+    @* Collapsed by default, as <details> rather than a scripted panel: the essentials
+       are already in the strip above, so what these hold is confirmation rather than
+       reading matter, and a shorter step 2 is a faster desk. Native disclosure gets the
+       keyboard and the screen reader behaviour for free, and survives a circuit that has
+       not finished connecting. *@
+    <details class="fold">
+        <summary>
+            <span class="fold-title">Non-Modifiable Data</span>
+            <span class="fold-sub">As read from the chip</span>
+            <svg class="fold-chevron" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" />
+            </svg>
+        </summary>
         <div class="card-body grid-3">
             <Field Label="ID Type" Value="@card.IdType" />
             <Field Label="Issue Date" Value="@card.IssueDate" />
@@ -588,16 +599,20 @@ else if (step == 1 && card is not null)
             <Field Label="Title (English)" Value="@card.TitleEnglish" />
             <Field Label="Place of Birth (English)" Value="@card.PlaceOfBirthEnglish" />
         </div>
-    </section>
+    </details>
 
-    <section class="card">
-        <div class="card-head">
-            <h2>Home Address</h2>
-            @if (card.HasNoPostalAddress)
-            {
-                <span class="sub">No postal address held on this card</span>
-            }
-        </div>
+    <details class="fold">
+        <summary>
+            <span class="fold-title">Home Address</span>
+            @* The card tested carried no postal address at all - every field blank but
+               mobile and email. Said on the summary so it is answered without opening. *@
+            <span class="fold-sub">
+                @(card.HasNoPostalAddress ? "No postal address held on this card" : "As read from the chip")
+            </span>
+            <svg class="fold-chevron" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" />
+            </svg>
+        </summary>
         <div class="card-body grid-3">
             <Field Label="Emirate" Value="@card.AddressEmirate" />
             <Field Label="City" Value="@card.AddressCity" />
@@ -609,7 +624,7 @@ else if (step == 1 && card is not null)
             <Field Label="Mobile" Value="@card.AddressMobile" Highlight="true" />
             <Field Label="Email" Value="@card.AddressEmail" Highlight="true" />
         </div>
-    </section>
+    </details>
 
 }
 
@@ -923,7 +938,6 @@ else if (step == 3 && saved is not null)
 
     private ReaderState? readerState;
     private CardData? card;
-    private string? signatureDataUrl;
 
     /// <summary>
     /// The purposes the desk offers, and the one that asks for details.
@@ -1232,7 +1246,6 @@ else if (step == 3 && saved is not null)
     {
         manual = new CardData();
         card = manual;
-        signatureDataUrl = null;
         captureMethod = "Manual";
         message = null;
         step = 1;
@@ -1356,7 +1369,6 @@ else if (step == 3 && saved is not null)
         try
         {
             card = UsesAgent ? await ReadThroughAgentAsync(progress) : await Reader.ReadAsync(progress);
-            signatureDataUrl = ImageConverter.ToDisplayableDataUrl(card.CardSignature, Logger);
 
             /* An agent read the server could not verify is not the same record as one it
                could, and the report must not present them as if they were. In-process is
@@ -1413,7 +1425,6 @@ else if (step == 3 && saved is not null)
                 IdNumber = Fit(IsManual ? IdDigits : card.IdNumber, FieldLengths.IdNumber, "ID number") ?? string.Empty,
                 CardNumber = Fit(card.CardNumber, FieldLengths.CardNumber, "card number"),
                 Photo = card.Photo,
-                CardSignature = card.CardSignature,
                 IdType = Fit(card.IdType, FieldLengths.CardField, "ID type"),
                 IssueDate = Fit(card.IssueDate, FieldLengths.CardField, "issue date"),
                 ExpiryDate = Fit(card.ExpiryDate, FieldLengths.CardField, "expiry date"),
@@ -1473,7 +1484,6 @@ else if (step == 3 && saved is not null)
     {
         step = 0;
         card = null;
-        signatureDataUrl = null;
         saved = null;
         entityId = 0;
         personToVisit = string.Empty;

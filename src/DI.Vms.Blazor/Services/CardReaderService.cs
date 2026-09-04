@@ -127,10 +127,11 @@ public sealed class CardReaderService(
 
                 await PhaseAsync(progress, "Reading the chip…");
 
-                // Non-modifiable data, photograph, the card's signature image and the
-                // address. Modifiable data is not read: occupation, sponsor and passport
-                // details are not what visitor management is for.
-                var data = reader.ReadPublicData(requestId, true, false, true, true, true);
+                /* Non-modifiable data, the photograph and the address. Neither the
+                   modifiable data nor the signature image is read: occupation, sponsor
+                   and passport details are not what visitor management is for, and the
+                   signature image is not used - see the note in CardData. */
+                var data = reader.ReadPublicData(requestId, true, false, true, false, true);
 
                 /* Repaired before validation as well as before display: the signed XML
                    comes through the same mangling, and a digest taken over mangled text
@@ -146,7 +147,6 @@ public sealed class CardReaderService(
                     IdNumber = data.IdNumber,
                     CardNumber = data.CardNumber,
                     Photo = data.CardHolderPhoto?.ToArray(),
-                    CardSignature = data.HolderSignatureImage?.ToArray(),
 
                     IdType = CardText.Fix(nm?.IdType),
                     IssueDate = nm?.IssueDate,

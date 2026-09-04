@@ -6,7 +6,6 @@ public sealed class CardData
     public string IdNumber { get; set; } = string.Empty;
     public string? CardNumber { get; set; }
     public byte[]? Photo { get; set; }
-    public byte[]? CardSignature { get; set; }
 
     public string? IdType { get; set; }
     public string? IssueDate { get; set; }

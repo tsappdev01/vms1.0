@@ -15,9 +15,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <!-- The card's signature image is TIFF, which no browser renders. This converts it
-         to PNG. Windows-only, which this project already is. -->
-    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     <!-- .NET 8 ships only ASCII, Latin-1 and the Unicode encodings. The ANSI code page
          the toolkit binding marshalled its strings with lives here - see CardText. -->
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />

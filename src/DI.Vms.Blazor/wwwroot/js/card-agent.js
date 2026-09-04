@@ -292,11 +292,12 @@ export async function read(options, requestId) {
         await call(reader, 'connect', []);
 
         try {
-            /* Non-modifiable data, the photograph, the card's signature image and the
-               address. Modifiable data is not read: occupation, sponsor and passport
-               details are not what visitor management is for. The argument order is the
-               SDK's: (requestId, nonModifiable, modifiable, photo, signature, address). */
-            const response = await call(reader, 'readPublicData', [requestId, true, false, true, true, true]);
+            /* Non-modifiable data, the photograph and the address. Neither the
+               modifiable data nor the signature image is asked for: occupation, sponsor
+               and passport details are not what visitor management is for, and the
+               signature image is not used. The argument order is the SDK's:
+               (requestId, nonModifiable, modifiable, photo, signature, address). */
+            const response = await call(reader, 'readPublicData', [requestId, true, false, true, false, true]);
 
             if (!response || !response.xmlString) {
                 throw new Error('The agent returned no signed response for the card.');

@@ -44,20 +44,6 @@
                 <div class="eid-photo eid-missing">No photo</div>
             }
 
-            <div class="eid-sig">
-                @if (SignatureDataUrl is not null)
-                {
-                    <img src="@SignatureDataUrl" alt="Cardholder signature" />
-                }
-                else
-                {
-                    @* Said plainly rather than left as a broken image. The application
-                       log records the bytes the chip returned and why they could not be
-                       converted. *@
-                    <span class="eid-sig-missing">Not available</span>
-                }
-                <span class="eid-sig-label">Signature / التوقيع</span>
-            </div>
         </div>
 
         <dl class="eid-fields">
@@ -129,7 +115,6 @@
     [Parameter, EditorRequired] public CardData Card { get; set; } = default!;
 
     /// <summary>The signature, already converted to PNG - the chip stores it as TIFF.</summary>
-    [Parameter] public string? SignatureDataUrl { get; set; }
 
     private static string Dash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 
