@@ -41,90 +41,140 @@
     <section class="card">
         <div class="hero">
             <div class="hero-art">
-                @* An Emirates ID above a contact reader, over a Dubai skyline. Drawn here
-                   rather than shipped as an image so it follows the theme. *@
-                @* Deliberately no <text> elements: <text> is Razor's literal-content
-                   marker, used that way further down this same file, so an SVG that
-                   relied on it would be at the mercy of parser context. The card's
-                   bilingual header is drawn as bars, which also reads better than 6px
-                   type at this size. *@
-                <svg viewBox="0 0 400 306" role="img"
-                     aria-label="An Emirates ID card held above a contact card reader, against a Dubai skyline">
-                    <defs>
-                        <linearGradient id="cardface" x1="0" y1="0" x2="0.45" y2="1">
-                            <stop offset="0" stop-color="var(--surface)" />
-                            <stop offset="1" stop-color="var(--accent-tint)" />
-                        </linearGradient>
-                    </defs>
+                @* The heading sits over the illustration, as the mockup has it: at a desk
+                   the picture is what a visitor looks at, so the instruction belongs on
+                   it rather than only in the panel beside it. *@
+                <div class="art-head">
+                    <span class="ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 3l7.5 3v6c0 4.4-3 7.6-7.5 9-4.5-1.4-7.5-4.6-7.5-9V6L12 3Z" />
+                            <path d="M9 12.2l2.2 2.2 3.8-4.2" />
+                        </svg>
+                    </span>
+                    <span>
+                        <strong>Insert your Emirates ID</strong>
+                        <span>Place the card into the reader chip-first</span>
+                    </span>
+                </div>
 
-                    <!-- skyline, with the Burj Khalifa's spire on the centre line -->
-                    <g stroke="var(--accent)" fill="none" opacity=".2" stroke-width="1.5" stroke-linejoin="round">
-                        <path d="M24 238v-52l11-13 11 13v52" />
-                        <path d="M56 238v-72l15-11 15 11v72" />
-                        <path d="M96 238v-40l9-9 9 9v40" />
-                        <path d="M200 238V64l6-34 6 34v174" />
-                        <path d="M192 238V128l8-11 8 11" />
-                        <path d="M184 238v-74l8-9 8 9" />
-                        <path d="M290 238v-84l17-13 17 13v84" />
-                        <path d="M334 238v-50l11-9 11 9v50" />
-                        <path d="M366 238v-32l8-7 8 7v32" />
-                    </g>
+                <div class="art-stage">
+                    @* A photograph of the actual reader if one has been dropped in. It
+                       shows which way round the card goes better than any drawing, and
+                       the drawn version below is the fallback - the same arrangement the
+                       lockup uses, after the hand-drawn logo was never quite the logo. *@
+                    @if (BrandAssets.ReaderImagePath is { } reader)
+                    {
+                        <img class="art-photo" src="@reader"
+                             alt="An Emirates ID card being inserted chip-first into the card reader" />
+                    }
+                    else
+                    {
+                        @* Deliberately no <text> elements: <text> is Razor's literal-content
+                           marker, used that way further down this same file, so an SVG that
+                           relied on it would be at the mercy of parser context. The card's
+                           bilingual header is drawn as bars, which also reads better than
+                           6px type at this size. *@
+                        <svg viewBox="0 0 400 300" role="img"
+                             aria-label="An Emirates ID card being inserted chip-first into a contact card reader">
+                            <defs>
+                                <linearGradient id="cardface" x1="0" y1="0" x2="0.5" y2="1">
+                                    <stop offset="0" stop-color="var(--surface)" />
+                                    <stop offset="1" stop-color="var(--accent-tint)" />
+                                </linearGradient>
+                                <linearGradient id="readertop" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="var(--surface)" />
+                                    <stop offset="1" stop-color="var(--surface-2)" />
+                                </linearGradient>
+                                <linearGradient id="readerfront" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="var(--surface-2)" />
+                                    <stop offset="1" stop-color="var(--surface-sunk)" />
+                                </linearGradient>
+                                <radialGradient id="deskglow" cx="0.5" cy="0.5" r="0.5">
+                                    <stop offset="0" stop-color="var(--accent)" stop-opacity=".16" />
+                                    <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+                                </radialGradient>
+                            </defs>
 
-                    <g fill="var(--accent)" opacity=".1">
-                        <path d="M64 62a11 11 0 0 1 21-4 9 9 0 0 1 3 17H70a7 7 0 0 1-6-13Z" />
-                        <path d="M312 98a9 9 0 0 1 17-3 7 7 0 0 1 2 14h-15a6 6 0 0 1-4-11Z" />
-                    </g>
+                            <!-- skyline, kept faint: identity without noise -->
+                            <g stroke="var(--accent)" fill="none" opacity=".12" stroke-width="1.5" stroke-linejoin="round">
+                                <path d="M26 214v-46l10-12 10 12v46" />
+                                <path d="M56 214v-64l14-10 14 10v64" />
+                                <path d="M94 214v-34l8-8 8 8v34" />
+                                <path d="M206 214V56l6-32 6 32v158" />
+                                <path d="M198 214V116l8-10 8 10" />
+                                <path d="M190 214v-66l8-8 8 8" />
+                                <path d="M296 214v-76l16-12 16 12v76" />
+                                <path d="M338 214v-44l10-8 10 8v44" />
+                                <path d="M368 214v-28l7-6 7 6v28" />
+                            </g>
 
-                    <!-- the reader's signal, as rings on the desk -->
-                    <g fill="none" stroke="var(--accent)" opacity=".2" stroke-width="1.3">
-                        <ellipse cx="200" cy="262" rx="150" ry="31" />
-                        <ellipse cx="200" cy="262" rx="106" ry="22" />
-                        <ellipse cx="200" cy="262" rx="60" ry="12" />
-                    </g>
+                            <ellipse cx="200" cy="234" rx="168" ry="46" fill="url(#deskglow)" />
 
-                    <!-- reader -->
-                    <rect x="141" y="240" width="118" height="30" rx="7"
-                          fill="var(--surface)" stroke="var(--text-muted)" stroke-width="1.3" />
-                    <rect x="155" y="259" width="90" height="5" rx="2.5" fill="var(--status-good)" />
-                    <g fill="none" stroke="var(--text-muted)" stroke-width="1.4" stroke-linecap="round" opacity=".7">
-                        <path d="M231 252a5.5 5.5 0 0 0 0-7" />
-                        <path d="M238 255a10.5 10.5 0 0 0 0-13" />
-                    </g>
+                            <!-- reader, in perspective: the top face, then the card, then
+                                 the slot and the front over it, so the card reads as going
+                                 in rather than resting on top -->
+                            <polygon points="132,196 280,196 296,222 106,222"
+                                     fill="url(#readertop)" stroke="var(--text-muted)" stroke-width="1.2" />
 
-                    <!-- card, tilted and lifted clear of the reader -->
-                    <g transform="rotate(-7 200 152)">
-                        <rect x="104" y="86" width="192" height="120" rx="11"
-                              fill="url(#cardface)" stroke="var(--accent)" stroke-width="1.6" />
+                            <g transform="rotate(-15 204 214)">
+                                <rect x="132" y="112" width="150" height="104" rx="9"
+                                      fill="url(#cardface)" stroke="var(--accent)" stroke-width="1.6" />
+                                <g stroke="var(--text-muted)" stroke-linecap="round" opacity=".58">
+                                    <path d="M142 126h44" stroke-width="3" />
+                                    <path d="M142 134h30" stroke-width="2.3" />
+                                    <path d="M272 126h-40" stroke-width="3" />
+                                    <path d="M272 134h-26" stroke-width="2.3" />
+                                </g>
+                                <path d="M202 123h9l-4.5 9z" fill="var(--di-gold)" opacity=".9" />
+                                <rect x="230" y="144" width="40" height="50" rx="5"
+                                      fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.1" />
+                                <circle cx="250" cy="162" r="8.5" fill="var(--text-muted)" opacity=".4" />
+                                <path d="M237 189a13 13 0 0 1 26 0z" fill="var(--text-muted)" opacity=".4" />
+                                <g stroke="var(--border)" stroke-linecap="round" stroke-width="4">
+                                    <path d="M180 156h40" />
+                                    <path d="M180 167h26" />
+                                </g>
+                                <!-- the chip: the end that goes in, and the only part read -->
+                                <rect x="142" y="158" width="30" height="24" rx="3.5"
+                                      fill="var(--di-gold-tint)" stroke="var(--di-gold)" stroke-width="1.4" />
+                                <path d="M149 163v14M157 163v14M165 163v14" stroke="var(--di-gold)" stroke-width="1.1" />
+                                <path d="M142 193h50" stroke="var(--border)" stroke-linecap="round" stroke-width="3.4" />
+                            </g>
 
-                        <!-- bilingual header, as bars; the crest sits between them -->
-                        <g stroke="var(--text-muted)" stroke-linecap="round" opacity=".62">
-                            <path d="M116 103h58" stroke-width="3.4" />
-                            <path d="M116 112h40" stroke-width="2.6" />
-                            <path d="M284 103h-52" stroke-width="3.4" />
-                            <path d="M284 112h-34" stroke-width="2.6" />
-                        </g>
-                        <path d="M195 100h10l-5 10z" fill="var(--di-gold)" opacity=".9" />
+                            <polygon points="152,204 262,204 268,212 146,212"
+                                     fill="var(--text-primary)" opacity=".8" />
+                            <path d="M106 222h190v22a6 6 0 0 1-6 6H112a6 6 0 0 1-6-6z"
+                                  fill="url(#readerfront)" stroke="var(--text-muted)" stroke-width="1.2" />
+                            <rect x="196" y="234" width="74" height="4" rx="2" fill="var(--status-good)" opacity=".85" />
+                            <circle cx="182" cy="236" r="3.2" fill="var(--status-good)" />
+                        </svg>
+                    }
+                </div>
 
-                        <!-- the contact chip: what is actually being read -->
-                        <rect x="118" y="136" width="35" height="27" rx="4"
-                              fill="var(--di-gold-tint)" stroke="var(--di-gold)" stroke-width="1.3" />
-                        <path d="M127 142v15M135.5 142v15M144 142v15" stroke="var(--di-gold)" stroke-width="1.1" />
-
-                        <!-- portrait -->
-                        <rect x="238" y="126" width="48" height="62" rx="5"
-                              fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.2" />
-                        <circle cx="262" cy="148" r="10" fill="var(--text-muted)" opacity=".45" />
-                        <path d="M247 182a15 15 0 0 1 30 0z" fill="var(--text-muted)" opacity=".45" />
-
-                        <g stroke="var(--border)" stroke-linecap="round" stroke-width="4.5">
-                            <path d="M163 142h56" />
-                            <path d="M163 155h38" />
-                            <path d="M118 176h48" />
-                            <path d="M118 190h74" />
-                            <path d="M238 199h48" />
-                        </g>
-                    </g>
-                </svg>
+                @* What happens, in the order it happens. Every claim here is one the
+                   system actually makes good on - see the note in the README about the
+                   reference mockup's "secure and encrypted", which it does not. *@
+                <ol class="art-steps">
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="2.5" y="6" width="19" height="12" rx="2.2" /><rect x="6" y="10" width="5" height="4" rx="1" />
+                        </svg>
+                        Chip-first into the reader
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 8a12 12 0 0 1 0 8M8.5 6a16 16 0 0 1 0 12" /><circle cx="15" cy="12" r="2.5" />
+                            <path d="M19 9.5a5 5 0 0 1 0 5" />
+                        </svg>
+                        Read from the chip
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+                        </svg>
+                        Takes a few seconds
+                    </li>
+                </ol>
             </div>
 
             <div class="hero-panel">
@@ -184,9 +234,15 @@
                             </svg>
                         </span>
                         <span>
-                            <strong>@(readerState.ReaderName ?? "No reader detected")</strong>
+                            <strong>@(TidyReaderName(readerState.ReaderName) ?? "No reader detected")</strong>
                             <span>@readerState.Detail</span>
                         </span>
+                        @if (readerState.Available)
+                        {
+                            <svg class="state-tick" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" /><path d="M8.5 12.5l2.5 2.5 4.5-5" />
+                            </svg>
+                        }
                     </div>
 
                     @if (readerState.ToolkitVersion is not null || readerState.LicenceExpiry is not null)
@@ -195,11 +251,15 @@
                             Toolkit @(readerState.ToolkitVersion ?? "—")
                             @if (readerState.LicenceExpiry is not null)
                             {
-                                <text> &middot; licence to @readerState.LicenceExpiry</text>
+                                <text> &middot; licence valid till @readerState.LicenceExpiry</text>
                             }
                             @* A licence that lapses stops every read, and replacing the last
                                one took ICP a fortnight - so the count is on screen, and turns
                                into a warning while there is still time to act on it. *@
+                            @* The countdown appears only while it is worth acting on. A
+                               licence with two years left is a fact about the toolkit; one
+                               with two months left is a job for somebody, and last time
+                               ICP took a fortnight over it. *@
                             @if (readerState.LicenceDaysRemaining is { } days)
                             {
                                 @if (days < 0)
@@ -209,10 +269,6 @@
                                 else if (days <= 60)
                                 {
                                     <text> &middot; </text><span class="expiry warn">expires in @days days</span>
-                                }
-                                else
-                                {
-                                    <text> &middot; expires in @days days</text>
                                 }
                             }
                         </p>
@@ -308,6 +364,25 @@
                             </div>
                         }
                     }
+
+                    @* The reference mockup put "Secure - encrypted read" and "never stored
+                       as an image" here. Neither is true: the photograph and the signature
+                       ARE stored with the visit, the socket to the desk agent is plain
+                       ws:// on loopback, and the application has no authorisation at all.
+                       A visitor standing at the desk reads this panel, so it says what the
+                       system actually does. *@
+                    <div class="assure-strip">
+                        <span class="ico">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="2.5" y="5" width="19" height="14" rx="2.2" /><path d="M6 15h5" />
+                                <circle cx="16.5" cy="11" r="2.4" />
+                            </svg>
+                        </span>
+                        <p>
+                            Your details are read from the chip in the card, not typed in by hand.
+                            <span class="tags">Chip-read &bull; Bilingual &bull; Time-stamped</span>
+                        </p>
+                    </div>
                 }
             </div>
         </div>
@@ -1045,6 +1120,23 @@ else if (step == 3 && saved is not null)
                 // Replaced by a newer toast, dismissed by hand, or the circuit is gone.
             }
         });
+    }
+
+    /// <summary>
+    /// The reader's name as a person would write it.
+    ///
+    /// PC/SC hands back "0_ACS ACR39U ICC Reader 0" - an index, the name, and the slot
+    /// number. Correct, and not what belongs on a screen a visitor is looking at.
+    /// </summary>
+    private static string? TidyReaderName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return name;
+
+        var tidied = System.Text.RegularExpressions.Regex.Replace(name.Trim(), @"^\d+_", string.Empty);
+        tidied = System.Text.RegularExpressions.Regex.Replace(tidied, @"\s+\d+$", string.Empty);
+
+        // If stripping left nothing useful, the raw name is better than a blank.
+        return tidied.Length > 0 ? tidied : name;
     }
 
     private const string LikeEscape = "\\";

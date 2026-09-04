@@ -15,6 +15,17 @@ public static class BrandAssets
     /// </summary>
     public static string? LogoPath { get; private set; }
 
+    /// <summary>
+    /// Web path to a photograph of the card reader, or null when none has been supplied
+    /// and the drawn illustration should be used.
+    ///
+    /// The drawn one is a diagram of a reader; a photograph of the actual ACR39U with a
+    /// card going into it tells a visitor which way round the card goes far better than
+    /// any drawing will. Same drop-in rule as the lockup, and for the same reason: the
+    /// hand-drawn version of the logo was never quite the logo.
+    /// </summary>
+    public static string? ReaderImagePath { get; private set; }
+
     /// <summary>Called once at startup, when the content root is known.</summary>
     public static void Locate(string? webRootPath, ILogger logger)
     {
@@ -27,19 +38,45 @@ public static class BrandAssets
         }
 
         // In preference order: a vector scales, so it wins over the raster forms.
-        string[] candidates = ["di-logo.svg", "di-logo.png", "di-logo.webp", "di-logo.jpg"];
+        LogoPath = FirstPresent(webRootPath, ["di-logo.svg", "di-logo.png", "di-logo.webp", "di-logo.jpg"]);
 
-        foreach (var name in candidates)
+        if (LogoPath is not null)
         {
-            if (!File.Exists(Path.Combine(webRootPath, "brand", name))) continue;
-
-            LogoPath = $"brand/{name}";
             logger.LogInformation("Using supplied brand lockup {Path}.", LogoPath);
-            return;
+        }
+        else
+        {
+            logger.LogInformation(
+                "No brand lockup in wwwroot/brand; using the composed rendition. Drop " +
+                "di-logo.svg (or .png) there to use the official asset instead.");
         }
 
-        logger.LogInformation(
-            "No brand lockup in wwwroot/brand; using the composed rendition. Drop " +
-            "di-logo.svg (or .png) there to use the official asset instead.");
+        /* A photograph, so raster first here - and webp before png because this one is a
+           product shot, where the size difference is worth having on a desk browser. */
+        ReaderImagePath = FirstPresent(webRootPath, ["reader.webp", "reader.png", "reader.jpg", "reader.svg"]);
+
+        if (ReaderImagePath is not null)
+        {
+            logger.LogInformation("Using supplied reader photograph {Path}.", ReaderImagePath);
+        }
+        else
+        {
+            logger.LogInformation(
+                "No reader photograph in wwwroot/brand; using the drawn illustration. Drop " +
+                "reader.png (or .webp) there to show the real reader instead.");
+        }
+    }
+
+    private static string? FirstPresent(string webRootPath, string[] candidates)
+    {
+        foreach (var name in candidates)
+        {
+            if (File.Exists(Path.Combine(webRootPath, "brand", name)))
+            {
+                return $"brand/{name}";
+            }
+        }
+
+        return null;
     }
 }
