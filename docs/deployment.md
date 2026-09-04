@@ -256,6 +256,32 @@ first desk is ready — a restart, not a rebuild.
 
 ---
 
+## Updating a deployment
+
+```powershell
+# build machine
+.\deploy\publish.ps1 -Output C:\Deploy\vms
+# copy that folder to the server, then on UATWEB01, elevated:
+.\deploy\update-server.ps1 -Source C:\Deploy\vms
+```
+
+**Do not use `Copy-Item -Recurse -Force` for this.** Into an existing deployment it is not
+a reliable update: where a subdirectory already exists it can nest the source inside it
+(`wwwroot\wwwroot\...`) or leave nested files untouched. Root-level DLLs land and
+`wwwroot\app.css` does not, so the server ends up serving new markup with the old
+stylesheet.
+
+That failure does not look like a copy problem. It looks like the design broke — unstyled
+elements fall back to inline flow, and an `<svg>` with no width rule renders at its
+default 300x150 and blows a panel apart. It cost an afternoon once already.
+
+`update-server.ps1` mirrors with robocopy, excludes `appsettings.Production.json` from the
+mirror so it is neither overwritten nor purged, stops the app pool first (it holds the
+DLLs open), clears any nested folder an earlier copy left, and prints the timestamps of
+`DI.Vms.Blazor.dll` and `wwwroot\app.css` side by side — those two must move together.
+
+---
+
 ## What is not ready, and is a decision rather than a step
 
 1. **The app has no authentication.** IIS Windows Authentication (step 4) is a real
