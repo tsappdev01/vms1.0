@@ -101,10 +101,9 @@ for a card reader it does not have and report it as a card that will not read.
                   -CertificateThumbprint <thumbprint in LocalMachine\My>
 ```
 
-**HTTPS is required, not preferred.** A page served over plain HTTP cannot open the
-`wss://` socket to the agent — and a page served over HTTPS cannot open a plain `ws://`
-one, because the browser blocks it as mixed content and gives no visible reason. HTTPS on
-the site plus `TlsEnabled: true` is the combination that works.
+**HTTPS on the site, and `TlsEnabled: false` for the agent.** That pairing looks wrong and
+is not: see [The socket to the agent](#the-socket-to-the-agent) below, which is the one
+thing about this architecture that had to be measured rather than reasoned out.
 
 The script also, by default, turns on **Windows Authentication and turns Anonymous off**.
 Read the next paragraph before overriding that.
@@ -160,14 +159,40 @@ It installs ICP's MSI, optionally trusts an agent certificate you supply
 (`-AgentCertificatePath`), checks that `toolkitagent.emiratesid.ae` resolves to loopback on
 that PC, starts the service, and reports whether anything is listening on 9004/9005/9020.
 
-Two things it cannot do for you:
+### The socket to the agent
+
+The agent from `ICAToolkitService.msi` serves **plain `ws://` on 127.0.0.1:9004**. It can
+serve `wss://` — the installer has "Show TLS certificate fields", writing
+`config_tls_cert` and `config_tls_cert_chain` into its config — but ICP ships no
+certificate, so out of the box there is nothing to serve TLS with. Confirmed on the first
+desk: a TLS handshake against 9004 comes back "unexpected packet format".
+
+That should have been fatal. `https://vms.dipark.com` is an HTTPS page, and an HTTPS page
+may not open a plain `ws://` socket — the browser blocks it as mixed content.
+
+Except to an origin the browser already trusts, and **the loopback address is one**. So
+`ws://127.0.0.1:9004` from an HTTPS page is allowed, and the read works with no
+certificate on any desk. Which is why `TlsEnabled` is false and `HostName` is blank.
+
+Two consequences worth keeping:
+
+- **`HostName` must stay blank**, which means the literal `127.0.0.1`. The exemption is
+  for the address as written; `toolkitagent.emiratesid.ae` resolves to 127.0.0.1 but is
+  still a host name to the mixed-content check, and is blocked.
+- **This is a browser behaviour, not a guarantee.** If a future browser tightens it, the
+  fix is the one that was avoided here: a certificate for `toolkitagent.emiratesid.ae`
+  fed to the agent through those installer fields, its issuer trusted on each desk, and
+  `TlsEnabled` back to true. ICP owning that name — and pointing it at loopback — is what
+  makes a publicly-trusted certificate for it possible, so it is worth asking them for
+  one before it is urgent.
+
+Two things `install-desk-agent.ps1` cannot do for you:
 
 - **The reader driver**, if Windows has not found the reader by itself. An ACS ACR39U works
   with the driver Windows supplies.
-- **The certificate**, if ICP does not ship one. `wss://` to a certificate the desk does
-  not trust fails *silently* — indistinguishable, from the page's side, from an agent that
-  was never installed. That is why `install-desk-agent.ps1` checks name resolution and why
-  the app's own `/agent-required` page lists it as a cause.
+- **A certificate**, if you ever move to `wss://`. One the desk does not trust fails
+  *silently* — indistinguishable, from the page's side, from an agent that was never
+  installed. That is why the app's own `/agent-required` page lists it as a cause.
 
 Then open the site on that PC. The reader panel should name the reader and show the licence
 date. If it does not, `/agent-required` on the site itself is the checklist.

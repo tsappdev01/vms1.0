@@ -18,13 +18,21 @@
     "Mode": "Agent",
 
     "Agent": {
-      // The page is served over HTTPS, so the socket to the agent must be wss:// - a
-      // browser blocks a plain ws:// from an HTTPS page as mixed content and the read
-      // never starts. Requires the agent's certificate to be trusted on each desk.
-      "TlsEnabled": true,
+      // false, and measured rather than assumed. The agent installed by
+      // ICAToolkitService.msi serves PLAIN ws:// unless it is given a TLS certificate
+      // (the installer's "Show TLS certificate fields"), and ICP ships none. A browser
+      // will not open a plain ws:// socket from an HTTPS page - except to an origin it
+      // already trusts, and the loopback address is one. So https://vms.dipark.com
+      // reaches ws://127.0.0.1:9004 and the read works with no certificate anywhere.
+      //
+      // Set this true only after giving the agent a certificate for
+      // toolkitagent.emiratesid.ae on every desk.
+      "TlsEnabled": false,
 
-      // Blank uses the SDK's own default for the scheme: toolkitagent.emiratesid.ae
-      // under TLS, which resolves to the desk's own loopback address.
+      // MUST stay blank while TlsEnabled is false. Blank means the literal 127.0.0.1,
+      // and the literal address is what buys the exemption above: the mixed-content
+      // check reads the host as written, so toolkitagent.emiratesid.ae is blocked even
+      // though it resolves to 127.0.0.1.
       "HostName": "",
 
       // Normally blank: the agent installed by ICAToolkitService.msi carries its own

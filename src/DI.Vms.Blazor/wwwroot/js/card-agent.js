@@ -27,11 +27,41 @@ const PROBE_TIMEOUT_MS = 1500;
 
 /* The SDK's own defaults, which depend on the scheme: under TLS the name resolves to the
    loopback address, which is how the agent can hold a certificate a browser will accept
-   for something that is nonetheless on this desk. */
+   for something that is nonetheless on this desk.
+
+   Without TLS the literal 127.0.0.1 is not a convenience, it is the requirement. A page
+   served over HTTPS may open a plain ws:// socket only to an origin the browser already
+   considers trustworthy, and that means the loopback address written as an address -
+   toolkitagent.emiratesid.ae resolves to 127.0.0.1 but is still just a host name to the
+   mixed-content check, and is blocked. */
 const DEFAULT_HOST_TLS = 'toolkitagent.emiratesid.ae';
 const DEFAULT_HOST_PLAIN = '127.0.0.1';
 
 let sdkPromise = null;
+
+/**
+ * Works around a null check missing from ICP's SDK.
+ *
+ * CardPublicData always constructs ModifiablePublicData, whether or not the read asked
+ * for modifiable data - and ModifiablePublicData dereferences its argument without
+ * checking it, unlike HomeAddress and WorkAddress beside it, which both return null for a
+ * missing body. So a read with readModifiableData false dies inside the SDK with
+ * "Cannot read properties of undefined (reading 'OccupationCode')", after the card has
+ * been read and the signed response is already in hand.
+ *
+ * Patched here rather than in eidatoolkit.js, which is ICP's file and stays theirs. The
+ * other way out would be to ask for modifiable data after all - reading every visitor's
+ * occupation, sponsor and passport details off the chip to satisfy a missing null check,
+ * and then discarding them. Not for a visitor log.
+ */
+function guardModifiableData() {
+    const original = window.ModifiablePublicData;
+    if (typeof original !== 'function' || original.vmsGuarded) { return; }
+
+    const guarded = function (body) { return body ? new original(body) : {}; };
+    guarded.vmsGuarded = true;
+    window.ModifiablePublicData = guarded;
+}
 
 /**
  * Loads ICP's script on demand and caches the attempt.
@@ -44,15 +74,18 @@ function loadSdk() {
     if (sdkPromise) { return sdkPromise; }
 
     sdkPromise = new Promise((resolve, reject) => {
-        if (typeof window.Toolkit === 'function') { resolve(); return; }
+        if (typeof window.Toolkit === 'function') { guardModifiableData(); resolve(); return; }
 
         const script = document.createElement('script');
         script.src = 'lib/eidatoolkit/eidatoolkit.js';
         script.async = true;
         script.onload = () => {
-            typeof window.Toolkit === 'function'
-                ? resolve()
-                : reject(new Error('eidatoolkit.js loaded but defines no Toolkit.'));
+            if (typeof window.Toolkit !== 'function') {
+                reject(new Error('eidatoolkit.js loaded but defines no Toolkit.'));
+                return;
+            }
+            guardModifiableData();
+            resolve();
         };
         script.onerror = () => reject(new Error('eidatoolkit.js could not be loaded from the server.'));
         document.head.appendChild(script);
@@ -208,7 +241,16 @@ export async function probe(options) {
            able to report its toolkit version and licence, because that is exactly the
            state in which someone is trying to work out what is wrong. */
         try { result.toolkitVersion = await call(toolkit, 'getToolkitVersion', []); } catch { /* reported as absent */ }
-        try { result.licenceExpiry = await call(toolkit, 'getLicenseExpiryDate', []); } catch { /* ditto */ }
+        /* Not a string: getLicenseExpiryDate resolves with a whole ToolkitResponse, and
+           the date is on it as expirydate - which is what ICP's own sample reads. Sent
+           over as a string so the server has one shape to parse whatever the agent
+           decides to wrap it in. */
+        try {
+            const licence = await call(toolkit, 'getLicenseExpiryDate', []);
+            const value = licence && (licence.expirydate ?? licence.expiryDate ?? licence.expiry_date);
+            if (value) { result.licenceExpiry = String(value); }
+        }
+        catch { /* ditto */ }
 
         try {
             const reader = await call(toolkit, 'getReaderWithEmiratesId', []);
