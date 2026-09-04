@@ -74,6 +74,20 @@ public sealed class AgentOptions
     };
 
     /// <summary>
+    /// Whether a response whose signature does not verify is refused.
+    ///
+    /// True is the right default and the reason agent mode is safe at all. It is settable
+    /// because the alternative to a deployment that refuses every read is not a safer
+    /// deployment - it is card reading switched off and every visitor typed in by hand,
+    /// which records the same data with no check on it whatsoever.
+    ///
+    /// Set false only deliberately, and knowing what is given up: a read from a browser
+    /// is then a claim the server cannot test. Every such read is marked on screen and in
+    /// the log, and the entry is saved with the warning on it.
+    /// </summary>
+    public bool RequireSignature { get; set; } = true;
+
+    /// <summary>
     /// How stale a gateway timestamp may be. A response is single-use by request ID
     /// already; this is the second lock, for a replay that arrives before the request ID
     /// it was issued for has expired.
@@ -237,7 +251,18 @@ public sealed class AgentCardReader(AgentOptions options, ILogger<AgentCardReade
         }
 
         var (valid, thumbprint, subject) = CardResponseParser.VerifySignature(responseXml);
-        var warning = CheckSigner(valid, thumbprint, subject);
+
+        if (!valid)
+        {
+            /* Structure only - algorithms, what the signature covers, who signed it. No
+               name, no ID number, no photograph, so this is safe in a log and safe to
+               send to ICP. "The signature did not verify" is not a diagnosis on its own. */
+            logger.LogWarning(
+                "Agent response failed signature verification. {Description}",
+                CardResponseParser.Describe(responseXml));
+        }
+
+        var warning = CheckSigner(valid, thumbprint, subject, responseXml);
 
         var age = CardResponseParser.ReadTimestamp(responseXml) is { } stamped
             ? DateTimeOffset.UtcNow - stamped
@@ -264,12 +289,28 @@ public sealed class AgentCardReader(AgentOptions options, ILogger<AgentCardReade
     /// Decides what an unpinned or unexpected signer means. Fails closed once a signer
     /// has been pinned, and says so loudly until one has been.
     /// </summary>
-    private string? CheckSigner(bool valid, string? thumbprint, string? subject)
+    private string? CheckSigner(bool valid, string? thumbprint, string? subject, string responseXml)
     {
         if (!valid)
         {
-            throw new InvalidOperationException(
-                "The response signature is not valid, so this is not a genuine card read.");
+            /* The two failures are different problems and want different answers, so the
+               desk is told which one it has rather than one message covering both. */
+            var detail = CardResponseParser.HasSignature(responseXml)
+                ? "The response carries a signature that does not verify."
+                : "The response carries no signature at all.";
+
+            if (Options.RequireSignature)
+            {
+                throw new InvalidOperationException(
+                    detail + " This read cannot be shown to be genuine, so it has not been accepted. " +
+                    "The server log says what is wrong with it.");
+            }
+
+            logger.LogWarning(
+                "Accepting an unverified agent read because Toolkit:Agent:RequireSignature is false. {Detail}",
+                detail);
+
+            return "This read was not verified. " + detail;
         }
 
         var pinned = Options.TrustedSignerThumbprints

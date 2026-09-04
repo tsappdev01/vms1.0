@@ -49,6 +49,12 @@
       // one logs the thumbprint to paste in. Fill it in before you trust the data.
       "TrustedSignerThumbprints": [],
 
+      // Refuse a read whose signature does not verify. Leave true. False is a deliberate
+      // decision that a browser-supplied read is a claim the server cannot test - taken
+      // only if it turns out the agent's responses are not signed at all, and weighed
+      // against the alternative, which is card reading off and every visitor typed in.
+      "RequireSignature": true,
+
       "MaximumResponseAge": "00:10:00"
     }
   },

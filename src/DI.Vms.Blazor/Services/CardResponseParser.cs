@@ -175,6 +175,73 @@ internal static class CardResponseParser
     }
 
     /// <summary>
+    /// Describes the document's signature, structurally: what algorithms it uses, what it
+    /// covers, who signed it. Nothing off the card - no name, no number, no photograph -
+    /// so it is safe to log and safe to paste into a support ticket.
+    ///
+    /// This exists because "the signature did not verify" is not a diagnosis. It can mean
+    /// no signature at all, an algorithm this runtime will not use, a reference to an
+    /// element the verifier cannot resolve, or a genuine mismatch - and only the first
+    /// and last of those are about the card.
+    /// </summary>
+    public static string Describe(string xml)
+    {
+        try
+        {
+            var document = Load(xml, preserveWhitespace: true);
+            var root = document.DocumentElement?.LocalName ?? "(none)";
+
+            var nodes = document.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
+            if (nodes.Count == 0)
+            {
+                return $"root={root}, length={xml.Length}, signature=ABSENT";
+            }
+
+            var signedXml = new SignedXml(document);
+            signedXml.LoadXml((XmlElement)nodes[0]!);
+
+            var info = signedXml.SignedInfo;
+
+            var references = info is null ? "(none)" : string.Join(" | ", info.References
+                .OfType<Reference>()
+                .Select(reference =>
+                    $"uri='{reference.Uri}' digest={Tail(reference.DigestMethod)} " +
+                    $"transforms=[{string.Join(",", reference.TransformChain.OfType<Transform>().Select(t => Tail(t.Algorithm)))}]"));
+
+            var certificate = signedXml.KeyInfo
+                .OfType<KeyInfoX509Data>()
+                .SelectMany(data => data.Certificates?.OfType<X509Certificate2>() ?? [])
+                .FirstOrDefault();
+
+            return $"root={root}, length={xml.Length}, signatures={nodes.Count}, " +
+                   $"c14n={Tail(info?.CanonicalizationMethod)}, method={Tail(info?.SignatureMethod)}, " +
+                   $"refs=[{references}], " +
+                   $"key={(certificate is null ? "no certificate in KeyInfo" : certificate.Subject)}";
+        }
+        catch (Exception ex)
+        {
+            return $"could not be described: {ex.GetType().Name}: {ex.Message}";
+        }
+
+        // The algorithm URIs are long and all share a prefix; the tail is the identifying part.
+        static string Tail(string? uri) =>
+            string.IsNullOrEmpty(uri) ? "(none)" : uri[(uri.LastIndexOf('#') + 1)..];
+    }
+
+    /// <summary>True when the document carries an XML signature at all.</summary>
+    public static bool HasSignature(string xml)
+    {
+        try
+        {
+            return Load(xml).GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#").Count > 0;
+        }
+        catch (XmlException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// The chip's comma-delimited segments joined into a readable name.
     /// "NAYYAR JAWAID,,,,,ALI KHAN," is one person, not seven fields; the empty positions
     /// carry given/middle/family meaning, which is why the raw value is kept as well.
