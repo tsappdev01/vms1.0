@@ -1158,7 +1158,7 @@ else if (step == 3 && saved is not null)
             var probe = await module.InvokeAsync<AgentProbe>(
                 "probe", TimeSpan.FromSeconds(30), AgentReader.Options.ForBrowser());
 
-            var (licence, licenceDays) = CardReaderService.ReadLicence(probe.LicenceExpiry);
+            var (licence, licenceDays) = CardReaderService.ReadLicence(probe.LicenceExpiryText());
 
             /* Set here, where the two states are still distinguishable. "No agent on this
                PC" and "an agent, but no card in the reader" both leave Available false,

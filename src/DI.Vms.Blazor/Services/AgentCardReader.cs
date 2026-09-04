@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace DI.Vms.Blazor.Services;
 
@@ -96,9 +97,47 @@ public sealed class AgentProbe
     public int? AgentPort { get; set; }
     public string? Detail { get; set; }
     public string? ToolkitVersion { get; set; }
-    public string? LicenceExpiry { get; set; }
     public string? ReaderName { get; set; }
     public bool CardPresent { get; set; }
+
+    /// <summary>
+    /// Whatever the agent said about the licence, undecoded.
+    ///
+    /// Declared as raw JSON because the toolkit's getLicenseExpiryDate does not resolve
+    /// with a date - it resolves with a whole response object, and the date is a property
+    /// on it. Typed as a string it took the entire reader status down with
+    /// "The JSON value could not be converted to System.String", so a desk with a working
+    /// reader was told it had none, over a line of small print about a licence.
+    ///
+    /// An optional display field does not get to do that. Read it through
+    /// <see cref="LicenceExpiryText"/>, which returns null rather than throwing on
+    /// anything it does not recognise.
+    /// </summary>
+    public JsonElement? LicenceExpiry { get; set; }
+
+    /// <summary>The licence date as text, or null if it did not come back as anything.</summary>
+    public string? LicenceExpiryText()
+    {
+        if (LicenceExpiry is not { } value) return null;
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString(),
+            JsonValueKind.Number => value.ToString(),
+
+            // The whole response object. ICP's own sample reads .expirydate off it.
+            JsonValueKind.Object => Property(value, "expirydate")
+                ?? Property(value, "expiryDate")
+                ?? Property(value, "expiry_date"),
+
+            _ => null,
+        };
+
+        static string? Property(JsonElement element, string name) =>
+            element.TryGetProperty(name, out var found) && found.ValueKind is not JsonValueKind.Null
+                ? (found.ValueKind == JsonValueKind.String ? found.GetString() : found.ToString())
+                : null;
+    }
 }
 
 /// <summary>The signed response, and nothing else - see card-agent.js.</summary>
