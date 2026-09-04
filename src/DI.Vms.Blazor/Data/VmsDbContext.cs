@@ -50,17 +50,17 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
         b.Entity<VisitorEntry>(e =>
         {
             e.ToTable("VisitorEntry");
-            e.Property(x => x.IdNumber).HasMaxLength(30).IsRequired();
-            e.Property(x => x.CardNumber).HasMaxLength(30);
-            e.Property(x => x.FullNameEnglish).HasMaxLength(300).IsRequired();
-            e.Property(x => x.FullNameRaw).HasMaxLength(300);
-            e.Property(x => x.FullNameArabic).HasMaxLength(300);
-            e.Property(x => x.PersonToVisit).HasMaxLength(200).IsRequired();
-            e.Property(x => x.Purpose).HasMaxLength(60).IsRequired();
-            e.Property(x => x.PurposeOther).HasMaxLength(200);
-            e.Property(x => x.PersonToVisitTitle).HasMaxLength(200);
-            e.Property(x => x.PersonToVisitEmail).HasMaxLength(256);
-            e.Property(x => x.PersonToVisitCompany).HasMaxLength(200);
+            e.Property(x => x.IdNumber).HasMaxLength(FieldLengths.IdNumber).IsRequired();
+            e.Property(x => x.CardNumber).HasMaxLength(FieldLengths.CardNumber);
+            e.Property(x => x.FullNameEnglish).HasMaxLength(FieldLengths.Name).IsRequired();
+            e.Property(x => x.FullNameRaw).HasMaxLength(FieldLengths.Name);
+            e.Property(x => x.FullNameArabic).HasMaxLength(FieldLengths.Name);
+            e.Property(x => x.PersonToVisit).HasMaxLength(FieldLengths.PersonToVisit).IsRequired();
+            e.Property(x => x.Purpose).HasMaxLength(FieldLengths.Purpose).IsRequired();
+            e.Property(x => x.PurposeOther).HasMaxLength(FieldLengths.PurposeOther);
+            e.Property(x => x.PersonToVisitTitle).HasMaxLength(FieldLengths.Title);
+            e.Property(x => x.PersonToVisitEmail).HasMaxLength(FieldLengths.Email);
+            e.Property(x => x.PersonToVisitCompany).HasMaxLength(FieldLengths.Company);
 
             /* NoAction, not Cascade: removing someone from the address list must never
                delete the visits that came to see them. */
@@ -68,8 +68,8 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
              .WithMany()
              .HasForeignKey(x => x.PersonToVisitId)
              .OnDelete(DeleteBehavior.NoAction);
-            e.Property(x => x.CaptureMethod).HasMaxLength(30).IsRequired();
-            e.Property(x => x.AddressEmail).HasMaxLength(256);
+            e.Property(x => x.CaptureMethod).HasMaxLength(FieldLengths.CaptureMethod).IsRequired();
+            e.Property(x => x.AddressEmail).HasMaxLength(FieldLengths.Email);
 
             foreach (var name in new[]
             {
@@ -84,7 +84,7 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
                 nameof(VisitorEntry.AddressMobile),
             })
             {
-                e.Property(name).HasMaxLength(150);
+                e.Property(name).HasMaxLength(FieldLengths.CardField);
             }
 
             e.HasOne(x => x.DiEntity).WithMany().HasForeignKey(x => x.DiEntityId);

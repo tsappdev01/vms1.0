@@ -384,50 +384,50 @@ else if (step == 1 && card is not null && IsManual)
             <div class="grid-2 mt">
                 <div class="field">
                     <label for="m-id">ID Number <span class="req">required</span></label>
-                    <input id="m-id" @bind="manual.IdNumber" @bind:event="oninput"
+                    <input id="m-id" maxlength="@FieldLengths.IdNumber" @bind="manual.IdNumber" @bind:event="oninput"
                            placeholder="784-1979-4076928-0" inputmode="numeric" autocomplete="off" />
-                    @if (IdDigits.Length > 0 && IdDigits.Length != 15)
+                    @if (IdDigits.Length > 0 && IdDigits.Length != FieldLengths.EmiratesIdDigits)
                     {
                         <span class="field-note warn">
-                            @IdDigits.Length of 15 digits. An Emirates ID number has 15.
+                            @IdDigits.Length of @FieldLengths.EmiratesIdDigits digits. An Emirates ID number has @FieldLengths.EmiratesIdDigits.
                         </span>
                     }
                 </div>
 
                 <div class="field">
                     <label for="m-card">Card Number</label>
-                    <input id="m-card" @bind="manual.CardNumber" placeholder="139620213" autocomplete="off" />
+                    <input id="m-card" maxlength="@FieldLengths.CardNumber" @bind="manual.CardNumber" placeholder="139620213" autocomplete="off" />
                 </div>
 
                 <div class="field">
                     <label for="m-name">Full Name (English) <span class="req">required</span></label>
-                    <input id="m-name" @bind="manual.FullNameEnglish" @bind:event="oninput"
+                    <input id="m-name" maxlength="@FieldLengths.Name" @bind="manual.FullNameEnglish" @bind:event="oninput"
                            placeholder="As printed on the card" autocomplete="off" />
                 </div>
 
                 <div class="field">
                     <label for="m-name-ar">Full Name (Arabic)</label>
-                    <input id="m-name-ar" @bind="manual.FullNameArabic" dir="rtl" autocomplete="off" />
+                    <input id="m-name-ar" maxlength="@FieldLengths.Name" @bind="manual.FullNameArabic" dir="rtl" autocomplete="off" />
                 </div>
 
                 <div class="field">
                     <label for="m-nat">Nationality</label>
-                    <input id="m-nat" @bind="manual.NationalityEnglish" placeholder="Pakistan" autocomplete="off" />
+                    <input id="m-nat" maxlength="@FieldLengths.CardField" @bind="manual.NationalityEnglish" placeholder="Pakistan" autocomplete="off" />
                 </div>
 
                 <div class="field">
                     <label for="m-dob">Date of Birth</label>
-                    <input id="m-dob" @bind="manual.DateOfBirth" placeholder="08/10/1979" autocomplete="off" />
+                    <input id="m-dob" maxlength="@FieldLengths.CardField" @bind="manual.DateOfBirth" placeholder="08/10/1979" autocomplete="off" />
                 </div>
 
                 <div class="field">
                     <label for="m-expiry">Card Expiry</label>
-                    <input id="m-expiry" @bind="manual.ExpiryDate" placeholder="25/08/2028" autocomplete="off" />
+                    <input id="m-expiry" maxlength="@FieldLengths.CardField" @bind="manual.ExpiryDate" placeholder="25/08/2028" autocomplete="off" />
                 </div>
 
                 <div class="field">
                     <label for="m-mobile">Mobile</label>
-                    <input id="m-mobile" @bind="manual.AddressMobile" inputmode="tel" autocomplete="off" />
+                    <input id="m-mobile" maxlength="@FieldLengths.CardField" @bind="manual.AddressMobile" inputmode="tel" autocomplete="off" />
                 </div>
             </div>
 
@@ -592,6 +592,7 @@ else if (step == 2 && card is not null)
                               TextChanged="@(t => personToVisit = t)"
                               PersonChanged="@(p => host = p)"
                               Search="SearchPeople"
+                              MaxLength="@FieldLengths.PersonToVisit"
                               Placeholder="Start typing a name" />
 
                 <div class="field-aside">
@@ -640,8 +641,8 @@ else if (step == 2 && card is not null)
             {
                 <div class="field">
                     <label for="purpose-other">Please give details</label>
-                    <input id="purpose-other" @bind="purposeOther" @bind:event="oninput"
-                           placeholder="What is the visit for?" autocomplete="off" maxlength="200" />
+                    <input id="purpose-other" maxlength="@FieldLengths.PurposeOther" @bind="purposeOther" @bind:event="oninput"
+                           placeholder="What is the visit for?" autocomplete="off" />
                 </div>
             }
 
@@ -911,9 +912,15 @@ else if (step == 3 && saved is not null)
 
         await using var db = await DbFactory.CreateDbContextAsync();
 
+        /* The term is a LIKE pattern, so its own pattern characters have to be neutralised
+           - not against injection, which EF's parameters already handle, but because
+           typing a single % matches every person in the list and a _ matches any
+           character. A receptionist typing a name is not writing a pattern. */
+        var pattern = LikeLiteral(term);
+
         var all = db.People.Where(p => p.IsActive
-                                   && (EF.Functions.Like(p.DisplayName, $"%{term}%")
-                                    || (p.Email != null && EF.Functions.Like(p.Email, $"{term}%"))));
+                                   && (EF.Functions.Like(p.DisplayName, $"%{pattern}%", LikeEscape)
+                                    || (p.Email != null && EF.Functions.Like(p.Email, $"{pattern}%", LikeEscape))));
 
         if (searchAllEntities || entityId == 0)
         {
@@ -1038,6 +1045,40 @@ else if (step == 3 && saved is not null)
                 // Replaced by a newer toast, dismissed by hand, or the circuit is gone.
             }
         });
+    }
+
+    private const string LikeEscape = "\\";
+
+    /// <summary>
+    /// Escapes the characters T-SQL's LIKE treats as pattern syntax, so a typed name is
+    /// matched as the text it is. Paired with the ESCAPE clause on each Like call.
+    /// </summary>
+    private static string LikeLiteral(string term) => term
+        .Replace(LikeEscape, LikeEscape + LikeEscape)
+        .Replace("%", LikeEscape + "%")
+        .Replace("_", LikeEscape + "_")
+        .Replace("[", LikeEscape + "[");
+
+    /// <summary>
+    /// Fits a value to its column, and says so in the log when it had to cut.
+    ///
+    /// Silent truncation of a visitor record is not acceptable - the record is the point -
+    /// but neither is a database error at the desk. So it saves, and the log carries the
+    /// fact that something arrived longer than any real card produces.
+    /// </summary>
+    private string? Fit(string? value, int maximum, string field)
+    {
+        var result = FieldLengths.Clamp(value, maximum, out var cut);
+
+        if (cut)
+        {
+            Logger.LogWarning(
+                "Visitor entry {Field} was {Length} characters and the column holds {Maximum}, so it " +
+                "was cut. Nothing a real Emirates ID returns is that long.",
+                field, value!.Length, maximum);
+        }
+
+        return result;
     }
 
     /// <summary>The ID number reduced to digits, for the length check and for storage.</summary>
@@ -1267,42 +1308,51 @@ else if (step == 3 && saved is not null)
         {
             var entry = new VisitorEntry
             {
+                /* Every string is fitted to its column on the way in. Nothing a real card
+                   returns comes near these lengths, so this is not tidying: it is the
+                   boundary. In agent mode the card data arrives from a browser, and while
+                   ICP's responses are unsigned the server cannot tell a real read from a
+                   crafted one - so an oversized field is a thing that can happen, and it
+                   must produce a record rather than a truncation error at the desk. */
+
                 /* Digits only, so a typed record and a chip read of the same person land
                    on the same IdNumber - which is indexed, and is how a repeat visitor is
                    found. The chip returns it unpunctuated; a person types the dashes. */
-                IdNumber = IsManual ? IdDigits : card.IdNumber,
-                CardNumber = card.CardNumber,
+                IdNumber = Fit(IsManual ? IdDigits : card.IdNumber, FieldLengths.IdNumber, "ID number") ?? string.Empty,
+                CardNumber = Fit(card.CardNumber, FieldLengths.CardNumber, "card number"),
                 Photo = card.Photo,
                 CardSignature = card.CardSignature,
-                IdType = card.IdType,
-                IssueDate = card.IssueDate,
-                ExpiryDate = card.ExpiryDate,
-                FullNameEnglish = card.FullNameEnglish,
-                FullNameRaw = card.FullNameRaw,
-                FullNameArabic = card.FullNameArabic,
-                TitleEnglish = card.TitleEnglish,
-                Gender = card.Gender,
-                DateOfBirth = card.DateOfBirth,
-                NationalityEnglish = card.NationalityEnglish,
-                NationalityCode = card.NationalityCode,
-                PlaceOfBirthEnglish = card.PlaceOfBirthEnglish,
-                AddressEmirate = card.AddressEmirate,
-                AddressCity = card.AddressCity,
-                AddressArea = card.AddressArea,
-                AddressStreet = card.AddressStreet,
-                AddressBuilding = card.AddressBuilding,
-                AddressPoBox = card.AddressPoBox,
-                AddressPhone = card.AddressPhone,
-                AddressMobile = card.AddressMobile,
-                AddressEmail = card.AddressEmail,
+                IdType = Fit(card.IdType, FieldLengths.CardField, "ID type"),
+                IssueDate = Fit(card.IssueDate, FieldLengths.CardField, "issue date"),
+                ExpiryDate = Fit(card.ExpiryDate, FieldLengths.CardField, "expiry date"),
+                FullNameEnglish = Fit(card.FullNameEnglish, FieldLengths.Name, "name") ?? string.Empty,
+                FullNameRaw = Fit(card.FullNameRaw, FieldLengths.Name, "raw name"),
+                FullNameArabic = Fit(card.FullNameArabic, FieldLengths.Name, "Arabic name"),
+                TitleEnglish = Fit(card.TitleEnglish, FieldLengths.CardField, "title"),
+                Gender = Fit(card.Gender, FieldLengths.CardField, "gender"),
+                DateOfBirth = Fit(card.DateOfBirth, FieldLengths.CardField, "date of birth"),
+                NationalityEnglish = Fit(card.NationalityEnglish, FieldLengths.CardField, "nationality"),
+                NationalityCode = Fit(card.NationalityCode, FieldLengths.CardField, "nationality code"),
+                PlaceOfBirthEnglish = Fit(card.PlaceOfBirthEnglish, FieldLengths.CardField, "place of birth"),
+                AddressEmirate = Fit(card.AddressEmirate, FieldLengths.CardField, "emirate"),
+                AddressCity = Fit(card.AddressCity, FieldLengths.CardField, "city"),
+                AddressArea = Fit(card.AddressArea, FieldLengths.CardField, "area"),
+                AddressStreet = Fit(card.AddressStreet, FieldLengths.CardField, "street"),
+                AddressBuilding = Fit(card.AddressBuilding, FieldLengths.CardField, "building"),
+                AddressPoBox = Fit(card.AddressPoBox, FieldLengths.CardField, "PO box"),
+                AddressPhone = Fit(card.AddressPhone, FieldLengths.CardField, "phone"),
+                AddressMobile = Fit(card.AddressMobile, FieldLengths.CardField, "mobile"),
+                AddressEmail = Fit(card.AddressEmail, FieldLengths.Email, "email"),
                 DiEntityId = entityId,
-                PersonToVisit = personToVisit.Trim(),
+                PersonToVisit = Fit(personToVisit.Trim(), FieldLengths.PersonToVisit, "person to visit") ?? string.Empty,
                 PersonToVisitId = host?.Id,
-                PersonToVisitTitle = host?.Title,
-                PersonToVisitEmail = host?.Email,
-                PersonToVisitCompany = host?.CompanyName,
-                Purpose = purpose,
-                PurposeOther = purpose == OtherPurpose ? purposeOther.Trim() : null,
+                PersonToVisitTitle = Fit(host?.Title, FieldLengths.Title, "host title"),
+                PersonToVisitEmail = Fit(host?.Email, FieldLengths.Email, "host email"),
+                PersonToVisitCompany = Fit(host?.CompanyName, FieldLengths.Company, "host company"),
+                Purpose = Fit(purpose, FieldLengths.Purpose, "purpose") ?? string.Empty,
+                PurposeOther = purpose == OtherPurpose
+                    ? Fit(purposeOther.Trim(), FieldLengths.PurposeOther, "purpose details")
+                    : null,
                 RecordedAtUtc = DateTimeOffset.UtcNow,
                 CaptureMethod = captureMethod,
             };

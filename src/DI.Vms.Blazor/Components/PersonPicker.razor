@@ -12,7 +12,7 @@
            @oninput="OnInput"
            @onkeydown="OnKeyDown"
            @onfocusin="() => open = suggestions.Count > 0"
-           placeholder="@Placeholder"
+           placeholder="@Placeholder" maxlength="@MaxLength"
            autocomplete="off" role="combobox" aria-expanded="@open"
            aria-autocomplete="list" aria-controls="@($"{Id}-list")" />
 
@@ -54,6 +54,12 @@
     [Parameter, EditorRequired] public string Id { get; set; } = "person";
 
     /// <summary>The text in the box. Two-way, because a name may simply be typed.</summary>
+    /// <summary>
+    /// The longest value the field accepts, so what is typed can always be stored. The
+    /// default matches vms.VisitorEntry.PersonToVisit; the parent passes it explicitly.
+    /// </summary>
+    [Parameter] public int MaxLength { get; set; } = 200;
+
     [Parameter] public string Text { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> TextChanged { get; set; }
 
