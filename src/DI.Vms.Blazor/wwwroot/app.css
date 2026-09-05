@@ -62,45 +62,40 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --di-navy-tint: #16283a;
-    --di-navy-soft: #111d29;
-    --di-gold:      #d9b453;
-    --di-gold-tint: #2b2415;
-
-    --page:          #0b1218;
-    --surface:       #131c24;
-    --surface-2:     #1a2530;
-    --surface-sunk:  #0f181f;
-    --text-primary:  #eef3f7;
-    --text-secondary:#adbcc8;
-    --text-muted:    #7d8d9a;
-    --border:        #24333f;
-    --gridline:      #1f2c37;
-
-    /* Navy is the ground here, so it cannot also be the action colour. */
-    --accent:        #5b9bd8;
-    --accent-hover:  #75ade2;
-    --accent-on:     #08161f;
-    --accent-tint:   #16283a;
-    --accent-soft:   #111d29;
-    --focus:         #75ade2;
-    --status-good:   #4cc07a;
-    --status-warning:#e0af52;
-    --status-critical:#e8756b;
-    --good-tint:     #10261a;
-    --warning-tint:  #26200f;
-    --critical-tint: #2a1614;
-
-    --photo-blend: normal;
-    --photo-plate: #eef2f5;
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
-    --shadow:    0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
-    --scroll-shadow: rgba(0, 0, 0, .6);
-  }
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --di-navy-tint: #0A3255;
+        --di-navy-soft: #111d29;
+        --di-gold: #d9b453;
+        --di-gold-tint: #2b2415;
+        --page: #0b1218;
+        --surface: #131c24;
+        --surface-2: #1a2530;
+        --surface-sunk: #0f181f;
+        --text-primary: #eef3f7;
+        --text-secondary: #adbcc8;
+        --text-muted: #7d8d9a;
+        --border: #24333f;
+        --gridline: #1f2c37;
+        /* Navy is the ground here, so it cannot also be the action colour. */
+        --accent: #5b9bd8;
+        --accent-hover: #75ade2;
+        --accent-on: #08161f;
+        --accent-tint: #16283a;
+        --accent-soft: #111d29;
+        --focus: #75ade2;
+        --status-good: #4cc07a;
+        --status-warning: #e0af52;
+        --status-critical: #e8756b;
+        --good-tint: #10261a;
+        --warning-tint: #26200f;
+        --critical-tint: #2a1614;
+        --photo-blend: normal;
+        --photo-plate: #eef2f5;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+        --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
+        --scroll-shadow: rgba(0, 0, 0, .6);
+    }
 }
 
 :root[data-theme="dark"] {
