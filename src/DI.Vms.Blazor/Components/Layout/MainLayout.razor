@@ -83,6 +83,21 @@
                 <span id="gst-clock">&nbsp;</span>
             </span>
 
+            @* Who is signed in, and the way out. Worth the space on a shared desk: the
+               entry records whoever saved it, so the attendant should be able to see
+               that it is them and not the person on the previous shift. *@
+            <AuthorizeView>
+                <Authorized>
+                    <span class="whoami" title="@context.User.Identity?.Name">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="8.5" r="3.6" /><path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+                        </svg>
+                        <span>@context.User.Identity?.Name</span>
+                        <a href="MicrosoftIdentity/Account/SignOut">Sign out</a>
+                    </span>
+                </Authorized>
+            </AuthorizeView>
+
             @* Plain buttons with no @@onclick: app.js owns this. The choice is a browser
                preference, so it must apply before the circuit connects and keep working
                if one drops - and the pressed state is styled from the attribute on

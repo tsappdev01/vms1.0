@@ -1,5 +1,6 @@
 @page "/"
 @rendermode InteractiveServer
+@attribute [Authorize(Policy = VmsRoles.CanCheckIn)]
 @implements IAsyncDisposable
 @inject CardCaptureOptions Capture
 @inject CardReaderService Reader
@@ -1062,6 +1063,30 @@ else if (step == 3 && saved is not null)
     }
     private VisitorEntry? saved;
 
+    /// <summary>Supplied by AddCascadingAuthenticationState.</summary>
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    /// <summary>
+    /// Who is saving this entry, for the record on it.
+    ///
+    /// The user principal name rather than the display name: two people share a display
+    /// name often enough, and an audit trail that cannot tell them apart is not one. Null
+    /// rather than a placeholder if there is somehow no identity - the column means
+    /// "recorded when the system did not know", and inventing a value there would be
+    /// inventing the audit trail.
+    /// </summary>
+    private async Task<string?> SignedInAs()
+    {
+        if (AuthenticationState is null) return null;
+
+        var user = (await AuthenticationState).User;
+        if (user.Identity?.IsAuthenticated != true) return null;
+
+        return user.FindFirst("preferred_username")?.Value
+            ?? user.FindFirst(System.Security.Claims.ClaimTypes.Upn)?.Value
+            ?? user.Identity.Name;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await LoadEntities();
@@ -1458,6 +1483,7 @@ else if (step == 3 && saved is not null)
                     : null,
                 RecordedAtUtc = DateTimeOffset.UtcNow,
                 CaptureMethod = captureMethod,
+                RecordedBy = Fit(await SignedInAs(), FieldLengths.RecordedBy, "recorded by"),
             };
 
             await using var db = await DbFactory.CreateDbContextAsync();

@@ -20,6 +20,9 @@ public static class FieldLengths
     public const int Company = 200;
     public const int CaptureMethod = 30;
 
+    /// <summary>A UPN, which is an email address, so the same room as one.</summary>
+    public const int RecordedBy = 256;
+
     /// <summary>Everything read off the card that is not a name.</summary>
     public const int CardField = 150;
 

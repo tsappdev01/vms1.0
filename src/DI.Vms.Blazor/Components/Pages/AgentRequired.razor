@@ -1,4 +1,5 @@
 @page "/agent-required"
+@attribute [Authorize(Policy = VmsRoles.CanCheckIn)]
 @inject CardCaptureOptions Capture
 
 <PageTitle>Card reader setup &middot; DI VMS</PageTitle>

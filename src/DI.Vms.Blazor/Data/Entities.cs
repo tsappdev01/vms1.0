@@ -132,4 +132,13 @@ public class VisitorEntry
 
     /// <summary>How the identity reached the system, so manual entries are distinguishable.</summary>
     public string CaptureMethod { get; set; } = "CardReader";
+
+    /// <summary>
+    /// Who saved this entry, as Entra ID knows them.
+    ///
+    /// Null on everything recorded before sign-in existed, and null is not "unknown user"
+    /// - it is "recorded when the system had no idea who anyone was". Worth keeping the
+    /// distinction rather than backfilling something that reads like a name.
+    /// </summary>
+    public string? RecordedBy { get; set; }
 }
