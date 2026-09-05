@@ -175,6 +175,16 @@ was chosen. That guards against Blazor's enhanced navigation, which replaces the
 and can take an attribute set from outside its render tree with it - a failure that would
 otherwise show up as the theme reverting on one particular navigation and nowhere else.
 
+Dark is not a neutral grey with a blue tint on top - the ground **is** the logo's navy,
+`#0a3255`, and the surfaces are steps up from it. Text on it measures 11.8:1 for primary
+and 6.8:1 for secondary. The status tints keep their own hue but are pulled towards the
+navy, so a green "ready" panel belongs on the ground rather than sitting on it as a patch
+of unrelated colour.
+
+The same value is the light theme's `--di-navy`. It used to be `#123a5c`, an
+approximation - which showed up as the lockup sitting on nearly-but-not-quite its own
+colour in the sidebar.
+
 One thing that is a token rather than a rule: the reader photograph is a product shot on
 white, so light blends it in with `mix-blend-mode: multiply`. On dark that would blend the
 reader into the dark with it, so `--photo-blend` and `--photo-plate` turn the blend off
