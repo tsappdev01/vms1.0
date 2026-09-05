@@ -1,6 +1,40 @@
+@* AuthorizeRouteView rather than RouteView: a signed-in user with no app role must be
+   told so plainly. Without it the fallback policy denies the request and the desk gets a
+   blank page or a redirect loop, which reads like the sign-in is broken. *@
 <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                <LayoutView Layout="typeof(Layout.MainLayout)">
+                    <section class="card">
+                        <div class="prose">
+                            <h1>You do not have access to this screen</h1>
+                            @if (context.User.Identity?.IsAuthenticated == true)
+                            {
+                                <p>
+                                    You are signed in as <strong>@context.User.Identity!.Name</strong>,
+                                    but your account has not been given a role in Visitor Management.
+                                </p>
+                                <p>
+                                    Ask IT to assign one in Entra ID. <strong>Vms.Officer</strong> checks
+                                    visitors in; <strong>Vms.Supervisor</strong> also reads the report.
+                                </p>
+                                <p><a href="MicrosoftIdentity/Account/SignOut">Sign out</a></p>
+                            }
+                            else
+                            {
+                                <p>Please <a href="MicrosoftIdentity/Account/SignIn">sign in</a> to continue.</p>
+                            }
+                        </div>
+                    </section>
+                </LayoutView>
+            </NotAuthorized>
+            <Authorizing>
+                <LayoutView Layout="typeof(Layout.MainLayout)">
+                    <section class="card"><div class="prose"><p>Signing you in…</p></div></section>
+                </LayoutView>
+            </Authorizing>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
     <NotFound>

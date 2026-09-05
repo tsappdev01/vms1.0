@@ -12,6 +12,19 @@
     "Vms": "Server=localhost;Database=VMS;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
   },
 
+  // Entra ID sign-in. The client secret is a credential: this file is gitignored and
+  // should be readable only by the app pool identity and administrators. Better still,
+  // replace it with a certificate - see docs/entra-id-setup.md.
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "dubaiinvestments.com",
+    "TenantId": "<directory (tenant) ID from the app registration>",
+    "ClientId": "<application (client) ID from the app registration>",
+    "ClientSecret": "<client secret value - not the secret ID>",
+    "CallbackPath": "/signin-oidc",
+    "SignedOutCallbackPath": "/signout-callback-oidc"
+  },
+
   "Toolkit": {
     // Agent: the reader is on the attendant's PC, not here. UATWEB01 has no reader and
     // InProcess would look for one, find nothing, and blame the card.
@@ -76,7 +89,9 @@
   }
 
   // No Kestrel section: under IIS the binding belongs to the site, not to the app.
-  // Bind HTTPS only. The app has NO AUTHENTICATION of its own - on a server that
-  // reception desks can reach, that is a real exposure and not a theoretical one.
-  // Turn on Windows Authentication in IIS and turn Anonymous off; see docs/deployment.md.
+  // Bind HTTPS only - Entra will not redirect back to a plain HTTP reply URL.
+  //
+  // IIS must have Anonymous authentication ON and Windows Authentication OFF. With
+  // Windows Authentication on, IIS challenges the browser before the request reaches the
+  // OpenID Connect handler and sign-in never happens. install-iis.ps1 sets it correctly.
 }

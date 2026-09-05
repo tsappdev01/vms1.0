@@ -38,8 +38,8 @@ window.vms = {
 
    The stylesheet already carries a dark palette twice over - once behind
    prefers-color-scheme for the device default, once behind :root[data-theme="dark"] so
-   an explicit choice wins in both directions. All this does is set or clear that
-   attribute and remember it.
+   an explicit choice wins in both directions. All this does is keep that attribute in
+   step with the remembered choice.
 
    Delegated from the document rather than bound to the buttons: Blazor renders and
    re-renders the layout, so the buttons come and go, and a handler attached to one of
@@ -48,53 +48,97 @@ window.vms = {
    fall out of step with what is applied.
 
    The head of App.razor applies the saved choice before the first paint; this file loads
-   too late for that, and a desk set to dark would flash white on every navigation. */
+   too late for that, and a desk set to dark would flash white on every navigation.
+
+   The choice must then survive everything that follows: routing between the two screens,
+   a reload, a circuit dropping and reconnecting, and Blazor's enhanced navigation, which
+   replaces the document and can take an attribute set from outside its render tree with
+   it. Rather than guess which of those does it, the attribute is watched and put back
+   whenever it stops matching what was chosen. Storage is the record; the attribute is
+   just how it is applied. */
 (function () {
     const KEY = 'vms-theme';
+    const root = document.documentElement;
 
-    function remember(choice) {
+    function fromStorage() {
         try {
-            if (choice === 'system') { localStorage.removeItem(KEY); }
-            else { localStorage.setItem(KEY, choice); }
+            const saved = localStorage.getItem(KEY);
+            return (saved === 'light' || saved === 'dark') ? saved : null;
         } catch (e) {
-            /* A browser with storage blocked still gets the change, just not the memory
-               of it. Better than refusing to switch. */
+            return null;
         }
     }
 
-    function pressed(choice) {
+    /* The choice lives here, with storage as the durable copy rather than the only copy.
+       Reading it back from storage on every check looked tidier and was wrong: where
+       storage is unavailable - a locked-down browser, a private window - the write
+       silently does nothing, the read returns null, and the switch clears the attribute
+       it had just set. The control then appears to do nothing at all. In memory it still
+       works for the session, which is the honest degradation. */
+    let preference = fromStorage();
+
+    function remember(choice) {
+        preference = (choice === 'light' || choice === 'dark') ? choice : null;
+        try {
+            if (preference) { localStorage.setItem(KEY, preference); }
+            else { localStorage.removeItem(KEY); }
+        } catch (e) {
+            /* It will not outlive the tab. Better than refusing to switch. */
+        }
+    }
+
+    /** Puts the attribute back in step with the choice. A no-op when it already is, so
+        the observer below cannot drive itself in a loop. */
+    function enforce() {
+        const have = root.getAttribute('data-theme');
+        if (preference === have) { return; }
+
+        if (preference) { root.setAttribute('data-theme', preference); }
+        else { root.removeAttribute('data-theme'); }
+    }
+
+    function pressed() {
+        const choice = preference || 'system';
         document.querySelectorAll('[data-theme-choice]').forEach(function (button) {
             button.setAttribute('aria-pressed', button.dataset.themeChoice === choice ? 'true' : 'false');
         });
-    }
-
-    function current() {
-        return document.documentElement.getAttribute('data-theme') || 'system';
     }
 
     document.addEventListener('click', function (event) {
         const button = event.target.closest ? event.target.closest('[data-theme-choice]') : null;
         if (!button) { return; }
 
-        const choice = button.dataset.themeChoice;
-
-        if (choice === 'system') { document.documentElement.removeAttribute('data-theme'); }
-        else { document.documentElement.setAttribute('data-theme', choice); }
-
-        remember(choice);
-        pressed(choice);
+        remember(button.dataset.themeChoice);
+        enforce();
+        pressed();
     });
 
-    /* CSS shows the state from the moment the markup exists; this is only for the
-       screen reader, so it waits for Blazor to render the layout and then stops
-       watching. */
-    const watch = new MutationObserver(function () {
+    /* Whatever removes or changes the attribute - Blazor's enhanced navigation replacing
+       the document, a re-render, anything - this puts it back. Filtered to the one
+       attribute, so it is not watching the document generally. */
+    new MutationObserver(function () { enforce(); }).observe(root, {
+        attributes: true, attributeFilter: ['data-theme']
+    });
+
+    /* Enhanced navigation swaps the body, so the buttons are new elements and their
+       aria-pressed is gone with the old ones. The attribute on <html> is handled by the
+       observer; this is the half the observer cannot see. */
+    document.addEventListener('enhancedload', function () { enforce(); pressed(); });
+
+    // Back/forward cache: the head script does not run again.
+    window.addEventListener('pageshow', function () { enforce(); pressed(); });
+
+    /* CSS shows the state from the moment the markup exists; this is only for the screen
+       reader, so it waits for Blazor to render the layout and then stops watching. */
+    const waitForButtons = new MutationObserver(function () {
         if (document.querySelector('[data-theme-choice]')) {
-            pressed(current());
-            watch.disconnect();
+            pressed();
+            waitForButtons.disconnect();
         }
     });
 
-    if (document.querySelector('[data-theme-choice]')) { pressed(current()); }
-    else { watch.observe(document.body || document.documentElement, { childList: true, subtree: true }); }
+    enforce();
+
+    if (document.querySelector('[data-theme-choice]')) { pressed(); }
+    else { waitForButtons.observe(document.body || root, { childList: true, subtree: true }); }
 })();

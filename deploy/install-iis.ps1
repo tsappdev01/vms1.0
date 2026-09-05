@@ -42,9 +42,15 @@ param(
 
     [switch] $HttpOnly,
 
-    # Windows Authentication on, Anonymous off. Turn this off only if you have added
-    # authentication to the application itself.
-    [bool] $WindowsAuth = $true
+    <#
+        The application signs users in with Entra ID over OpenID Connect, so IIS must let
+        the request through: Anonymous ON, Windows Authentication OFF. With Windows
+        Authentication on, IIS challenges the browser before the request reaches the
+        OpenID Connect handler and sign-in never happens.
+
+        Set this true only if the app has been switched back to Windows Authentication.
+    #>
+    [bool] $WindowsAuth = $false
 )
 
 $ErrorActionPreference = 'Stop'
@@ -148,10 +154,13 @@ if ($WindowsAuth) {
     Set-WebConfigurationProperty -Filter "$authPath/windowsAuthentication" -Name enabled -Value $true -PSPath 'IIS:\' -Location $SiteName
     Set-WebConfigurationProperty -Filter "$authPath/anonymousAuthentication" -Name enabled -Value $false -PSPath 'IIS:\' -Location $SiteName
     Write-Host 'Windows Authentication on, Anonymous off.'
+    Write-Warning 'The application signs users in with Entra ID. With Windows Authentication on, IIS challenges first and Entra sign-in never runs.'
 }
 else {
     Set-WebConfigurationProperty -Filter "$authPath/anonymousAuthentication" -Name enabled -Value $true -PSPath 'IIS:\' -Location $SiteName
-    Write-Warning 'Anonymous access is enabled and the application has no authentication of its own. Every visitor record - Emirates ID numbers, photographs, dates of birth - is readable by anyone who can reach this site.'
+    Set-WebConfigurationProperty -Filter "$authPath/windowsAuthentication" -Name enabled -Value $false -PSPath 'IIS:\' -Location $SiteName
+    Write-Host 'Anonymous on, Windows Authentication off - the application signs users in with Entra ID.'
+    Write-Host '  Anonymous here means IIS lets the request through; the app then requires a signed-in user for every page.'
 }
 
 # --- WebSockets -------------------------------------------------------------------

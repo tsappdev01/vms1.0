@@ -167,6 +167,31 @@ The saved choice is applied by an inline script in `App.razor`'s `<head>`, befor
 first paint. Loading it from `app.js` instead would flash a white page on every
 navigation for a desk set to dark.
 
+The choice is held in memory, with storage as the durable copy rather than the only copy.
+Reading it back from storage on every check looked tidier and was wrong: where storage is
+unavailable the write silently does nothing, the read returns null, and the switch clears
+the attribute it has just set - so the control appears to do nothing at all and the device
+preference wins. In memory it still works for the session, which is the honest
+degradation.
+
+**The choice sticks until it is changed** - across both screens, a reload, a circuit
+dropping, and the back/forward cache. Storage is the record and the attribute is only how
+it is applied, so anything that removes the attribute is repaired rather than obeyed: a
+`MutationObserver` filtered to `data-theme` puts it back whenever it stops matching what
+was chosen. That guards against Blazor's enhanced navigation, which replaces the document
+and can take an attribute set from outside its render tree with it - a failure that would
+otherwise show up as the theme reverting on one particular navigation and nowhere else.
+
+Dark is not a neutral grey with a blue tint on top - the ground **is** the logo's navy,
+`#0a3255`, and the surfaces are steps up from it. Text on it measures 11.8:1 for primary
+and 6.8:1 for secondary. The status tints keep their own hue but are pulled towards the
+navy, so a green "ready" panel belongs on the ground rather than sitting on it as a patch
+of unrelated colour.
+
+The same value is the light theme's `--di-navy`. It used to be `#123a5c`, an
+approximation - which showed up as the lockup sitting on nearly-but-not-quite its own
+colour in the sidebar.
+
 One thing that is a token rather than a rule: the reader photograph is a product shot on
 white, so light blends it in with `mix-blend-mode: multiply`. On dark that would blend the
 reader into the dark with it, so `--photo-blend` and `--photo-plate` turn the blend off

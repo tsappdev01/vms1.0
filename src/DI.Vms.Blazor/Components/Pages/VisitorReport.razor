@@ -1,5 +1,6 @@
 @page "/report"
 @rendermode InteractiveServer
+@attribute [Authorize(Policy = VmsRoles.CanViewReport)]
 @inject IDbContextFactory<VmsDbContext> DbFactory
 @inject IJSRuntime Js
 
@@ -79,7 +80,7 @@ else
                             <th>Recorded (GST)</th><th>Person to Visit</th><th>Purpose</th><th>Visitor</th>
                             <th>ID Number</th><th>Card No.</th><th>Nationality</th>
                             <th>Gender</th><th>Date of Birth</th><th>ID Issue</th><th>ID Expiry</th>
-                            <th>Mobile</th><th>Email</th><th>Address</th><th>Source</th>
+                            <th>Mobile</th><th>Email</th><th>Address</th><th>Source</th><th>Recorded by</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,6 +102,7 @@ else
                                 <td>@Dash(v.AddressEmail)</td>
                                 <td class="wrap">@Dash(PostalAddress(v))</td>
                                 <td>@CaptureLabel(v.CaptureMethod)</td>
+                                <td>@(v.RecordedBy ?? "—")</td>
                             </tr>
                         }
                     </tbody>
@@ -209,7 +211,7 @@ else
                 "Full Name (Arabic)", "ID Number", "Card Number", "ID Type", "ID Issue",
                 "ID Expiry", "Gender", "Date of Birth", "Nationality", "Nationality Code",
                 "Place of Birth", "Emirate", "City", "Area", "Street", "Building", "PO Box",
-                "Phone", "Mobile", "Email", "Source",
+                "Phone", "Mobile", "Email", "Source", "Recorded By",
             }.Select(Escape)),
         };
 
@@ -221,7 +223,7 @@ else
             v.ExpiryDate, v.Gender, v.DateOfBirth, v.NationalityEnglish, v.NationalityCode,
             v.PlaceOfBirthEnglish, v.AddressEmirate, v.AddressCity, v.AddressArea,
             v.AddressStreet, v.AddressBuilding, v.AddressPoBox, v.AddressPhone,
-            v.AddressMobile, v.AddressEmail, v.CaptureMethod,
+            v.AddressMobile, v.AddressEmail, v.CaptureMethod, v.RecordedBy,
         }.Select(Escape))));
 
         await Js.InvokeVoidAsync("vms.downloadCsv",

@@ -21,6 +21,12 @@
     <!-- Lets the published app run as a Windows Service, so the reception PC serves the
          desk from boot with nobody logged in. A no-op when started from a console. -->
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+    <!-- Entra ID sign-in over OpenID Connect. Chosen over Windows Authentication because
+         it survives a tablet browser and a connection from outside the office, and brings
+         MFA and conditional access with it - none of which Negotiate does. -->
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.5.0" />
+    <!-- The /MicrosoftIdentity/Account/SignIn and SignOut endpoints. -->
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.5.0" />
   </ItemGroup>
 
   <ItemGroup>

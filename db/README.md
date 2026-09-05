@@ -11,6 +11,7 @@ re-runnable: a second run changes nothing that has not changed at the source.
 | `004_seed_people.sql` | The 725 people from the AD export. **Generated — see below.** |
 | `005_add_group_companies.sql` | **Optional.** Adds the 13 group companies the address list has and the entity list does not. A decision, not a fix — the script explains it. |
 | `006_grant_app_login.sql` | **Deployment.** Creates the login and user for the identity the app runs as, and grants it reader/writer on `vms` — not `db_owner`. Edit `@Login` at the top first. See [docs/deployment.md](../docs/deployment.md) step 4. |
+| `007_add_recorded_by.sql` | **Run before deploying the build that signs users in.** Adds `RecordedBy` to `vms.VisitorEntry` — who saved each entry. Startup refuses to run without it, which is the intended failure. |
 
 `Data/DbBootstrapper.cs` creates tables that are absent but never alters ones that are
 present, so a property added to the EF model needs a script here. Startup checks the

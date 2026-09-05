@@ -69,6 +69,7 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
              .HasForeignKey(x => x.PersonToVisitId)
              .OnDelete(DeleteBehavior.NoAction);
             e.Property(x => x.CaptureMethod).HasMaxLength(FieldLengths.CaptureMethod).IsRequired();
+            e.Property(x => x.RecordedBy).HasMaxLength(FieldLengths.RecordedBy);
             e.Property(x => x.AddressEmail).HasMaxLength(FieldLengths.Email);
 
             foreach (var name in new[]
