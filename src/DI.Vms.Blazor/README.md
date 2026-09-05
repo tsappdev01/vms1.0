@@ -146,6 +146,33 @@ visits behind them.
 > `EnsureCreated` is right for a single-developer fresh start. Move to EF migrations before
 > more than one person shares the database, or before it holds anything you cannot drop.
 
+## Light and dark
+
+The palette is a set of custom properties defined three times: on `:root` for light, under
+`prefers-color-scheme: dark` for a device that asks for dark, and again under
+`:root[data-theme="dark"]` so an explicit choice wins in both directions. The
+`prefers-color-scheme` block is guarded with `:not([data-theme="light"])`, so choosing
+light on a device set to dark actually gives light.
+
+The switch in the top bar is **plain HTML with no `@onclick`**, handled by a delegated
+listener in `app.js`. It is a browser preference, not application state: it has to work
+before the circuit connects and keep working if one drops, and Blazor re-rendering the
+layout must not detach the handler.
+
+Which segment looks pressed is decided by **CSS, from the attribute on `<html>`** - so it
+is read from what is actually applied rather than from a second copy of the state in
+script, and it cannot drift. Script only sets `aria-pressed`, for the screen reader.
+
+The saved choice is applied by an inline script in `App.razor`'s `<head>`, before the
+first paint. Loading it from `app.js` instead would flash a white page on every
+navigation for a desk set to dark.
+
+One thing that is a token rather than a rule: the reader photograph is a product shot on
+white, so light blends it in with `mix-blend-mode: multiply`. On dark that would blend the
+reader into the dark with it, so `--photo-blend` and `--photo-plate` turn the blend off
+and give it a light plate. Both palettes carry them, so the fix lives with the colours
+rather than in a selector that has to be remembered.
+
 ## Fields shown
 
 Exactly what the chip returns, grouped as the vendor sample groups it: **Identity** (ID

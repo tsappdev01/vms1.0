@@ -8,6 +8,20 @@
     @* Tagged with the build time so a rebuild is never masked by a cached stylesheet. *@
     <link rel="stylesheet" href="app.css?v=@BuildInfo.CacheTag" />
     <link rel="icon" href="brand/di-mark.svg" type="image/svg+xml" />
+    @* Inline and synchronous, so the saved choice is on <html> before anything paints.
+       Loaded from app.js instead and a desk set to dark would flash white on every
+       navigation. Silent if storage is unavailable: the device preference still applies,
+       which is the sensible fallback rather than an error nobody can act on. *@
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('vms-theme');
+                if (saved === 'dark' || saved === 'light') {
+                    document.documentElement.setAttribute('data-theme', saved);
+                }
+            } catch (e) { }
+        })();
+    </script>
     <HeadOutlet />
 </head>
 <body>

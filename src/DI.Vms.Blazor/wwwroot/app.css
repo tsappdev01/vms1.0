@@ -46,6 +46,12 @@
   --warning-tint:  #fdf4e3;
   --critical-tint: #fceceb;
 
+  /* The reader photograph is a product shot on white. Multiply drops that white into a
+     light panel; on a dark one it would drop the reader into the dark with it, so dark
+     turns the blend off and gives it a light plate instead. */
+  --photo-blend: multiply;
+  --photo-plate: transparent;
+
   --radius:    12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
@@ -88,6 +94,9 @@
     --warning-tint:  #26200f;
     --critical-tint: #2a1614;
 
+    --photo-blend: normal;
+    --photo-plate: #eef2f5;
+
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
     --shadow:    0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
     --scroll-shadow: rgba(0, 0, 0, .6);
@@ -124,6 +133,9 @@
   --good-tint:     #10261a;
   --warning-tint:  #26200f;
   --critical-tint: #2a1614;
+
+  --photo-blend: normal;
+  --photo-plate: #eef2f5;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
   --shadow:    0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
@@ -331,6 +343,33 @@ code {
 }
 .clock svg { width: 15px; height: 15px; stroke: currentColor; opacity: .75; }
 
+/* Appearance. Plain buttons rather than a Blazor component: the choice is a browser
+   preference, so it applies before the circuit connects and survives one dropping. */
+.theme-switch {
+  display: flex; gap: 2px; padding: 2px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
+}
+.theme-switch button {
+  display: grid; place-items: center; width: 28px; height: 24px; min-height: 0;
+  padding: 0; border: none; border-radius: 999px;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+}
+.theme-switch button:hover { color: var(--text-primary); background: transparent; }
+.theme-switch button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.theme-switch svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+/* Which one is on comes from the attribute on <html>, so it is read from what is
+   actually applied rather than from a second copy of the state in script - and it is
+   right the moment the markup appears, whatever Blazor is doing. */
+:root[data-theme="light"] .theme-switch [data-theme-choice="light"],
+:root[data-theme="dark"] .theme-switch [data-theme-choice="dark"],
+:root:not([data-theme]) .theme-switch [data-theme-choice="system"] {
+  background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-sm);
+}
+
+/* The clock's note is the first thing worth losing when the bar gets tight. */
+@media (max-width: 720px) { .topbar .note, .topbar .sep { display: none; } }
+
 .content { padding: 26px 24px 48px; flex: 1; min-width: 0; max-width: 1180px; }
 
 @media (max-width: 860px) {
@@ -442,7 +481,10 @@ h2 { font-size: 14px; font-weight: 620; margin: 0; }
 .art-stage svg { width: 100%; max-width: 380px; height: auto; }
 /* A product photograph rather than the drawing. Its own background is white, so it is
    blended into the panel instead of sitting on it as a bright rectangle. */
-.art-photo { width: 100%; max-width: 400px; height: auto; mix-blend-mode: multiply; }
+.art-photo {
+  width: 100%; max-width: 400px; height: auto; border-radius: 10px;
+  mix-blend-mode: var(--photo-blend); background: var(--photo-plate);
+}
 
 .art-steps {
   display: grid; grid-template-columns: repeat(3, 1fr); margin: 10px 14px 14px; padding: 0;
