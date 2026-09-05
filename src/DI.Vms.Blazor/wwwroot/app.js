@@ -38,8 +38,8 @@ window.vms = {
 
    The stylesheet already carries a dark palette twice over - once behind
    prefers-color-scheme for the device default, once behind :root[data-theme="dark"] so
-   an explicit choice wins in both directions. All this does is set or clear that
-   attribute and remember it.
+   an explicit choice wins in both directions. All this does is keep that attribute in
+   step with the remembered choice.
 
    Delegated from the document rather than bound to the buttons: Blazor renders and
    re-renders the layout, so the buttons come and go, and a handler attached to one of
@@ -48,53 +48,85 @@ window.vms = {
    fall out of step with what is applied.
 
    The head of App.razor applies the saved choice before the first paint; this file loads
-   too late for that, and a desk set to dark would flash white on every navigation. */
+   too late for that, and a desk set to dark would flash white on every navigation.
+
+   The choice must then survive everything that follows: routing between the two screens,
+   a reload, a circuit dropping and reconnecting, and Blazor's enhanced navigation, which
+   replaces the document and can take an attribute set from outside its render tree with
+   it. Rather than guess which of those does it, the attribute is watched and put back
+   whenever it stops matching what was chosen. Storage is the record; the attribute is
+   just how it is applied. */
 (function () {
     const KEY = 'vms-theme';
+    const root = document.documentElement;
+
+    /** The remembered choice: "light", "dark", or null for "match the device". */
+    function chosen() {
+        try {
+            const saved = localStorage.getItem(KEY);
+            return (saved === 'light' || saved === 'dark') ? saved : null;
+        } catch (e) {
+            /* Storage blocked. The device preference applies and a choice made now lasts
+               as long as the page does, which beats refusing to switch. */
+            return null;
+        }
+    }
 
     function remember(choice) {
         try {
             if (choice === 'system') { localStorage.removeItem(KEY); }
             else { localStorage.setItem(KEY, choice); }
-        } catch (e) {
-            /* A browser with storage blocked still gets the change, just not the memory
-               of it. Better than refusing to switch. */
-        }
+        } catch (e) { }
     }
 
-    function pressed(choice) {
+    /** Puts the attribute back in step with the choice. Does nothing when it already is,
+        so the observer below cannot drive itself in a loop. */
+    function enforce() {
+        const want = chosen();
+        const have = root.getAttribute('data-theme');
+
+        if (want === have || (want === null && have === null)) { return; }
+
+        if (want) { root.setAttribute('data-theme', want); }
+        else { root.removeAttribute('data-theme'); }
+    }
+
+    function pressed() {
+        const choice = chosen() || 'system';
         document.querySelectorAll('[data-theme-choice]').forEach(function (button) {
             button.setAttribute('aria-pressed', button.dataset.themeChoice === choice ? 'true' : 'false');
         });
-    }
-
-    function current() {
-        return document.documentElement.getAttribute('data-theme') || 'system';
     }
 
     document.addEventListener('click', function (event) {
         const button = event.target.closest ? event.target.closest('[data-theme-choice]') : null;
         if (!button) { return; }
 
-        const choice = button.dataset.themeChoice;
-
-        if (choice === 'system') { document.documentElement.removeAttribute('data-theme'); }
-        else { document.documentElement.setAttribute('data-theme', choice); }
-
-        remember(choice);
-        pressed(choice);
+        // Storage first: it is what enforce() reads, and the observer fires on the change.
+        remember(button.dataset.themeChoice);
+        enforce();
+        pressed();
     });
 
-    /* CSS shows the state from the moment the markup exists; this is only for the
-       screen reader, so it waits for Blazor to render the layout and then stops
-       watching. */
-    const watch = new MutationObserver(function () {
+    /* Whatever removes or changes the attribute - enhanced navigation, a component
+       re-render, anything - this puts it back. Filtered to the one attribute, so it is
+       not watching the document for general changes. */
+    new MutationObserver(enforce).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+    // Restored from the back/forward cache, the head script does not run again.
+    window.addEventListener('pageshow', function () { enforce(); pressed(); });
+
+    /* CSS shows the state from the moment the markup exists; this is only for the screen
+       reader, so it waits for Blazor to render the layout and then stops watching. */
+    const waitForButtons = new MutationObserver(function () {
         if (document.querySelector('[data-theme-choice]')) {
-            pressed(current());
-            watch.disconnect();
+            pressed();
+            waitForButtons.disconnect();
         }
     });
 
-    if (document.querySelector('[data-theme-choice]')) { pressed(current()); }
-    else { watch.observe(document.body || document.documentElement, { childList: true, subtree: true }); }
+    enforce();
+
+    if (document.querySelector('[data-theme-choice]')) { pressed(); }
+    else { waitForButtons.observe(document.body || root, { childList: true, subtree: true }); }
 })();

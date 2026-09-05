@@ -167,6 +167,14 @@ The saved choice is applied by an inline script in `App.razor`'s `<head>`, befor
 first paint. Loading it from `app.js` instead would flash a white page on every
 navigation for a desk set to dark.
 
+**The choice sticks until it is changed** - across both screens, a reload, a circuit
+dropping, and the back/forward cache. Storage is the record and the attribute is only how
+it is applied, so anything that removes the attribute is repaired rather than obeyed: a
+`MutationObserver` filtered to `data-theme` puts it back whenever it stops matching what
+was chosen. That guards against Blazor's enhanced navigation, which replaces the document
+and can take an attribute set from outside its render tree with it - a failure that would
+otherwise show up as the theme reverting on one particular navigation and nowhere else.
+
 One thing that is a token rather than a rule: the reader photograph is a product shot on
 white, so light blends it in with `mix-blend-mode: multiply`. On dark that would blend the
 reader into the dark with it, so `--photo-blend` and `--photo-plate` turn the blend off
