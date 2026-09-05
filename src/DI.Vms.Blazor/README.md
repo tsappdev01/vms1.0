@@ -167,6 +167,13 @@ The saved choice is applied by an inline script in `App.razor`'s `<head>`, befor
 first paint. Loading it from `app.js` instead would flash a white page on every
 navigation for a desk set to dark.
 
+The choice is held in memory, with storage as the durable copy rather than the only copy.
+Reading it back from storage on every check looked tidier and was wrong: where storage is
+unavailable the write silently does nothing, the read returns null, and the switch clears
+the attribute it has just set - so the control appears to do nothing at all and the device
+preference wins. In memory it still works for the session, which is the honest
+degradation.
+
 **The choice sticks until it is changed** - across both screens, a reload, a circuit
 dropping, and the back/forward cache. Storage is the record and the attribute is only how
 it is applied, so anything that removes the attribute is repaired rather than obeyed: a

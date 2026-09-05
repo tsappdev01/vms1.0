@@ -60,39 +60,45 @@ window.vms = {
     const KEY = 'vms-theme';
     const root = document.documentElement;
 
-    /** The remembered choice: "light", "dark", or null for "match the device". */
-    function chosen() {
+    function fromStorage() {
         try {
             const saved = localStorage.getItem(KEY);
             return (saved === 'light' || saved === 'dark') ? saved : null;
         } catch (e) {
-            /* Storage blocked. The device preference applies and a choice made now lasts
-               as long as the page does, which beats refusing to switch. */
             return null;
         }
     }
 
+    /* The choice lives here, with storage as the durable copy rather than the only copy.
+       Reading it back from storage on every check looked tidier and was wrong: where
+       storage is unavailable - a locked-down browser, a private window - the write
+       silently does nothing, the read returns null, and the switch clears the attribute
+       it had just set. The control then appears to do nothing at all. In memory it still
+       works for the session, which is the honest degradation. */
+    let preference = fromStorage();
+
     function remember(choice) {
+        preference = (choice === 'light' || choice === 'dark') ? choice : null;
         try {
-            if (choice === 'system') { localStorage.removeItem(KEY); }
-            else { localStorage.setItem(KEY, choice); }
-        } catch (e) { }
+            if (preference) { localStorage.setItem(KEY, preference); }
+            else { localStorage.removeItem(KEY); }
+        } catch (e) {
+            /* It will not outlive the tab. Better than refusing to switch. */
+        }
     }
 
-    /** Puts the attribute back in step with the choice. Does nothing when it already is,
-        so the observer below cannot drive itself in a loop. */
+    /** Puts the attribute back in step with the choice. A no-op when it already is, so
+        the observer below cannot drive itself in a loop. */
     function enforce() {
-        const want = chosen();
         const have = root.getAttribute('data-theme');
+        if (preference === have) { return; }
 
-        if (want === have || (want === null && have === null)) { return; }
-
-        if (want) { root.setAttribute('data-theme', want); }
+        if (preference) { root.setAttribute('data-theme', preference); }
         else { root.removeAttribute('data-theme'); }
     }
 
     function pressed() {
-        const choice = chosen() || 'system';
+        const choice = preference || 'system';
         document.querySelectorAll('[data-theme-choice]').forEach(function (button) {
             button.setAttribute('aria-pressed', button.dataset.themeChoice === choice ? 'true' : 'false');
         });
@@ -102,18 +108,24 @@ window.vms = {
         const button = event.target.closest ? event.target.closest('[data-theme-choice]') : null;
         if (!button) { return; }
 
-        // Storage first: it is what enforce() reads, and the observer fires on the change.
         remember(button.dataset.themeChoice);
         enforce();
         pressed();
     });
 
-    /* Whatever removes or changes the attribute - enhanced navigation, a component
-       re-render, anything - this puts it back. Filtered to the one attribute, so it is
-       not watching the document for general changes. */
-    new MutationObserver(enforce).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    /* Whatever removes or changes the attribute - Blazor's enhanced navigation replacing
+       the document, a re-render, anything - this puts it back. Filtered to the one
+       attribute, so it is not watching the document generally. */
+    new MutationObserver(function () { enforce(); }).observe(root, {
+        attributes: true, attributeFilter: ['data-theme']
+    });
 
-    // Restored from the back/forward cache, the head script does not run again.
+    /* Enhanced navigation swaps the body, so the buttons are new elements and their
+       aria-pressed is gone with the old ones. The attribute on <html> is handled by the
+       observer; this is the half the observer cannot see. */
+    document.addEventListener('enhancedload', function () { enforce(); pressed(); });
+
+    // Back/forward cache: the head script does not run again.
     window.addEventListener('pageshow', function () { enforce(); pressed(); });
 
     /* CSS shows the state from the moment the markup exists; this is only for the screen
