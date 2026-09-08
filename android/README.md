@@ -230,18 +230,34 @@ A newer Android Studio is not a problem in itself, but it brings two things wort
 about, because both are the IDE trying to be helpful rather than anything wrong with the
 project:
 
-**Its bundled JDK has to be one Gradle 8.14.2 can run on** — that is Java 8 to 24, so
-JDK 17 or 21 is the safe setting and a very new release bundling something later would be
-refused with a message about an unsupported class file or JVM version. Check what Gradle
-is actually using:
+**Its bundled JDK is probably too new, and the build fails in about a second.** Gradle
+8.14.2 runs on Java 8 to 24. Android Studio Quail bundles **JDK 25**, so out of the box the
+wrapper dies with a Gradle-internal stack trace and nothing that names the cause. Check
+first — the `Launcher JVM:` line is the answer:
 
 ```powershell
 .\gradlew.bat -version
 ```
 
-If the JVM line is beyond 24, point the IDE at a supported one in **Settings → Build,
-Execution, Deployment → Build Tools → Gradle → Gradle JDK** (17 or 21). That setting is
-per-project and belongs to the IDE, not to this repository.
+Anything up to 24 is fine. Beyond that, install a JDK 21 and point both the terminal and
+the IDE at it:
+
+```powershell
+winget install --id Microsoft.OpenJDK.21 --accept-package-agreements --accept-source-agreements
+
+$jdk = (Get-ChildItem 'C:\Program Files\Microsoft' -Directory -Filter 'jdk-21*' | Select-Object -First 1).FullName
+[Environment]::SetEnvironmentVariable('JAVA_HOME', $jdk, 'User')
+$env:JAVA_HOME = $jdk
+```
+
+And in **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**,
+which has a "Download JDK" option if winget is not wanted. The IDE ignores `JAVA_HOME` and
+uses that setting, so both have to be changed or the IDE keeps failing the same way.
+
+Upgrading Gradle instead is not the cheap option it looks like: Java 25 needs Gradle 9.x,
+which needs AGP 8.13 or later, which needs a newer Kotlin Gradle plugin. That is a
+three-way version bump, and worth doing deliberately rather than to get past a JDK
+mismatch.
 
 **Decline the "upgrade AGP" prompt** the first time it appears. AGP 8.7.3 and Gradle
 8.14.2 are a pair that is known to work here; upgrading AGP pulls the Gradle wrapper with
