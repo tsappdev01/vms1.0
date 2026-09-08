@@ -35,9 +35,24 @@ public static class VisitsApi
         Policy = VmsRoles.CanCheckIn,
     };
 
-    public static void MapVisitsApi(this IEndpointRouteBuilder routes)
+    /// <param name="requireBearerToken">
+    /// True when Entra ID is on. False while sign-in is off, in which case the group still
+    /// requires the same <see cref="VmsRoles.CanCheckIn"/> policy - it is just satisfied by
+    /// the open-desk scheme, because naming the Bearer scheme when no Bearer handler is
+    /// registered fails the request with a framework error rather than an answer.
+    /// </param>
+    public static void MapVisitsApi(this IEndpointRouteBuilder routes, bool requireBearerToken)
     {
-        var api = routes.MapGroup("/api").RequireAuthorization(TabletPolicy);
+        var api = routes.MapGroup("/api");
+
+        if (requireBearerToken)
+        {
+            api.RequireAuthorization(TabletPolicy);
+        }
+        else
+        {
+            api.RequireAuthorization(VmsRoles.CanCheckIn);
+        }
 
         /* Everything reception needs to fill the form, in one call. A tablet on office
            wifi is not a desk on ethernet, and three round trips to draw one screen is

@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject SignInOptions SignIn
 
 <div class="app">
     <nav class="sidebar">
@@ -85,18 +86,39 @@
 
             @* Who is signed in, and the way out. Worth the space on a shared desk: the
                entry records whoever saved it, so the attendant should be able to see
-               that it is them and not the person on the previous shift. *@
-            <AuthorizeView>
-                <Authorized>
-                    <span class="whoami" title="@context.User.Identity?.Name">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="12" cy="8.5" r="3.6" /><path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
-                        </svg>
-                        <span>@context.User.Identity?.Name</span>
-                        <a href="MicrosoftIdentity/Account/SignOut">Sign out</a>
-                    </span>
-                </Authorized>
-            </AuthorizeView>
+               that it is them and not the person on the previous shift.
+
+               Gated on the setting rather than on <AuthorizeView>, because while sign-in
+               is off there IS an authenticated principal - the open desk - and showing it
+               a name and a sign-out link that goes nowhere would be a lie in the corner
+               of every page. *@
+            @if (SignIn.Enabled)
+            {
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="whoami" title="@context.User.Identity?.Name">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="8.5" r="3.6" /><path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+                            </svg>
+                            <span>@context.User.Identity?.Name</span>
+                            <a href="MicrosoftIdentity/Account/SignOut">Sign out</a>
+                        </span>
+                    </Authorized>
+                </AuthorizeView>
+            }
+            else
+            {
+                @* Deliberately hard to ignore, and deliberately on every page. This is a
+                   temporary state, and the way temporary states become permanent is by
+                   being invisible. *@
+                <span class="signin-off" title="Set Authentication:Enabled to true in appsettings.Production.json">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M7 10.5V7.5a5 5 0 0 1 9.4-2.4" />
+                        <rect x="4.5" y="10.5" width="15" height="9.5" rx="2" />
+                    </svg>
+                    <span>Sign-in is off</span>
+                </span>
+            }
 
             @* Plain buttons with no @@onclick: app.js owns this. The choice is a browser
                preference, so it must apply before the circuit connects and keep working

@@ -43,6 +43,16 @@ android {
            requires - without it Retrofit drops the last path segment of the base URL. */
         val apiBaseUrl = providers.gradleProperty("VMS_API_BASE_URL").getOrElse("https://vms.dipark.com/")
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+
+        /* Whether the app signs in with Entra ID. Off for now, matching the server's
+           Authentication:Enabled - the two have to agree, because a tablet sending no
+           token to a server that requires one gets a 401 on every screen, and a tablet
+           signing in against a server that ignores tokens is a prompt for nothing.
+
+           Off, MSAL is never initialised and res/raw/auth_config.json is not needed, so
+           the app builds and runs from a clean clone. */
+        val authEnabled = providers.gradleProperty("VMS_AUTH_ENABLED").getOrElse("false")
+        buildConfigField("boolean", "AUTH_ENABLED", authEnabled)
     }
 
     sourceSets["main"].jniLibs.srcDirs(

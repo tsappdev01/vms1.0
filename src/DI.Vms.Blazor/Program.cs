@@ -2,6 +2,7 @@ using DI.Vms.Blazor.Components;
 using DI.Vms.Blazor.Data;
 using DI.Vms.Blazor.Services;
 using DI.Vms.Blazor.Api;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
@@ -17,41 +18,61 @@ var builder = WebApplication.CreateBuilder(args);
    find neither wwwroot nor appsettings.json. See docs/deployment.md. */
 builder.Services.AddWindowsService(options => options.ServiceName = "DI VMS");
 
-/* Entra ID over OpenID Connect.
-   
-   Chosen over Windows Authentication because it survives a tablet browser and a
-   connection from outside the office, and brings MFA and conditional access with it -
-   none of which Negotiate does. Sign-in is silent on a domain-joined desk that Entra
-   already knows, so reception sees no prompt; see docs/entra-id-setup.md.
+/* Sign-in: on with Entra ID, or off with the desk trusted as it was before any of this
+   existed. One switch, resolved here, and everything downstream reads it from the
+   container rather than from configuration again. See Services/SignInOptions.cs. */
+var signIn = SignInOptions.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(signIn);
 
-   IIS must be serving this site with Anonymous authentication ON and Windows
-   Authentication OFF, or IIS challenges the browser before the request ever reaches the
-   OpenID Connect handler. install-iis.ps1 sets it that way. */
-var authentication = builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme);
-
-authentication.AddMicrosoftIdentityWebApp(options =>
+if (signIn.Enabled)
 {
-    builder.Configuration.GetSection("AzureAd").Bind(options);
+    /* Entra ID over OpenID Connect.
 
-    /* Entra sends app roles in "roles". Without this the framework looks for the long
-       WS-Federation role claim, finds nothing, and every policy fails for everyone -
-       which reads like a directory problem and is not one. */
-    options.TokenValidationParameters.RoleClaimType = "roles";
-    options.TokenValidationParameters.NameClaimType = "name";
-});
+       Chosen over Windows Authentication because it survives a tablet browser and a
+       connection from outside the office, and brings MFA and conditional access with it -
+       none of which Negotiate does. Sign-in is silent on a domain-joined desk that Entra
+       already knows, so reception sees no prompt; see docs/entra-id-setup.md.
 
-/* And bearer tokens beside the cookie, for the Android reception app. Two schemes on
-   purpose: the browser carries a session cookie, the tablet carries an access token for
-   this API's own scope, and neither is accepted where the other belongs - so a cookie
-   lifted from a desk browser cannot be replayed against the API. */
-authentication.AddMicrosoftIdentityWebApi(
-    jwtOptions =>
+       IIS must be serving this site with Anonymous authentication ON and Windows
+       Authentication OFF, or IIS challenges the browser before the request ever reaches
+       the OpenID Connect handler. install-iis.ps1 sets it that way. */
+    var authentication = builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme);
+
+    authentication.AddMicrosoftIdentityWebApp(options =>
     {
-        jwtOptions.TokenValidationParameters.RoleClaimType = "roles";
-        jwtOptions.TokenValidationParameters.NameClaimType = "name";
-    },
-    identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
-    jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);
+        builder.Configuration.GetSection("AzureAd").Bind(options);
+
+        /* Entra sends app roles in "roles". Without this the framework looks for the long
+           WS-Federation role claim, finds nothing, and every policy fails for everyone -
+           which reads like a directory problem and is not one. */
+        options.TokenValidationParameters.RoleClaimType = "roles";
+        options.TokenValidationParameters.NameClaimType = "name";
+    });
+
+    /* And bearer tokens beside the cookie, for the Android reception app. Two schemes on
+       purpose: the browser carries a session cookie, the tablet carries an access token
+       for this API's own scope, and neither is accepted where the other belongs - so a
+       cookie lifted from a desk browser cannot be replayed against the API. */
+    authentication.AddMicrosoftIdentityWebApi(
+        jwtOptions =>
+        {
+            jwtOptions.TokenValidationParameters.RoleClaimType = "roles";
+            jwtOptions.TokenValidationParameters.NameClaimType = "name";
+        },
+        identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
+        jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);
+}
+else
+{
+    /* One scheme that always succeeds, carrying every role. The policies below and the
+       [Authorize] attributes on the pages are left exactly as they are and go on being
+       evaluated - they just all pass. Rules that are switched off rather than satisfied
+       are rules nobody finds the bugs in until the day they matter. */
+    builder.Services
+        .AddAuthentication(OpenDeskAuthenticationHandler.SchemeName)
+        .AddScheme<AuthenticationSchemeOptions, OpenDeskAuthenticationHandler>(
+            OpenDeskAuthenticationHandler.SchemeName, _ => { });
+}
 
 builder.Services.AddAuthorization(options =>
 {
@@ -70,8 +91,13 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddCascadingAuthenticationState();
 
-// Supplies /MicrosoftIdentity/Account/SignIn and SignOut.
-builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
+var controllers = builder.Services.AddControllersWithViews();
+
+if (signIn.Enabled)
+{
+    // Supplies /MicrosoftIdentity/Account/SignIn and SignOut.
+    controllers.AddMicrosoftIdentityUI();
+}
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
@@ -108,6 +134,7 @@ using (var scope = app.Services.CreateScope())
     await DbBootstrapper.EnsureSchemaAsync(db, logger);
 
     capture.LogTo(logger);
+    signIn.LogTo(logger);
 
     BrandAssets.Locate(app.Environment.WebRootPath, logger);
 }
@@ -138,8 +165,8 @@ app.UseAntiforgery();
 
 app.MapControllers();
 
-// The Android reception app's endpoints. Bearer-only; see Api/VisitsApi.cs.
-app.MapVisitsApi();
+// The Android reception app's endpoints. Bearer-only when sign-in is on; see Api/VisitsApi.cs.
+app.MapVisitsApi(signIn.Enabled);
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

@@ -6,6 +6,36 @@ is there. The application side is done; this is the half that happens in Entra.
 Nothing here needs a code change. Everything the server reads is in
 `appsettings.Production.json`, which is gitignored and lives only on the server.
 
+## Sign-in is currently OFF
+
+```jsonc
+"Authentication": { "Enabled": false }
+```
+
+The Entra wiring is in the build and works. What is not finished is the directory work on
+this page — the API scope, the Android platform registration, the role assignments — and
+reception needs the desk working before it is. So sign-in is switched off, and while it is:
+
+- every page and every API endpoint is open to anyone who can reach the server;
+- visits are recorded against `(not signed in)` instead of a person;
+- the layout carries a **Sign-in is off** badge on every page, and the startup log carries
+  a warning, so the state is not quiet.
+
+The Android app has the matching switch, `VMS_AUTH_ENABLED` in `android/gradle.properties`.
+**The two have to agree.** A tablet sending no token to a server that requires one gets a
+401 on every screen; a tablet signing in against a server that ignores tokens is a prompt
+for nothing.
+
+Turning it on, once the steps below are done:
+
+1. Set `"Authentication": { "Enabled": true }` in `appsettings.Production.json` and
+   restart the app pool.
+2. Rebuild the tablet app with `-PVMS_AUTH_ENABLED=true`, with
+   `res/raw/auth_config.json` in place.
+
+Nothing else changes. `Services/SignInOptions.cs` explains what the switch does and why it
+defaults to off.
+
 ## The registration, as it exists
 
 | | |

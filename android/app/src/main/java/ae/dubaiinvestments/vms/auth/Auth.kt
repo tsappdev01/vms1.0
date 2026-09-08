@@ -1,6 +1,5 @@
 package ae.dubaiinvestments.vms.auth
 
-import ae.dubaiinvestments.vms.R
 import android.app.Activity
 import android.content.Context
 import android.util.Log
@@ -60,7 +59,7 @@ class Auth(private val context: Context) {
             val created: ISingleAccountPublicClientApplication = suspendCancellableCoroutine { cont ->
                 PublicClientApplication.createSingleAccountPublicClientApplication(
                     context,
-                    R.raw.auth_config,
+                    MsalConfig.resourceId(context),
                     object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
                         override fun onCreated(application: ISingleAccountPublicClientApplication) =
                             cont.resume(application)

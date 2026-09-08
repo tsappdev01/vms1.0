@@ -225,16 +225,35 @@ repaired the same way before signature validation, since a digest over mangled t
 match the one the card signed.
 
 **The signature is TIFF**, which no browser renders — WPF does, which is why the vendor
-sample shows it. It is converted to PNG server-side (`Services/ImageConverter.cs`). If
-conversion fails the screen says the signature is not available rather than showing a
-broken image.
+sample shows it. Converting it server-side worked, and then the signature was dropped from
+the screen entirely: a visitor log has no use for it, and `readPublicData` is asked not to
+return it. `Services/ImageConverter.cs` and the `System.Drawing.Common` reference went with
+it. If it is ever wanted back, the conversion is in git history.
 
 **The postal address was empty on the card tested** — every field blank except mobile and
 email. The screen says "No postal address held on this card" rather than rendering empty
 boxes that look like a failed read. Mobile and email are highlighted, since they are the
 fields that did carry data.
 
+## Sign-in is built, and switched off
+
+`Services/SignInOptions.cs` is the whole of it. `Authentication:Enabled` decides between
+Entra ID over OpenID Connect — plus bearer tokens beside the cookie for the tablet — and
+an open desk, and it currently says `false`. `docs/entra-id-setup.md` has the reasoning
+and the two steps to turn it on.
+
+The part worth knowing: switching it off does **not** relax the authorisation rules. It
+registers one authentication scheme that always succeeds and carries every role, so every
+`[Authorize]` attribute, every policy and every `AuthorizeView` stays exactly as written
+and goes on being evaluated — they simply all pass. Rules that are bypassed rather than
+satisfied are the ones nobody finds the bugs in until the day they are switched on.
+
+Two consequences are deliberate and visible rather than quiet: `RecordedBy` reads
+`(not signed in)` on every entry made in this period, so the report shows later which
+records have an author behind them; and the layout carries a **Sign-in is off** badge on
+every page.
+
 ## Not built
 
-Check-out, an occupancy view, the third module, authentication, and ID-number masking.
-The previous build had all of those; they are in git history at `c98ce08` if wanted.
+Check-out, an occupancy view, the third module, and ID-number masking. The previous build
+had all of those; they are in git history at `c98ce08` if wanted.

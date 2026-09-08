@@ -9,6 +9,14 @@
     "Vms": "Server=UATWEB01;Database=VMS;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
   },
 
+  // Sign-in. Off, and this deployment has no "AzureAd" section to turn it on with: an app
+  // bound to http://127.0.0.1 on one desk is reached only by somebody already sitting at
+  // that desk. If this machine is ever given a network binding, that reasoning stops
+  // holding - add the AzureAd section from the UATWEB01 template and set this true.
+  "Authentication": {
+    "Enabled": false
+  },
+
   "Toolkit": {
     // The folder holding config_li, on THIS machine. Leave blank to let the app search.
     "ConfigDirectory": "C:\\Program Files\\DI VMS\\toolkit-config",

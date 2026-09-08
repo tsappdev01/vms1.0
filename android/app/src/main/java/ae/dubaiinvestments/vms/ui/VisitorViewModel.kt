@@ -1,5 +1,6 @@
 package ae.dubaiinvestments.vms.ui
 
+import ae.dubaiinvestments.vms.BuildConfig
 import ae.dubaiinvestments.vms.VmsApplication
 import ae.dubaiinvestments.vms.api.ApiException
 import ae.dubaiinvestments.vms.api.EntityDto
@@ -113,6 +114,12 @@ class VisitorViewModel(
     private val reader: EmiratesIdReader,
 ) : ViewModel() {
 
+    /* Sign-in is a build-time switch, matching the server's Authentication:Enabled. Off,
+       MSAL is never touched: asking it for the current account would initialise a client
+       against a configuration file this build does not carry, and the failure would show
+       up as a sign-in gate nobody can get past. */
+    private val authEnabled = BuildConfig.AUTH_ENABLED
+
     private companion object {
         const val TAG = "VmsViewModel"
 
@@ -124,6 +131,14 @@ class VisitorViewModel(
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state.asStateFlow()
 
+    /* Declared before init, and it matters. viewModelScope dispatches on
+       Dispatchers.Main.immediate, so a coroutine launched from init starts running
+       straight away on the constructing thread - before any property declared below init
+       has been assigned. watchHostQuery() touches this on its first line, so with the
+       declaration further down the app crashed on launch with a null dereference on a
+       val that cannot be null. */
+    private val hostQueries = MutableStateFlow("")
+
     init {
         refreshAccount()
         loadReference()
@@ -133,9 +148,14 @@ class VisitorViewModel(
     // ---------------------------------------------------------------- sign-in
 
     private fun refreshAccount() = viewModelScope.launch {
+        if (!authEnabled) return@launch
+
         val name = runCatching { auth.currentAccountName() }.getOrNull()
         _state.value = _state.value.copy(signedInAs = name, signInRequired = name == null)
     }
+
+    /** A 401 only means "sign in" if signing in is something this build can do. */
+    private fun needsSignIn(status: Int?) = authEnabled && status == 401
 
     fun signIn(activity: Activity) = viewModelScope.launch {
         _state.value = _state.value.copy(busy = "Signing in…", error = null)
@@ -153,6 +173,8 @@ class VisitorViewModel(
     }
 
     fun signOut() = viewModelScope.launch {
+        if (!authEnabled) return@launch
+
         auth.signOut()
         /* Everything on the screen belongs to the officer who is leaving, including a
            visitor's photograph. */
@@ -175,11 +197,10 @@ class VisitorViewModel(
                 entityId = _state.value.entityId ?: reference.entities.singleOrNull()?.id,
             )
         } catch (e: ApiException) {
-            if (e.status == 401) {
-                _state.value = _state.value.copy(signInRequired = true, referenceError = e.message)
-            } else {
-                _state.value = _state.value.copy(referenceError = e.message)
-            }
+            _state.value = _state.value.copy(
+                referenceError = e.message,
+                signInRequired = needsSignIn(e.status),
+            )
         }
     }
 
@@ -218,12 +239,12 @@ class VisitorViewModel(
                 step = Step.VisitorInformation,
             )
         } catch (e: SignInRequired) {
-            _state.value = _state.value.copy(busy = null, signInRequired = true)
+            _state.value = _state.value.copy(busy = null, signInRequired = authEnabled)
         } catch (e: ApiException) {
             _state.value = _state.value.copy(
                 busy = null,
                 error = e.message,
-                signInRequired = e.status == 401,
+                signInRequired = needsSignIn(e.status),
             )
         } catch (e: CardReadException) {
             _state.value = _state.value.copy(busy = null, error = e.message)
@@ -272,8 +293,6 @@ class VisitorViewModel(
     fun setPurposeOther(text: String) {
         _state.value = _state.value.copy(purposeOther = text)
     }
-
-    private val hostQueries = MutableStateFlow("")
 
     @OptIn(FlowPreview::class)
     private fun watchHostQuery() = viewModelScope.launch {
@@ -353,7 +372,7 @@ class VisitorViewModel(
             _state.value = _state.value.copy(
                 busy = null,
                 error = e.message,
-                signInRequired = e.status == 401,
+                signInRequired = needsSignIn(e.status),
                 step = if (readRejected) Step.InsertCard else _state.value.step,
                 card = if (readRejected) null else _state.value.card,
                 readRequestId = if (readRejected) null else _state.value.readRequestId,

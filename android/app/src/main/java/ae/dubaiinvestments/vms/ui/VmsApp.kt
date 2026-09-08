@@ -1,5 +1,6 @@
 package ae.dubaiinvestments.vms.ui
 
+import ae.dubaiinvestments.vms.BuildConfig
 import ae.dubaiinvestments.vms.ui.parts.SectionCard
 import ae.dubaiinvestments.vms.ui.screens.InsertCardScreen
 import ae.dubaiinvestments.vms.ui.screens.ManualEntryDialog
@@ -73,7 +74,14 @@ fun VmsApp(viewModel: VisitorViewModel, onSignIn: () -> Unit) {
                 title = {
                     Column {
                         Text("Visitor Management", fontWeight = FontWeight.SemiBold)
-                        state.signedInAs?.let {
+
+                        /* The signed-in officer, or - while sign-in is off - the fact that
+                           it is off. The web app carries the same note in the same corner,
+                           for the same reason: this is temporary, and temporary states
+                           become permanent by being invisible. */
+                        val subtitle = if (BuildConfig.AUTH_ENABLED) state.signedInAs else "Sign-in is off"
+
+                        subtitle?.let {
                             Text(
                                 it,
                                 style = MaterialTheme.typography.bodyMedium,

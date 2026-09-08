@@ -67,6 +67,26 @@ This is the interim, not the destination — see `docs/icp-signed-response-reque
 ICP issues an online licence, `TrustedSignerThumbprints` gets pinned on the server and
 nothing in this app changes.
 
+## Sign-in is currently off
+
+`VMS_AUTH_ENABLED=false` in `gradle.properties`, matching the server's
+`Authentication:Enabled`. **The two must agree** — a tablet sending no token to a server
+that requires one gets a 401 on every screen, and the reverse is a prompt for nothing.
+
+While it is off:
+
+- MSAL is never initialised, so **`res/raw/auth_config.json` is not needed** and the app
+  builds and runs from a clean clone. `auth/MsalConfig.kt` looks the resource up by name
+  rather than as `R.raw.auth_config` precisely so the build does not insist on a file it
+  will not open.
+- No token is attached to any request — `VmsClient` does not even install the interceptor.
+- The top bar says **Sign-in is off** where the officer's name goes, and the server
+  records every visit against `(not signed in)`.
+
+To turn it on: put `auth_config.json` in place, finish the directory work in
+`docs/entra-id-setup.md`, then build with `-PVMS_AUTH_ENABLED=true` and set the server's
+`Authentication:Enabled` to true. None of the sign-in code was removed to get here.
+
 ## Two things are not in this repository
 
 ### `app/src/main/res/raw/auth_config.json`
@@ -81,8 +101,9 @@ and `auth/MsalConfig.kt` reads the client ID back out of it so the API scope
 cp auth_config.template.json app/src/main/res/raw/auth_config.json
 ```
 
-Until it exists the build fails on `R.raw.auth_config`, which is the intended outcome —
-an app that compiles without a tenant would install and then fail at the desk instead.
+It is only needed for a build with `-PVMS_AUTH_ENABLED=true`. Without it, a sign-in
+build fails at startup with the message `MsalConfig.kt` writes, naming this file — rather
+than at the desk with a redirect error.
 
 The client and tenant IDs in the template are the real ones
 (`docs/entra-id-setup.md` records the registration). The **signature hash is the one

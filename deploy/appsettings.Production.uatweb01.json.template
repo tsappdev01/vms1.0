@@ -12,6 +12,18 @@
     "Vms": "Server=localhost;Database=VMS;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
   },
 
+  // Sign-in. OFF for now: the Entra registration is not finished (the API scope, the
+  // Android platform, the role assignments), and reception needs the desk working before
+  // it is. While this is false EVERY page and EVERY API endpoint is open to anyone who can
+  // reach this server, and visits are recorded against "(not signed in)" rather than a
+  // person - the app says so in the corner of every page and in the log at startup.
+  //
+  // Set it to true once docs/entra-id-setup.md is done. Nothing else changes: the Entra
+  // wiring is already in the build.
+  "Authentication": {
+    "Enabled": false
+  },
+
   // Entra ID sign-in. The client secret is a credential: this file is gitignored and
   // should be readable only by the app pool identity and administrators. Better still,
   // replace it with a certificate - see docs/entra-id-setup.md.

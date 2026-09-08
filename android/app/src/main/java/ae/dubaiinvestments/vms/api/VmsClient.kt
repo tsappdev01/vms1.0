@@ -33,7 +33,12 @@ object VmsClient {
 
     fun create(auth: Auth, baseUrl: String = BuildConfig.API_BASE_URL): VmsApi {
         val client = OkHttpClient.Builder()
-            .addInterceptor(bearerToken(auth))
+            .apply {
+                /* Nothing is attached when sign-in is off, and MSAL is never touched -
+                   which is what lets the app build and run with no auth_config.json. The
+                   server is in the same state: see Authentication:Enabled. */
+                if (BuildConfig.AUTH_ENABLED) addInterceptor(bearerToken(auth))
+            }
             .apply {
                 if (BuildConfig.DEBUG) {
                     /* Headers and status only, never bodies. A body here is a signed card
@@ -116,8 +121,22 @@ object VmsClient {
         }
 
     private fun describe(e: HttpException): String {
-        if (e.code() == 401) return "Your sign-in has expired. Sign in again."
-        if (e.code() == 403) return "Your account is not allowed to record visits. Ask IT for the Reception role."
+        if (e.code() == 401) {
+            /* With sign-in off this is not an expired token, it is a mismatch: the server
+               wants one and this build sends none. Saying "sign in again" would send
+               reception looking for a button that is not there. */
+            return if (BuildConfig.AUTH_ENABLED) {
+                "Your sign-in has expired. Sign in again."
+            } else {
+                "The server is asking for a sign-in but this app has sign-in switched off. " +
+                    "The two have to match - tell IT the server's Authentication:Enabled is on."
+            }
+        }
+
+        if (e.code() == 403) {
+            return "Your account is not allowed to record visits. " +
+                "Ask IT for the Vms.Officer role."
+        }
 
         /* ProblemDetails, if that is what came back. An HTML error page from IIS is the
            other possibility, and parsing that as JSON throws - hence the runCatching. */
