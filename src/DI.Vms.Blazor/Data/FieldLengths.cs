@@ -23,6 +23,12 @@ public static class FieldLengths
     /// <summary>A UPN, which is an email address, so the same room as one.</summary>
     public const int RecordedBy = 256;
 
+    /// <summary>
+    /// A hosted URL. Generous rather than tight: a blob storage address with a container
+    /// and a path is long before anyone adds a query string to it.
+    /// </summary>
+    public const int Url = 500;
+
     /// <summary>Everything read off the card that is not a name.</summary>
     public const int CardField = 150;
 
