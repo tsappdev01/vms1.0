@@ -948,13 +948,12 @@ else if (step == 3 && saved is not null)
     /// belonging to the form. Moving it to vms.VisitPurpose is small if it needs to be
     /// editable at the desk.
     /// </summary>
-    private static readonly string[] Purposes =
-    [
-        "Meetings", "Submission", "Delivery", "Collection",
-        "Visit", "Interview", "Enquiry", "Payments",
-    ];
+    /* One list, shared with the API the tablet uses - see Services/VisitPurposes.cs.
+       Two copies would drift, and the drift would show up as a visit recorded with a
+       purpose the report does not group by. */
+    private static readonly string[] Purposes = VisitPurposes.All;
 
-    private const string OtherPurpose = "Other";
+    private const string OtherPurpose = VisitPurposes.Other;
 
     private List<DiEntity> entities = [];
     private int entityId;

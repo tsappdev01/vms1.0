@@ -1,6 +1,8 @@
 using DI.Vms.Blazor.Components;
 using DI.Vms.Blazor.Data;
 using DI.Vms.Blazor.Services;
+using DI.Vms.Blazor.Api;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -25,18 +27,31 @@ builder.Services.AddWindowsService(options => options.ServiceName = "DI VMS");
    IIS must be serving this site with Anonymous authentication ON and Windows
    Authentication OFF, or IIS challenges the browser before the request ever reaches the
    OpenID Connect handler. install-iis.ps1 sets it that way. */
-builder.Services
-    .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(options =>
-    {
-        builder.Configuration.GetSection("AzureAd").Bind(options);
+var authentication = builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme);
 
-        /* Entra sends app roles in "roles". Without this the framework looks for the
-           long WS-Federation role claim, finds nothing, and every policy fails for
-           everyone - which reads like a directory problem and is not one. */
-        options.TokenValidationParameters.RoleClaimType = "roles";
-        options.TokenValidationParameters.NameClaimType = "name";
-    });
+authentication.AddMicrosoftIdentityWebApp(options =>
+{
+    builder.Configuration.GetSection("AzureAd").Bind(options);
+
+    /* Entra sends app roles in "roles". Without this the framework looks for the long
+       WS-Federation role claim, finds nothing, and every policy fails for everyone -
+       which reads like a directory problem and is not one. */
+    options.TokenValidationParameters.RoleClaimType = "roles";
+    options.TokenValidationParameters.NameClaimType = "name";
+});
+
+/* And bearer tokens beside the cookie, for the Android reception app. Two schemes on
+   purpose: the browser carries a session cookie, the tablet carries an access token for
+   this API's own scope, and neither is accepted where the other belongs - so a cookie
+   lifted from a desk browser cannot be replayed against the API. */
+authentication.AddMicrosoftIdentityWebApi(
+    jwtOptions =>
+    {
+        jwtOptions.TokenValidationParameters.RoleClaimType = "roles";
+        jwtOptions.TokenValidationParameters.NameClaimType = "name";
+    },
+    identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
+    jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);
 
 builder.Services.AddAuthorization(options =>
 {
@@ -122,6 +137,10 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapControllers();
+
+// The Android reception app's endpoints. Bearer-only; see Api/VisitsApi.cs.
+app.MapVisitsApi();
+
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.Run();
