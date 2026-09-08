@@ -260,6 +260,27 @@ sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
 Backslashes are escaped because it is a Java properties file. `ANDROID_HOME` works instead
 if it is already set.
 
+**`JAVA_HOME is not set and no 'java' command could be found in your PATH`**
+
+Expected, on a machine where Android Studio is the only Java. It carries its own JetBrains
+Runtime and uses it from inside the IDE without ever touching `JAVA_HOME`, so the wrapper
+run from an ordinary terminal finds nothing. Three ways out, easiest first:
+
+1. Build from the IDE, or from **its** terminal (Alt+F12), which inherits its environment.
+2. Set it for one cmd window: `set JAVA_HOME=C:\Program Files\Android\Android Studio\jbr`
+3. Set it for the account, once:
+   ```powershell
+   [Environment]::SetEnvironmentVariable('JAVA_HOME','C:\Program Files\Android\Android Studio\jbr','User')
+   ```
+   Then open a new terminal.
+
+Older installs name it `jre` rather than `jbr`. To find whichever it is:
+
+```powershell
+Get-ChildItem 'C:\Program Files\Android' -Directory -Recurse -Depth 2 -Filter 'jbr' `
+  -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+```
+
 **Then, from `C:\Claude.AI\vms1.0\android` in PowerShell**
 
 ```powershell
