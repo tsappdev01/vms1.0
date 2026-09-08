@@ -222,9 +222,31 @@ everything and packages the APK. One command does all of it.
 
 | | |
 |---|---|
-| Android Studio | Ladybug (2024.2) or later. It brings its own JDK 17, the Android SDK manager and `adb`. |
+| Android Studio | Ladybug (2024.2) or **any later release**. It brings its own JDK, the SDK manager and `adb`. |
 | Android SDK | Platform **35** and the current build-tools, from Tools → SDK Manager. `compileSdk = 35`. |
 | Internet | The first build downloads Gradle 8.14.2, AGP, Compose and MSAL — roughly 1 GB into `%USERPROFILE%\.gradle`. Later builds are offline-ish and quick. |
+
+A newer Android Studio is not a problem in itself, but it brings two things worth knowing
+about, because both are the IDE trying to be helpful rather than anything wrong with the
+project:
+
+**Its bundled JDK has to be one Gradle 8.14.2 can run on** — that is Java 8 to 24, so
+JDK 17 or 21 is the safe setting and a very new release bundling something later would be
+refused with a message about an unsupported class file or JVM version. Check what Gradle
+is actually using:
+
+```powershell
+.\gradlew.bat -version
+```
+
+If the JVM line is beyond 24, point the IDE at a supported one in **Settings → Build,
+Execution, Deployment → Build Tools → Gradle → Gradle JDK** (17 or 21). That setting is
+per-project and belongs to the IDE, not to this repository.
+
+**Decline the "upgrade AGP" prompt** the first time it appears. AGP 8.7.3 and Gradle
+8.14.2 are a pair that is known to work here; upgrading AGP pulls the Gradle wrapper with
+it, and there is no reason to change both at once while the first build has not passed.
+The same goes for a suggestion to raise `compileSdk` to 36 — harmless to ignore.
 
 **The one file Gradle needs that is not in git**
 
