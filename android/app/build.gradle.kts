@@ -5,7 +5,9 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
-val sdk = providers.gradleProperty("SDK").get()
+/* Resolved from the root project, not from app/. A relative path given to file() in a
+   subproject resolves against that subproject's directory - see the shim modules. */
+val sdkDir = rootProject.file(providers.gradleProperty("SDK").get())
 
 android {
     namespace = "ae.dubaiinvestments.vms"
@@ -56,8 +58,9 @@ android {
     }
 
     sourceSets["main"].jniLibs.srcDirs(
-        // libc++_shared.so, which the toolkit's native code links against.
-        "$sdk/samples/ToolkitSample/app/src/main/jniLibs",
+        // libc++_shared.so, which the toolkit's native code links against. The toolkit's
+        // and the ACS plugin's own .so files come in with their AARs.
+        File(sdkDir, "samples/ToolkitSample/app/src/main/jniLibs"),
     )
 
     buildTypes {

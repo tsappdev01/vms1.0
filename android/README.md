@@ -214,19 +214,61 @@ manifest.
 
 ## Building
 
-Android Studio Ladybug or later, JDK 17. From this directory:
+There is nothing to compile file by file — Kotlin for Android is built by Gradle, which
+compiles the sources, runs the Compose compiler plugin, merges the resources, dexes
+everything and packages the APK. One command does all of it.
 
-```bash
-./gradlew :app:assembleDebug
+**What has to be installed**
+
+| | |
+|---|---|
+| Android Studio | Ladybug (2024.2) or later. It brings its own JDK 17, the Android SDK manager and `adb`. |
+| Android SDK | Platform **35** and the current build-tools, from Tools → SDK Manager. `compileSdk = 35`. |
+| Internet | The first build downloads Gradle 8.14.2, AGP, Compose and MSAL — roughly 1 GB into `%USERPROFILE%\.gradle`. Later builds are offline-ish and quick. |
+
+**The one file Gradle needs that is not in git**
+
+`android/local.properties`, saying where the SDK is. Android Studio writes it the first
+time it opens the project; by hand it is one line:
+
+```properties
+sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
 ```
 
-`gradle.properties` holds the two settings that vary:
+Backslashes are escaped because it is a Java properties file. `ANDROID_HOME` works instead
+if it is already set.
 
-- `SDK` — where ICP's Android SDK sits. It defaults to the copy already in this
-  repository, and the three shim modules read it, so the binaries are referenced from one
-  place instead of copied into three.
+**Then, from `C:\Claude.AI\vms1.0\android` in PowerShell**
+
+```powershell
+.\gradlew.bat :app:assembleDebug
+```
+
+The APK lands at `app\build\outputs\apk\debug\app-debug.apk`. Onto a tablet with USB
+debugging on:
+
+```powershell
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+```
+
+Or just open `C:\Claude.AI\vms1.0\android` in Android Studio and press Run — same build,
+and it installs and attaches logcat for you.
+
+**When it fails**, these are the useful flags: `--stacktrace` for where, and
+`.\gradlew.bat :app:assembleDebug --info 2>&1 | Tee-Object build.log` for a log worth
+reading afterwards. `.\gradlew.bat clean` and `.\gradlew.bat --stop` (kills the daemon)
+between attempts when something is stuck.
+
+**Settings in `gradle.properties`**
+
+- `SDK` — where ICP's Android SDK sits, relative to this directory. Read by the three shim
+  modules through `rootProject.file`, so the binaries are referenced from one place
+  instead of copied into three. A wrong value fails the build naming the file it looked
+  for.
 - `VMS_API_BASE_URL` — the server, `https://vms.dipark.com/` by default. The trailing
   slash matters to Retrofit; without it Retrofit drops the last path segment.
+- `VMS_AUTH_ENABLED` — sign-in, currently `false`. Must match the server's
+  `Authentication:Enabled`.
 
 ## Each tablet needs registering with ICP
 
