@@ -83,11 +83,15 @@ cp auth_config.template.json app/src/main/res/raw/auth_config.json
 
 Until it exists the build fails on `R.raw.auth_config`, which is the intended outcome —
 an app that compiles without a tenant would install and then fail at the desk instead.
-Filled in, it looks like this:
+
+The client and tenant IDs in the template are the real ones
+(`docs/entra-id-setup.md` records the registration). The **signature hash is the one
+value to fill in**, because it belongs to the signing keystore rather than to the source.
+Filled in, the file looks like this:
 
 ```json
 {
-  "client_id": "<application (client) ID from the app registration>",
+  "client_id": "dd0fec3e-2476-4823-a73b-7706c5f8ce7e",
   "authorization_user_agent": "DEFAULT",
   "redirect_uri": "msauth://ae.dubaiinvestments.vms/<url-encoded signature hash>",
   "account_mode": "SINGLE",
@@ -97,7 +101,7 @@ Filled in, it looks like this:
       "type": "AAD",
       "audience": {
         "type": "AzureADMyOrg",
-        "tenant_id": "<directory (tenant) ID>"
+        "tenant_id": "ba42ffd1-f322-49fa-81b7-74dcbd5f52a7"
       }
     }
   ]
@@ -107,6 +111,11 @@ Filled in, it looks like this:
 `account_mode` must be `SINGLE`. `auth/Auth.kt` uses the single-account client on purpose:
 a reception tablet is one desk with one signed-in officer, and the multiple-account client
 offers an account picker on every token request — a prompt with a visitor waiting.
+
+**There is no client secret in this file and there must never be one.** The tablet is a
+public client: anything shipped in an APK is readable by anyone holding the APK, so a
+secret there is a published secret. The server's secret belongs only in
+`appsettings.Production.json` on UATWEB01.
 
 ### `app/src/main/assets/toolkit-config/`
 
@@ -130,11 +139,38 @@ registration:
 2. **Authentication → Add a platform → Android**, package name `ae.dubaiinvestments.vms`,
    signature hash from the command below. This produces the
    `msauth://ae.dubaiinvestments.vms/<hash>` redirect URI.
-3. **App roles** — the same `Reception` role the web app uses. The API checks it through
-   `VmsRoles.CanCheckIn`, and a signed-in user without it gets a 403 and is told to ask
-   IT for the role.
+3. **No new app roles.** The API requires the `CanCheckIn` policy, which
+   `Vms.Officer`, `Vms.Supervisor`, `Vms.Admin` and `Vms.SystemAdmin` already satisfy — so
+   anyone who can check a visitor in on the web can do it on the tablet. A signed-in user
+   with none of them gets a 403 and is told on screen to ask IT for the role.
 
-The signature hash, for the debug keystore:
+### Getting the signature hash
+
+Entra wants the base64 hash. The manifest and `auth_config.json` want the same value
+**URL-encoded** — base64 contains `+`, `/` and `=`, and those have to be escaped inside a
+URI. This is the usual reason a first sign-in attempt fails.
+
+On Windows, in PowerShell from this directory (`keytool` comes with the JDK Android
+Studio installs, so add it to `PATH` or call it by full path):
+
+```powershell
+$store = "$env:USERPROFILE\.android\debug.keystore"   # release: your own keystore
+$alias = 'androiddebugkey'                            # release: your own alias
+$pass  = 'android'                                    # release: your own store password
+
+$sha1 = (keytool -list -v -alias $alias -keystore $store -storepass $pass |
+    Select-String 'SHA1:' | Select-Object -First 1).ToString().Split(':', 2)[1].Trim()
+
+$hash = [Convert]::ToBase64String([byte[]]($sha1 -split ':' | ForEach-Object { [Convert]::ToByte($_, 16) }))
+
+"Entra portal      : $hash"
+"auth_config / hash: $([uri]::EscapeDataString($hash))"
+```
+
+`./gradlew signingReport` prints the same SHA1 for every variant if you would rather read
+it that way.
+
+On Linux or macOS the one-liner is:
 
 ```bash
 keytool -exportcert -alias androiddebugkey -keystore ~/.android/debug.keystore \
@@ -142,12 +178,18 @@ keytool -exportcert -alias androiddebugkey -keystore ~/.android/debug.keystore \
   | openssl sha1 -binary | openssl base64
 ```
 
-Use the release keystore's alias for the release build. The hash goes in three places and
-they must agree: the Entra platform registration, `redirect_uri` in `auth_config.json`,
-and `MSAL_SIGNATURE_HASH` for the manifest (`gradle.properties`, or
-`-PMSAL_SIGNATURE_HASH=...`). Unset, the build succeeds, installs, and then fails the
-return leg of sign-in with a redirect mismatch — which is why the default is the visibly
-wrong `MSAL_SIGNATURE_HASH_NOT_SET` rather than an empty string.
+The URL-encoded hash then goes in three places, and they must agree:
+
+| Where | Which form |
+|---|---|
+| Entra → Authentication → Android platform | base64, as printed |
+| `redirect_uri` in `res/raw/auth_config.json` | URL-encoded |
+| `MSAL_SIGNATURE_HASH` in `gradle.properties` (or `-PMSAL_SIGNATURE_HASH=…`) | URL-encoded |
+
+Leave the Gradle property unset and the build succeeds, installs, and then fails the
+return leg of sign-in with a redirect mismatch. That is why the default is the visibly
+wrong `MSAL_SIGNATURE_HASH_NOT_SET` rather than an empty string that looks plausible in a
+manifest.
 
 ## Building
 

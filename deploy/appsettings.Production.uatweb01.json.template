@@ -18,9 +18,12 @@
   "AzureAd": {
     "Instance": "https://login.microsoftonline.com/",
     "Domain": "dubaiinvestments.com",
-    "TenantId": "<directory (tenant) ID from the app registration>",
-    "ClientId": "<application (client) ID from the app registration>",
-    "ClientSecret": "<client secret value - not the secret ID>",
+    "TenantId": "ba42ffd1-f322-49fa-81b7-74dcbd5f52a7",
+    "ClientId": "dd0fec3e-2476-4823-a73b-7706c5f8ce7e",
+    // The one value in this file that is a credential. Its Value, not its Secret ID, and
+    // it goes nowhere else - not into git, not into a chat window. See
+    // docs/entra-id-setup.md.
+    "ClientSecret": "<the current secret's Value>",
     "CallbackPath": "/signin-oidc",
     "SignedOutCallbackPath": "/signout-callback-oidc"
   },

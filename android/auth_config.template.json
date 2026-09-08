@@ -1,10 +1,12 @@
 {
   "_comment": [
-    "Copy this to app/src/main/res/raw/auth_config.json and fill in the three values.",
-    "That path is gitignored: it identifies Dubai Investments' Entra tenant.",
-    "account_mode must stay SINGLE - see android/README.md."
+    "Copy this to app/src/main/res/raw/auth_config.json. The client and tenant IDs are",
+    "already correct; the signature hash is the one value to fill in, and it comes from",
+    "the signing keystore - android/README.md has the command. account_mode must stay",
+    "SINGLE. There is no client secret here and there must never be one: an app on a",
+    "device cannot keep it."
   ],
-  "client_id": "REPLACE-WITH-APPLICATION-CLIENT-ID",
+  "client_id": "dd0fec3e-2476-4823-a73b-7706c5f8ce7e",
   "authorization_user_agent": "DEFAULT",
   "redirect_uri": "msauth://ae.dubaiinvestments.vms/REPLACE-WITH-URL-ENCODED-SIGNATURE-HASH",
   "account_mode": "SINGLE",
@@ -14,7 +16,7 @@
       "type": "AAD",
       "audience": {
         "type": "AzureADMyOrg",
-        "tenant_id": "REPLACE-WITH-DIRECTORY-TENANT-ID"
+        "tenant_id": "ba42ffd1-f322-49fa-81b7-74dcbd5f52a7"
       }
     }
   ]
