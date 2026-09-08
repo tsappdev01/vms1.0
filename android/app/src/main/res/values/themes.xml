@@ -1,0 +1,10 @@
+<resources>
+    <!-- A splash-free holding theme only. Everything after onCreate is Compose, and the
+         palette lives in ui/theme/Theme.kt. This exists so the window is DI navy from the
+         first frame rather than white. -->
+    <style name="Theme.Vms" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/di_navy</item>
+        <item name="android:navigationBarColor">@color/di_navy</item>
+        <item name="android:windowBackground">@color/di_navy</item>
+    </style>
+</resources>

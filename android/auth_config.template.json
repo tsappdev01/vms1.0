@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Copy this to app/src/main/res/raw/auth_config.json and fill in the three values.",
+    "That path is gitignored: it identifies Dubai Investments' Entra tenant.",
+    "account_mode must stay SINGLE - see android/README.md."
+  ],
+  "client_id": "REPLACE-WITH-APPLICATION-CLIENT-ID",
+  "authorization_user_agent": "DEFAULT",
+  "redirect_uri": "msauth://ae.dubaiinvestments.vms/REPLACE-WITH-URL-ENCODED-SIGNATURE-HASH",
+  "account_mode": "SINGLE",
+  "broker_redirect_uri_registered": false,
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMyOrg",
+        "tenant_id": "REPLACE-WITH-DIRECTORY-TENANT-ID"
+      }
+    }
+  ]
+}

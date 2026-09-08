@@ -14,6 +14,11 @@ back.
 ## Repository layout
 
 ```
+src/DI.Vms.Blazor/          The server: Blazor Server app, the API, the card-reading paths
+                            — src/DI.Vms.Blazor/README.md is the engineering record
+android/                    The reception app for a tablet, Kotlin — android/README.md
+db/                         Every SQL script, numbered — db/README.md says what each is for
+deploy/                     Publish and install scripts for UATWEB01 and the desks
 docs/                       Design and analysis — start with docs/README.md
 id-card-toolkit-*/          ICP ID Card Toolkit v3.1.6 (Android, iOS, Windows, Web JS)
 IDCARDOFFLINE_config_*      Toolkit configuration bundle

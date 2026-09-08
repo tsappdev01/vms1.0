@@ -1,0 +1,4 @@
+<resources>
+    <!-- The logo's navy, the same value the web app uses. -->
+    <color name="di_navy">#0A3255</color>
+</resources>

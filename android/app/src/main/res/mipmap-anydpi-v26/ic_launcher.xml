@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive icon only, no bitmap fallback: minSdk is 26 and adaptive icons landed in 26,
+     so every device this app installs on draws this one. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/di_navy" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>

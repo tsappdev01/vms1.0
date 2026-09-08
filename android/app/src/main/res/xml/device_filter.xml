@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The readers this app claims when one is plugged in.
+
+     ACS is vendor 0x072F (1839). The ACR39U family covers several product IDs across
+     revisions, so the vendor is matched without a product: a replacement reader from the
+     same family then works without shipping a new build, which matters more at a
+     reception desk than the precision does. -->
+<resources>
+    <usb-device vendor-id="1839" />
+</resources>

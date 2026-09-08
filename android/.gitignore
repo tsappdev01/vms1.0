@@ -1,0 +1,18 @@
+# Build output.
+.gradle/
+build/
+*/build/
+local.properties
+.idea/
+*.iml
+*.apk
+*.aab
+
+# The Entra app registration's client and tenant IDs. Not secret in the sense a password
+# is, but they identify Dubai Investments' tenant and there is no reason for them to be
+# public. android/README.md has the file to create.
+app/src/main/res/raw/auth_config.json
+
+# ICP's configuration bundle, which includes the licence file issued to Dubai
+# Investments. It is not ours to publish; it is copied in at build time.
+app/src/main/assets/toolkit-config/

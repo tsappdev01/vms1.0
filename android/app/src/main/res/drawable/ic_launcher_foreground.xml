@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An ID card with its chip. The 108dp viewport is the adaptive-icon canvas; the artwork
+     stays inside the middle 72dp because the launcher may mask or shift the rest away. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="108dp"
+        android:height="108dp"
+        android:viewportWidth="108"
+        android:viewportHeight="108">
+
+    <!-- The card. -->
+    <path
+        android:pathData="M22,36 L86,36 A4,4 0 0 1 90,40 L90,68 A4,4 0 0 1 86,72 L22,72 A4,4 0 0 1 18,68 L18,40 A4,4 0 0 1 22,36 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- The chip. -->
+    <path
+        android:pathData="M26,44 L40,44 A2,2 0 0 1 42,46 L42,58 A2,2 0 0 1 40,60 L26,60 A2,2 0 0 1 24,58 L24,46 A2,2 0 0 1 26,44 Z"
+        android:fillColor="#C8A45C" />
+    <path android:pathData="M24,52 L42,52" android:strokeColor="#0A3255" android:strokeWidth="1.5" />
+    <path android:pathData="M33,44 L33,60" android:strokeColor="#0A3255" android:strokeWidth="1.5" />
+
+    <!-- The printed lines beside it. -->
+    <path android:pathData="M50,46 L84,46" android:strokeColor="#0A3255" android:strokeWidth="3" android:strokeLineCap="round" />
+    <path android:pathData="M50,54 L84,54" android:strokeColor="#7C93A6" android:strokeWidth="3" android:strokeLineCap="round" />
+    <path android:pathData="M50,62 L70,62" android:strokeColor="#7C93A6" android:strokeWidth="3" android:strokeLineCap="round" />
+</vector>
