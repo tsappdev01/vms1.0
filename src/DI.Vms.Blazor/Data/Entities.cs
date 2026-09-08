@@ -6,21 +6,6 @@ public class DiEntity
     public int Id { get; set; }
     public required string Name { get; set; }
     public bool IsActive { get; set; } = true;
-
-    /// <summary>
-    /// Where this unit's logo is hosted, for anything outside this application to use -
-    /// an external site, a self-service portal.
-    ///
-    /// A URL rather than an uploaded file, because the consumer is not this application:
-    /// a portal on another host wants an address it can put in an img tag, not a byte
-    /// array behind an endpoint of ours that it would have to authenticate against.
-    ///
-    /// Maintained by script like the rest of the entity list - see db/008. The database
-    /// insists it is https, because a logo is embedded in someone else's page: an http
-    /// URL is blocked as mixed content on an https site, and a javascript: one would be
-    /// a script injection into every portal that renders it.
-    /// </summary>
-    public string? LogoUrl { get; set; }
 }
 
 /// <summary>

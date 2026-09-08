@@ -49,7 +49,7 @@ public static class VisitsApi
             var entities = await db.DiEntities
                 .Where(e => e.IsActive)
                 .OrderBy(e => e.Name)
-                .Select(e => new EntityDto(e.Id, e.Name, e.LogoUrl))
+                .Select(e => new EntityDto(e.Id, e.Name))
                 .ToListAsync(ct);
 
             return Results.Ok(new ReferenceDto(entities, VisitPurposes.All, VisitPurposes.Other));
@@ -257,11 +257,7 @@ public static class VisitsApi
         .Replace("[", LikeEscape + "[");
 }
 
-/// <summary>
-/// An entity a visitor can be recorded against. LogoUrl is carried for consumers outside
-/// this application - a self-service portal drawing the unit's own branding.
-/// </summary>
-public sealed record EntityDto(int Id, string Name, string? LogoUrl);
+public sealed record EntityDto(int Id, string Name);
 
 public sealed record PersonDto(int Id, string DisplayName, string? Title, string? Email, string? CompanyName);
 

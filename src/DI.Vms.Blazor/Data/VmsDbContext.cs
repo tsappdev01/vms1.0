@@ -16,7 +16,6 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
         {
             e.ToTable("Entity");
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
-            e.Property(x => x.LogoUrl).HasMaxLength(FieldLengths.Url);
             e.HasIndex(x => x.Name).IsUnique();
 
             /* A database default, so an INSERT written by hand can leave IsActive out.
