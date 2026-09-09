@@ -297,6 +297,61 @@ Get-ChildItem 'C:\Program Files\Android' -Directory -Recurse -Depth 2 -Filter 'j
   -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
 ```
 
+**On the Dubai Investments network, Java needs the Zscaler root CA**
+
+Zscaler decrypts and re-signs HTTPS. Its root is in the Windows certificate store, so
+PowerShell and browsers are happy; it is not in the JDK's `cacerts`, so Gradle sees a
+broken chain. The symptom is not a certificate error - Gradle's plugin resolver swallows
+it and reports
+
+```
+Plugin [id: 'com.android.application', version: '8.7.3'] was not found in any of the
+following sources: ... Searched in the following repositories: Google, MavenRepo, ...
+```
+
+which sends you looking for a wrong version number. Confirm it by asking Java itself what
+certificate the host serves - `-printcert` prints the chain without validating it, so it
+works even when trust fails:
+
+```powershell
+& "$env:JAVA_HOME\bin\keytool.exe" -printcert -sslserver dl.google.com:443 |
+  Select-String -Pattern 'Owner:|Issuer:'
+```
+
+An `Issuer` naming Zscaler rather than Google Trust Services is the confirmation. The fix
+is to export the proxy's certificates and import them into the JDK truststore. Export
+needs no privileges:
+
+```powershell
+$certs = @(Get-ChildItem Cert:\LocalMachine\Root, Cert:\CurrentUser\Root |
+    Where-Object { $_.Subject -like '*Zscaler*' })
+
+$dir = "$env:USERPROFILE\zscaler-ca"
+New-Item -ItemType Directory -Force -Path $dir | Out-Null
+
+$n = 0
+foreach ($c in $certs) {
+    $n++
+    $p = Join-Path $dir "zscaler-$n.cer"
+    Export-Certificate -Cert $c -FilePath $p -Type CERT | Out-Null
+    "$p  <-  $($c.Subject)"
+}
+```
+
+The import does, because it writes inside `Program Files` - run PowerShell as
+administrator:
+
+```powershell
+Get-ChildItem "$env:USERPROFILE\zscaler-ca\*.cer" | ForEach-Object {
+    & "$env:JAVA_HOME\bin\keytool.exe" -importcert -cacerts -storepass changeit -noprompt `
+        -alias $_.BaseName -file $_.FullName
+}
+```
+
+It is per JDK, not per project, so it is done once per machine - and again for any other
+JDK later installed. `.\gradlew.bat --stop` afterwards, so the next build starts a daemon
+that reads the new truststore.
+
 **Then, from `C:\Claude.AI\vms1.0\android` in PowerShell**
 
 ```powershell
