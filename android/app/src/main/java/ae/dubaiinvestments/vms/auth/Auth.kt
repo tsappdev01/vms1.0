@@ -159,7 +159,10 @@ class Auth(private val context: Context) {
                 })
                 .build()
 
-            client.acquireTokenAsync(parameters)
+            /* acquireToken, not acquireTokenAsync. MSAL names these asymmetrically:
+               the silent call is acquireTokenSilentAsync and the interactive one is just
+               acquireToken, even though both are callback-based. */
+            client.acquireToken(parameters)
         }
     }
 
