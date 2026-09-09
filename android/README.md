@@ -218,6 +218,9 @@ There is nothing to compile file by file — Kotlin for Android is built by Grad
 compiles the sources, runs the Compose compiler plugin, merges the resources, dexes
 everything and packages the APK. One command does all of it.
 
+First green build: 2026-09-09, on Android Studio Quail with JDK 21, AGP 8.7.3 and Gradle
+8.14.2. Everything below was learned getting there, in the order it bites.
+
 **What has to be installed**
 
 | | |
@@ -367,6 +370,23 @@ adb install -r app\build\outputs\apk\debug\app-debug.apk
 
 Or just open `C:\Claude.AI\vms1.0\android` in Android Studio and press Run — same build,
 and it installs and attaches logcat for you.
+
+**`e: The daemon has terminated unexpectedly on startup attempt #1`** during
+`compileDebugKotlin` is the Kotlin compile daemon, and it usually recovers by itself on
+attempt #2 - the line looks fatal and is not, so read on to the end before acting on it.
+If it does exhaust its attempts, run the compiler inside the Gradle daemon instead, in
+`%USERPROFILE%\.gradle\gradle.properties` (not this repository - it is a property of the
+machine, and user-level Gradle properties override the project's):
+
+```properties
+kotlin.compiler.execution.strategy=in-process
+org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+```
+
+The heap goes up because the compiler now shares the Gradle daemon's. The underlying cause
+is usually endpoint security interfering with the daemon's local socket, so an antivirus
+exclusion for `%USERPROFILE%\.gradle` and the project folder is the better fix where it
+can be had - it makes every build faster too.
 
 **When it fails**, these are the useful flags: `--stacktrace` for where, and
 `.\gradlew.bat :app:assembleDebug --info 2>&1 | Tee-Object build.log` for a log worth
