@@ -11,9 +11,20 @@
          being uninstallable at a desk whose reader has been unplugged. -->
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
+    <!-- tools:replace, because ICP's EIDAToolkit.aar and xmlsec2.aar each ship an
+         <application> block declaring android:allowBackup="true" - libraries built when
+         that was the platform default. Without this the manifest merger refuses to choose
+         and the build fails at :app:processDebugMainManifest.
+
+         The app's value wins, and false is the value that matters: a visitor's Emirates ID
+         number and photograph must not be copied into a cloud backup or handed to a
+         device-to-device transfer. Only this one attribute is replaced - their supportsRtl
+         and label already agree with ours, and a broader tools:replace would hide the next
+         genuine conflict instead of reporting it. -->
     <application
         android:name=".VmsApplication"
         android:allowBackup="false"
+        tools:replace="android:allowBackup"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
