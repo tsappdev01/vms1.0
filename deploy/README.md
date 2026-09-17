@@ -9,6 +9,7 @@ The deployment taken is **the app on UATWEB01, ICP's agent on every reception de
 | File | Run where | What it does |
 |---|---|---|
 | `publish.ps1` | Build machine, .NET 8 SDK, this repo | `dotnet publish -r win-x64`, then verifies the native toolkit DLLs actually came with it. |
+| `publish-api.ps1` | Build machine, .NET 8 SDK, this repo | Packages `src\DI.Vms.Api` as a zip for an Azure Web App, and fails if anything Windows-only got into the output. [`docs/azure-deployment.md`](../docs/azure-deployment.md) is its runbook. |
 | `appsettings.Production.uatweb01.json.template` | Copy beside the published app on UATWEB01 | Agent mode, the local database, and the signer to pin. |
 | `update-server.ps1` | UATWEB01, elevated | Mirrors a publish folder over the deployment with robocopy, keeping `appsettings.Production.json`. Use this for every update — `Copy-Item -Recurse` into an existing tree leaves nested files stale. |
 | `install-iis.ps1` | UATWEB01, elevated | Site and app pool, SNI HTTPS binding, **Anonymous authentication on and Windows off**, no idle recycle. |

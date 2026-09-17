@@ -55,6 +55,17 @@ android {
            the app builds and runs from a clean clone. */
         val authEnabled = providers.gradleProperty("VMS_AUTH_ENABLED").getOrElse("false")
         buildConfigField("boolean", "AUTH_ENABLED", authEnabled)
+
+        /* The API key, for the Azure-hosted API while sign-in is off. Not in
+           gradle.properties in this repository and not to be put there: it is the only
+           thing in front of the visitor database until Entra is turned on. Pass it on the
+           command line, or keep it in %USERPROFILE%\.gradle\gradle.properties, which is
+           outside the repository and per machine.
+
+           Blank is correct for a build that talks to the on-premises host: that one is
+           reachable only from the office network and asks for no key. */
+        val apiKey = providers.gradleProperty("VMS_API_KEY").getOrElse("")
+        buildConfigField("String", "API_KEY", "\"$apiKey\"")
     }
 
     sourceSets["main"].jniLibs.srcDirs(

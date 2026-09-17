@@ -16,6 +16,8 @@ back.
 ```
 src/DI.Vms.Blazor/          The server: Blazor Server app, the API, the card-reading paths
                             — src/DI.Vms.Blazor/README.md is the engineering record
+src/DI.Vms.Api/             The same API on its own, for tablets off the office LAN
+                            — Linux-capable, for Azure; docs/azure-deployment.md
 android/                    The reception app for a tablet, Kotlin — android/README.md
 db/                         Every SQL script, numbered — db/README.md says what each is for
 deploy/                     Publish and install scripts for UATWEB01 and the desks
