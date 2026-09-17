@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Adaptive icon only, no bitmap fallback: minSdk is 26 and adaptive icons landed in 26,
-     so every device this app installs on draws this one. -->
+     so every device this app installs on draws this one and a legacy bitmap would never
+     be loaded.
+
+     The foreground is generated from app/src/main/ic_launcher-source.png by
+     android/tools/make_launcher_icon.py - regenerate it rather than editing the PNGs. The
+     background is the brand navy the rest of the app uses, so the launcher's mask cuts a
+     navy field rather than the artwork's own rounded tile. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/di_navy" />
-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>
