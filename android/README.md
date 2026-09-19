@@ -67,6 +67,49 @@ This is the interim, not the destination — see `docs/icp-signed-response-reque
 ICP issues an online licence, `TrustedSignerThumbprints` gets pinned on the server and
 nothing in this app changes.
 
+## Pointing the app at a laptop for testing
+
+The quickest way to exercise the app is to run the server on your own machine and have the
+tablet talk to it over the office wifi. Three things have to be true, and only the third
+needs anything from this repository.
+
+**Bind Kestrel to every interface.** `launchSettings.json` says `localhost`, which listens
+on 127.0.0.1 and nowhere else:
+
+```powershell
+cd src\DI.Vms.Blazor
+dotnet run --urls "http://0.0.0.0:7100;https://0.0.0.0:7101"
+```
+
+**Let the connection in** - once, elevated:
+
+```powershell
+New-NetFirewallRule -DisplayName "VMS dev 7100/7101" -Direction Inbound `
+  -Protocol TCP -LocalPort 7100,7101 -Action Allow -Profile Private
+```
+
+**Use plain HTTP from the app.** The ASP.NET development certificate is issued for
+`localhost`, so `https://<laptop ip>:7101` fails the hostname check on the tablet. A
+browser offers to continue; an app has nobody to ask, and no server-side setting fixes it -
+the name in the certificate is not the name being used. So debug builds allow cleartext,
+through `app/src/debug/res/xml/network_security_config.xml`.
+
+That file is in `src/debug/`, which means it is compiled into the debug APK and cannot
+reach a release one. Release builds keep Android's defaults: cleartext refused, only system
+certificate authorities trusted. Production hosts - `vms.dipark.com` and any Azure Web App -
+carry certificates from a public CA and need none of this.
+
+```powershell
+.\gradlew.bat :app:assembleDebug --console=plain `
+  -PVMS_API_BASE_URL="http://192.168.1.188:7100/"
+
+& $adb install -r app\build\outputs\apk\debug\app-debug.apk
+```
+
+The laptop's address, the HTTP port, and the trailing slash. Check it from the tablet's
+browser first - `http://192.168.1.188:7100` should show the reception screens. If that
+fails, the firewall or the binding is the problem and the app will not do better.
+
 ## Sign-in is currently off
 
 `VMS_AUTH_ENABLED=false` in `gradle.properties`, matching the server's

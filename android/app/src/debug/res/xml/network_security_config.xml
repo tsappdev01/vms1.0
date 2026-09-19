@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- DEBUG BUILDS ONLY. This file lives in src/debug/, so it is compiled into the debug
+     APK and cannot reach a release one - the release build keeps Android's defaults,
+     where cleartext is refused and only system CAs are trusted.
+
+     Why it is needed: during development the server is a laptop on the office wifi, and
+     its ASP.NET development certificate is issued for "localhost". A tablet connecting to
+     https://192.168.1.188:7101 fails the hostname check, and no server-side setting fixes
+     that - the name in the certificate is simply not the name being used. A browser lets
+     a person click through; an app has nobody to ask.
+
+     So debug builds talk plain HTTP to the development machine. That is a real reduction
+     in safety and it is confined to two things on purpose: builds that are never
+     installed at a reception desk, and a network the developer is sitting on. Production
+     traffic goes to https://vms.dipark.com or an Azure Web App, both with certificates
+     from a public CA, and neither needs anything in this file.
+
+     User-added certificate authorities are trusted here as well, so a corporate root - or
+     one generated for a development server - can be installed on the tablet and used
+     instead of cleartext. Release builds do not trust them, which is Android's default
+     since API 24 and the right default. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
