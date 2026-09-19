@@ -2,6 +2,13 @@
 .gradle/
 build/
 */build/
+.kotlin/
+
+# Build logs. Written by the `*> build.log` and `--debug` invocations in README.md, and
+# committed by accident once. A --debug log in particular echoes the whole build
+# environment - which is nothing today and would be the API key the moment one is set in a
+# gradle.properties.
+*.log
 local.properties
 .idea/
 *.iml
