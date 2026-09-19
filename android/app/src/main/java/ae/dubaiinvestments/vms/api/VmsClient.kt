@@ -34,10 +34,17 @@ object VmsClient {
     fun create(auth: Auth, baseUrl: String = BuildConfig.API_BASE_URL): VmsApi {
         val client = OkHttpClient.Builder()
             .apply {
-                /* Nothing is attached when sign-in is off, and MSAL is never touched -
-                   which is what lets the app build and run with no auth_config.json. The
-                   server is in the same state: see Authentication:Enabled. */
-                if (BuildConfig.AUTH_ENABLED) addInterceptor(bearerToken(auth))
+                /* One credential or the other, never both.
+
+                   With Entra on, the token is it, and MSAL is what supplies it. With it
+                   off, the Azure-hosted API wants an API key instead - it is on the public
+                   internet, and unlike the on-premises host it cannot rely on the office
+                   network being the door. The on-premises host asks for no key, so a blank
+                   one attaches nothing and costs nothing. */
+                when {
+                    BuildConfig.AUTH_ENABLED -> addInterceptor(bearerToken(auth))
+                    BuildConfig.API_KEY.isNotBlank() -> addInterceptor(apiKey(BuildConfig.API_KEY))
+                }
             }
             .apply {
                 if (BuildConfig.DEBUG) {
@@ -63,6 +70,17 @@ object VmsClient {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(VmsApi::class.java)
+    }
+
+    /**
+     * The shared key the Azure-hosted API asks for while sign-in is off.
+     *
+     * Every tablet sends the same one, so it says "a reception tablet" and not "which
+     * reception officer" - which is exactly why the visit is recorded against
+     * "(not signed in)" and why this is an interim rather than a destination.
+     */
+    private fun apiKey(key: String) = Interceptor { chain ->
+        chain.proceed(chain.request().newBuilder().header("X-Vms-Key", key).build())
     }
 
     /**
@@ -125,11 +143,17 @@ object VmsClient {
             /* With sign-in off this is not an expired token, it is a mismatch: the server
                wants one and this build sends none. Saying "sign in again" would send
                reception looking for a button that is not there. */
-            return if (BuildConfig.AUTH_ENABLED) {
-                "Your sign-in has expired. Sign in again."
-            } else {
-                "The server is asking for a sign-in but this app has sign-in switched off. " +
-                    "The two have to match - tell IT the server's Authentication:Enabled is on."
+            return when {
+                BuildConfig.AUTH_ENABLED ->
+                    "Your sign-in has expired. Sign in again."
+
+                BuildConfig.API_KEY.isBlank() ->
+                    "The server is asking for a credential but this build carries none. " +
+                        "It needs either sign-in turned on or an API key."
+
+                else ->
+                    "The server did not accept this tablet's API key. It may have been " +
+                        "rotated - the tablet needs rebuilding with the new one."
             }
         }
 

@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- Plain net8.0, not net8.0-windows. The reason this is possible at all: in agent
+       mode the server never touches ICP's toolkit. A card is read by the client - the
+       desk browser through ICP's local agent, or the tablet through the Android SDK -
+       and what reaches the server is a signed XML document that System.Security.
+       Cryptography.Xml verifies. Windows is only needed by CardReaderService.cs, which
+       is the in-process reader and is deliberately not compiled into this project.
+
+       That is what lets this run on a Linux Azure Web App. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DI.Vms.Api</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- Shared source, linked rather than copied or extracted into a library.
+
+       A library would be tidier and is the right end state. It is not what to do today:
+       DI.Vms.Blazor is deployed and working, and moving its files out to enable a new
+       deployment would put the running system at risk to serve one that does not exist
+       yet. Linking compiles the same files into both assemblies and changes nothing
+       about the Blazor app - the files stay where they are and it still owns them.
+
+       The list is explicit, file by file, for one reason: a wildcard over Services/
+       would quietly pull in CardReaderService.cs the day someone globs it, and this
+       project would stop building for Linux with an error about the toolkit rather than
+       about the glob. -->
+  <ItemGroup>
+    <Compile Include="..\DI.Vms.Blazor\Data\DbBootstrapper.cs"   LinkBase="Shared\Data" />
+    <Compile Include="..\DI.Vms.Blazor\Data\Entities.cs"         LinkBase="Shared\Data" />
+    <Compile Include="..\DI.Vms.Blazor\Data\FieldLengths.cs"     LinkBase="Shared\Data" />
+    <Compile Include="..\DI.Vms.Blazor\Data\VmsDbContext.cs"     LinkBase="Shared\Data" />
+
+    <Compile Include="..\DI.Vms.Blazor\Services\AgentCardReader.cs"    LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\CardCapture.cs"        LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\CardData.cs"           LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\CardResponseParser.cs" LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\CardText.cs"           LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\SignInOptions.cs"      LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\VisitPurposes.cs"      LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\VmsRoles.cs"           LinkBase="Shared\Services" />
+
+    <!-- The endpoints themselves. One definition, two hosts: whatever is fixed here is
+         fixed for the desk browser and the tablet at the same time. -->
+    <Compile Include="..\DI.Vms.Blazor\Api\VisitsApi.cs" LinkBase="Shared\Api" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+    <!-- CardText decodes the ANSI code page the toolkit marshalled its strings with.
+         .NET 8 ships only ASCII, Latin-1 and the Unicode encodings; the rest live here. -->
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    <!-- XMLDSIG. CardResponseParser verifies the Validation Gateway's signature with
+         SignedXml, and System.Security.Cryptography.Xml is out of band on .NET 8 rather
+         than part of the shared framework. It does arrive transitively through the
+         identity packages, which is exactly why it is named here: a transitive dependency
+         that a package upgrade drops takes the signature check with it. 8.0.4 is the
+         latest servicing release of the 8.x line. -->
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.4" />
+    <!-- Bearer tokens from Entra, for when sign-in is turned on. Same version as the
+         Blazor app - they compile the same source. -->
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.15.1" />
+  </ItemGroup>
+
+</Project>
