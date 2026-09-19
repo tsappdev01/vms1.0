@@ -233,6 +233,54 @@ on any network can verify it.
 
 ---
 
+## Security on a public host
+
+What the API does on its own, with no configuration:
+
+| | |
+|---|---|
+| **Credential on every `/api` call** | Entra bearer token, or the API key. `DI.Vms.Api` refuses to start with neither. Compared in fixed time; rejections are logged with the caller's address, so someone trying keys leaves a visible trail. |
+| **Rate limiting** | 300 requests a minute per calling address, with rejections logged. It is a flood limit, not a quota — a check-in is roughly twenty requests. |
+| **Real client addresses** | `UseForwardedHeaders`, so the rate limiter and the logs see the caller rather than App Service's load balancer. Without it both are one global bucket and quietly useless. |
+| **Request size cap** | 12 MB at Kestrel. The default is 30 MB, which is 30 MB buffered before any of our code looks at it. |
+| **No stack traces** | `AddProblemDetails` plus `UseExceptionHandler`: a structured answer, and nothing about the inside of the server. |
+| **Least data on the wire** | `/api/people` returns name, title and employer. No email addresses — the tablet never displayed them, and the saved visit takes the host's email from the database on the server. |
+| **Health says one word** | `/health` is anonymous and answers `ok` or `degraded`. The detail — which authentication, whether the database is reachable, whether signatures are required — is at `/api/health`, behind the same credential as everything else. |
+| **Single-use card reads** | The request ID is issued by the server, removed when redeemed, expires in five minutes, and must match the one inside the signed document. A captured response cannot be replayed. |
+
+What is still yours to do in the portal, and each of these matters more than anything above:
+
+1. **Turn Entra sign-in on.** `Authentication__Enabled=true`. The API key is a shared secret
+   in an APK: it does not expire, it names a fleet rather than a person, and anyone who
+   unpacks the app can read it. Every visit recorded with it says `(not signed in)`.
+   Everything else on this page is mitigation for not having done this.
+2. **HTTPS Only**, and **minimum inbound TLS 1.2**. Configuration → General settings.
+3. **Access restrictions** if reception's addresses are known. Networking → Access
+   restrictions. An API on `*.azurewebsites.net` is found by scanners within hours.
+4. **Put `Api__Key` and the connection string in Key Vault** and reference them, rather
+   than as plain App Service settings — so they are not readable by everyone with portal
+   access to the Web App.
+5. **Rotate the key** on a schedule, and whenever a tablet is lost. Rotating means changing
+   it in the portal and rebuilding the APK; there is no revocation short of that, which is
+   another reason (1) is the real answer.
+6. **Turn on diagnostic logging** to a Log Analytics workspace, so the rejection and rate
+   limit warnings survive a restart and can be alerted on.
+
+### What this does not protect against
+
+**A stolen tablet is a valid client.** The key is in the APK. Until Entra is on, losing a
+device means rotating the key and rebuilding every other device. With Entra on it means
+disabling one account.
+
+**The key holder can read the staff directory.** `/api/people` answers name-fragment
+queries across 725 people. Rate limiting makes scraping slow and noisy; it does not make it
+impossible. Roles do.
+
+**Nothing is encrypted at rest beyond what the database does.** Emirates ID numbers and
+photographs sit in `vms.VisitorEntry` as they do on-premises. Azure SQL is encrypted at
+rest by default (TDE), which is more than UATWEB01 offers, but column-level protection for
+the ID number is still an open item.
+
 ## What is not solved
 
 **The API key is not sign-in.** It is the same secret on every tablet, it does not expire,

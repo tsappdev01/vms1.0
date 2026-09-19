@@ -4,6 +4,7 @@ using DI.Vms.Blazor.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace DI.Vms.Blazor.Api;
@@ -41,9 +42,24 @@ public static class VisitsApi
     /// the open-desk scheme, because naming the Bearer scheme when no Bearer handler is
     /// registered fails the request with a framework error rather than an answer.
     /// </param>
-    public static void MapVisitsApi(this IEndpointRouteBuilder routes, bool requireBearerToken)
+    /// <param name="rateLimitPolicy">
+    /// A rate-limiting policy to apply to the group, or null for none. Null on the
+    /// on-premises host, which is reachable only from the office network; named on the
+    /// internet-facing one. It is a parameter rather than a constant because a policy that
+    /// is not registered throws at startup, and the on-premises host registers none -
+    /// hard-coding a name here would take UATWEB01 down to protect Azure.
+    /// </param>
+    public static void MapVisitsApi(
+        this IEndpointRouteBuilder routes,
+        bool requireBearerToken,
+        string? rateLimitPolicy = null)
     {
         var api = routes.MapGroup("/api");
+
+        if (rateLimitPolicy is not null)
+        {
+            api.RequireRateLimiting(rateLimitPolicy);
+        }
 
         if (requireBearerToken)
         {
@@ -99,7 +115,7 @@ public static class VisitsApi
             var people = await all
                 .OrderBy(p => p.DisplayName)
                 .Take(12)
-                .Select(p => new PersonDto(p.Id, p.DisplayName, p.Title, p.Email, p.CompanyName))
+                .Select(p => new PersonDto(p.Id, p.DisplayName, p.Title, p.CompanyName))
                 .ToListAsync(ct);
 
             return Results.Ok(people);
@@ -274,7 +290,17 @@ public static class VisitsApi
 
 public sealed record EntityDto(int Id, string Name);
 
-public sealed record PersonDto(int Id, string DisplayName, string? Title, string? Email, string? CompanyName);
+/// <summary>
+/// A host, as the tablet needs to recognise them: enough to tell two people of the same
+/// name apart, and no more.
+///
+/// No email address, deliberately. The tablet displayed the title and the employer and
+/// silently discarded the address, so it was 725 staff email addresses crossing a public
+/// network and sitting in a device's memory to no purpose. The saved visit still records
+/// the host's email - <see cref="MapVisitsApi"/> reads it from the database by ID, on the
+/// server, where it never leaves.
+/// </summary>
+public sealed record PersonDto(int Id, string DisplayName, string? Title, string? CompanyName);
 
 public sealed record ReferenceDto(IReadOnlyList<EntityDto> Entities, IReadOnlyList<string> Purposes, string OtherPurpose);
 

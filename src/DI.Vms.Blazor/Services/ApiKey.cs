@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DI.Vms.Blazor.Services;
 
@@ -84,6 +86,7 @@ public static class ApiKey
         if (expected is null) return app;
 
         var expectedBytes = Encoding.UTF8.GetBytes(expected);
+        var logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(ApiKey));
 
         return app.Use(async (context, next) =>
         {
@@ -103,6 +106,17 @@ public static class ApiKey
             if (presentedBytes.Length != expectedBytes.Length ||
                 !CryptographicOperations.FixedTimeEquals(presentedBytes, expectedBytes))
             {
+                /* Logged with the caller's address, because on a public host this is the
+                   signal that someone is trying keys. One line per attempt is what makes a
+                   pattern visible; the key itself is never logged, not even a prefix. */
+                logger.LogWarning(
+                    "Rejected {Method} {Path} from {Address}: {Reason} {Header}.",
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.Connection.RemoteIpAddress?.ToString() ?? "(unknown)",
+                    presentedBytes.Length == 0 ? "no" : "wrong",
+                    HeaderName);
+
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 await context.Response.WriteAsJsonAsync(new
                 {
