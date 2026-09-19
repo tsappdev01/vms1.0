@@ -1,7 +1,12 @@
 # db
 
-SQL for VMS on **UATWEB01**, database **VMS**. Run them in number order. Every script is
-re-runnable: a second run changes nothing that has not changed at the source.
+SQL for the **VMS** database. Run them in number order. Every script is re-runnable: a
+second run changes nothing that has not changed at the source.
+
+**Connect to the VMS database before running any of them.** None of them switch databases:
+Azure SQL does not support `USE`, so the same file has to work against SQL Server on
+UATWEB01 and against Azure SQL. `sqlcmd -d VMS`, or pick it in SSMS. Each script guards
+against being run in `master` and stops without changing anything if it is.
 
 | Script | What it does |
 |---|---|
@@ -10,8 +15,21 @@ re-runnable: a second run changes nothing that has not changed at the source.
 | `003_add_people.sql` | Creates `vms.Person` and adds the host snapshot columns to `vms.VisitorEntry`. |
 | `004_seed_people.sql` | The 725 people from the AD export. **Generated — see below.** |
 | `005_add_group_companies.sql` | **Optional.** Adds the 13 group companies the address list has and the entity list does not. A decision, not a fix — the script explains it. |
-| `006_grant_app_login.sql` | **Deployment.** Creates the login and user for the identity the app runs as, and grants it reader/writer on `vms` — not `db_owner`. Edit `@Login` at the top first. See [docs/deployment.md](../docs/deployment.md) step 4. |
+| `006_grant_app_login.sql` | **Deployment, SQL Server only.** Creates the login and user for the Windows identity the app runs as, and grants it reader/writer on `vms` — not `db_owner`. Edit `@Login` at the top first. See [docs/deployment.md](../docs/deployment.md) step 4. Does not work on Azure SQL — use `008`. |
 | `007_add_recorded_by.sql` | **Run before deploying the build that signs users in.** Adds `RecordedBy` to `vms.VisitorEntry` — who saved each entry. Startup refuses to run without it, which is the intended failure. |
+| `008_grant_app_user_azure.sql` | **Deployment, Azure SQL only.** The counterpart of `006`: a contained database user for the Web App, by managed identity for preference. Its header carries the order the whole Azure database has to be set up in. See [docs/azure-deployment.md](../docs/azure-deployment.md). |
+
+## Which scripts for which database
+
+| | UATWEB01 (SQL Server) | Azure SQL |
+|---|---|---|
+| Schema and reference data | `001`–`005`, `007` | `001`–`005`, `007` — the same files |
+| Access for the app | `006` | `008` |
+
+There is no schema-creation script: `Data/DbBootstrapper.cs` creates the tables from the
+EF model at startup. On a brand new Azure SQL database that means starting the app once
+with an administrator's connection string, then switching it to the least-privileged user
+`008` creates. `008`'s header sets out the order.
 
 `Data/DbBootstrapper.cs` creates tables that are absent but never alters ones that are
 present, so a property added to the EF model needs a script here. Startup checks the

@@ -21,35 +21,61 @@ guest network, an event desk, a phone hotspot.
 
 ---
 
-## Decide the database first
+## 1. The database
 
-**This is the decision the whole thing turns on, and it is not a deployment detail.** An
-Azure Web App cannot reach SQL Server on UATWEB01. It is a private address behind the
-company firewall, and nothing in Azure routes to it.
+**Decided: Azure SQL, created in the portal alongside the Web App.**
 
-There must be **exactly one** VMS database. Two — one on-premises for the desk browser, one
-in Azure for the tablets — would mean a visitor checked in at the desk is invisible to the
-tablet, the report shows half the visits, and neither is wrong enough to notice quickly.
-That is a worse outcome than the tablets not working.
+Create the SQL Database and its logical server first — the Web App needs its connection
+string, and the database needs schema in it before the app will serve anything. Basic or
+S0 is plenty for a visitor log; it can be scaled later without redeploying.
 
-Three ways to get there:
+On the server's **Networking** blade, allow Azure services to reach it (or add the Web
+App's outbound IPs). On its **Microsoft Entra ID** blade, set an Entra admin — that is
+what lets you create the managed-identity user in step 3, and it is worth doing now
+because it cannot be done from a SQL-authenticated session.
 
-| | What it means | Cost |
-|---|---|---|
-| **Azure SQL Database** | The database moves to Azure. UATWEB01's app points at it too, over the internet with a firewall rule. | A monthly bill; every desk read now depends on the internet link; a migration. |
-| **App Service Hybrid Connections** | The database stays on UATWEB01. A small relay agent runs on-premises and Azure reaches SQL through it. No VPN, no port opened inbound. | An agent to install and keep running; limited throughput; still a dependency on that one machine. |
-| **VPN / private endpoint** | Proper network-level connectivity between Azure and the DIP network. | Infrastructure work and network-team involvement. |
+### There must be exactly one VMS database
 
-**Hybrid Connections is usually the right first move** — it keeps the data where it is,
-opens no inbound firewall hole, and can be undone by uninstalling an agent. Azure SQL is
-the better end state if VMS is going to be used beyond DIP, but moving the database is a
-change to the whole system, not to the tablets.
+This is the part to be deliberate about. If Azure SQL becomes the tablets' database while
+UATWEB01 keeps its local one, the visitor log splits in half: a visitor checked in at the
+desk browser is invisible to the tablet, the report shows some of the day's visits, and
+nothing looks broken enough to investigate for weeks.
 
-Do not start with the Web App. Answer this first.
+So when the Azure database goes live, **point the Blazor app on UATWEB01 at it too** —
+`ConnectionStrings:Vms` in `appsettings.Production.json`, then recycle the pool. The desk
+browser and the tablets then read and write the same rows, which is the only arrangement
+that is actually a visitor management system.
+
+Two consequences worth accepting knowingly: every desk check-in then depends on the
+internet link, and any visits already recorded on UATWEB01 need migrating across or
+abandoning. For UAT, abandoning them is usually fine — but decide, rather than discover.
+
+### Set the schema up, in this order
+
+There is no schema-creation script. `Data/DbBootstrapper.cs` builds the tables from the EF
+model at startup, which is right for a brand new database and is exactly what a fresh
+Azure SQL database is.
+
+1. Point `ConnectionStrings__Vms` at the **SQL admin** account and start the Web App once.
+   The log names each table it creates.
+2. Run `db\001`–`005` and `db\007` against the database — the reference data, the entity
+   list and the columns added since. Connect to **VMS**; the scripts do not switch
+   databases, because Azure SQL cannot.
+3. Run `db\008_grant_app_user_azure.sql` to create the app's own least-privileged user.
+   `db\006` is for SQL Server and does not work here — Azure SQL has no Windows logins.
+4. Change `ConnectionStrings__Vms` to that user and restart. The admin credential is not
+   what the app should run as.
+
+Managed identity is worth the extra five minutes: enable the Web App's system-assigned
+identity, use Option A in `008`, and the connection string carries no secret at all —
+
+```
+Server=tcp:<server>.database.windows.net,1433;Database=VMS;Authentication=Active Directory Default;Encrypt=True;
+```
 
 ---
 
-## 1. Create the Web App
+## 2. Create the Web App
 
 Azure portal → Create → **Web App**.
 
@@ -64,7 +90,7 @@ The project targets plain `net8.0` precisely so this can be Linux. The Blazor ap
 it is `net8.0-windows` and P/Invokes ICP's toolkit. This one never touches it — cards are
 read by the client and arrive as signed XML.
 
-## 2. Configuration
+## 3. Configuration
 
 Web App → **Settings → Environment variables**. Azure maps `__` to the `:` in
 configuration keys.
@@ -91,7 +117,7 @@ Then **Settings → Configuration → General settings**: **HTTPS Only** on, **M
 TLS** 1.2. The app does no HTTPS redirect of its own; App Service terminates TLS and
 forwards plain HTTP internally, so redirecting in the app would either do nothing or loop.
 
-## 3. Publish
+## 4. Publish
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -107,7 +133,7 @@ az webapp deploy --resource-group <rg> --name <app-name> --src-path C:\Deploy\vm
 Or drag the zip into the portal's Advanced Tools → Kudu. Publishing from Visual Studio
 works too; the project is an ordinary ASP.NET Core app.
 
-## 4. Check it before involving a tablet
+## 5. Check it before involving a tablet
 
 ```powershell
 Invoke-RestMethod https://<app-name>.azurewebsites.net/health
@@ -134,7 +160,7 @@ Invoke-RestMethod https://<app-name>.azurewebsites.net/api/reference -Headers @{
 
 If the first one returns data, stop and fix it before the tablet gets near it.
 
-## 5. Point the tablet at it
+## 6. Point the tablet at it
 
 ```powershell
 cd android

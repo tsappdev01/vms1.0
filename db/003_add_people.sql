@@ -14,7 +14,20 @@
        - or open it in SSMS against VMS and execute.
    ============================================================================= */
 
-USE VMS;
+/*  No USE statement, deliberately: Azure SQL does not support switching databases, and
+    the same file has to work whether it is run against SQL Server on UATWEB01 or against
+    Azure SQL. So connect to the VMS database first - `sqlcmd -d VMS`, or choose it in the
+    database dropdown in SSMS.
+
+    The guard is here because the failure mode without it is silent: run against master by
+    mistake and you get a set of vms.* objects in the wrong database, with nothing to say
+    so until something else goes looking for them. SET NOEXEC ON leaves the rest of the
+    file parsed but unexecuted, so nothing is half-applied. */
+IF DB_NAME() IN (N'master', N'msdb', N'model', N'tempdb')
+BEGIN
+    RAISERROR('Connect to the VMS database before running this script. Nothing was changed.', 16, 1);
+    SET NOEXEC ON;
+END
 GO
 
 /* -----------------------------------------------------------------------------
@@ -89,4 +102,9 @@ GO
 
 PRINT N'vms.Person and the host snapshot columns are in place. It is empty until 004 is run.';
 SELECT COUNT(*) AS People FROM vms.Person;
+GO
+
+/* Clears the guard at the top, so a session that ran this against the wrong database is
+   not left refusing to execute anything afterwards. */
+SET NOEXEC OFF;
 GO

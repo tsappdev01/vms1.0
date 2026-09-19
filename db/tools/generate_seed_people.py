@@ -74,6 +74,30 @@ def quote(value):
     return "N'" + (value or "").replace("'", "''") + "'"
 
 
+GUARD = """\
+/*  No USE statement, deliberately: Azure SQL does not support switching databases, and
+    the same file has to work whether it is run against SQL Server on UATWEB01 or against
+    Azure SQL. So connect to the VMS database first - `sqlcmd -d VMS`, or choose it in the
+    database dropdown in SSMS.
+
+    The guard is here because the failure mode without it is silent: run against master by
+    mistake and you get a set of vms.* objects in the wrong database, with nothing to say
+    so until something else goes looking for them. SET NOEXEC ON leaves the rest of the
+    file parsed but unexecuted, so nothing is half-applied. */
+IF DB_NAME() IN (N'master', N'msdb', N'model', N'tempdb')
+BEGIN
+    RAISERROR('Connect to the VMS database before running this script. Nothing was changed.', 16, 1);
+    SET NOEXEC ON;
+END
+GO"""
+
+GUARD_OFF = """
+/* Clears the guard at the top, so a session that ran this against the wrong database is
+   not left refusing to execute anything afterwards. */
+SET NOEXEC OFF;
+GO"""
+
+
 def main():
     source = sys.argv[1] if len(sys.argv) > 1 else "db/AD Export 03_07_2026.xlsx"
     rows = read_sheet(source)
@@ -119,8 +143,9 @@ def main():
     w("       - or open it in SSMS against VMS and execute.")
     w("   " + "=" * 74 + " */")
     w("")
-    w("USE VMS;")
-    w("GO")
+    # No USE statement - see GUARD.
+    for line in GUARD.splitlines():
+        w(line)
     w("")
     w("SET NOCOUNT ON;")
     w("")
@@ -217,6 +242,9 @@ def main():
     w("GROUP BY x.Name, p.CompanyName")
     w("ORDER BY CASE WHEN x.Name IS NULL THEN 1 ELSE 0 END, People DESC;")
     w("GO")
+
+    for line in GUARD_OFF.splitlines():
+        w(line)
 
     script = "\n".join(out) + "\n"
     check_batches(script)
