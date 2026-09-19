@@ -24,6 +24,14 @@ builder.Services.AddWindowsService(options => options.ServiceName = "DI VMS");
 var signIn = SignInOptions.FromConfiguration(builder.Configuration);
 builder.Services.AddSingleton(signIn);
 
+/* An API key for /api, if one is configured. Optional here and required on the Azure-only
+   host, and the difference is deliberate: UATWEB01 sits inside the office network and has
+   never had one, so demanding it would break a working deployment to protect it from a
+   threat it does not have. Set Api:Key whenever this app is reachable from the internet -
+   and note that a key protects /api only. The Blazor screens, the visitor report
+   included, are protected by sign-in or by nothing. */
+var apiKey = ApiKey.Configured(builder.Configuration);
+
 if (signIn.Enabled)
 {
     /* Entra ID over OpenID Connect.
@@ -136,6 +144,14 @@ using (var scope = app.Services.CreateScope())
     capture.LogTo(logger);
     signIn.LogTo(logger);
 
+    if (!signIn.Enabled)
+    {
+        logger.Log(
+            apiKey is null ? LogLevel.Warning : LogLevel.Information,
+            "The /api endpoints are guarded by {Guard}.",
+            apiKey is null ? "nothing but the network this server is on" : "an API key");
+    }
+
     BrandAssets.Locate(app.Environment.WebRootPath, logger);
 }
 
@@ -160,6 +176,10 @@ app.UseStaticFiles();
 /* Order matters: authentication establishes who, authorisation decides what, and
    antiforgery must sit after both so its tokens are bound to an identity. */
 app.UseAuthentication();
+
+// Before authorisation, so a request without the key never reaches a policy.
+app.UseApiKey(signIn.Enabled ? null : apiKey);
+
 app.UseAuthorization();
 app.UseAntiforgery();
 

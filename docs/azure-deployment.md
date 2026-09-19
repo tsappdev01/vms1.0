@@ -9,6 +9,51 @@ is one definition of what a valid visit is, and it does not fork.
 
 ---
 
+## One Web App, or two
+
+The Blazor app **already contains the API**. `Program.cs` calls `MapVisitsApi`, so
+`vms.dipark.com` serves the reception screens and `/api/*` from one process today. Putting
+both on a single Azure Web App therefore needs no new project — it needs the existing app
+published to Azure.
+
+| | What runs | Web App OS | When |
+|---|---|---|---|
+| **One app** | `src/DI.Vms.Blazor` — screens and API together | **Windows** | The desk browser and the tablets should share one hostname and one deployment. |
+| **Two apps** | Blazor on UATWEB01, `src/DI.Vms.Api` in Azure | Linux | Only the tablets need to reach Azure; the screens stay on-premises. |
+
+**Windows is not a preference, it is a constraint.** `DI.Vms.Blazor` targets
+`net8.0-windows` and references ICP's `IDCardToolkit.dll`, which P/Invokes Windows native
+code. It cannot run on a Linux App Service. `DI.Vms.Api` targets plain `net8.0` precisely
+so that it can, which is the only reason it exists as a separate project.
+
+The desk browser still works from Azure, and this is worth knowing rather than assuming:
+ICP's agent runs on the *attendant's own PC*, and the page talks to it at
+`ws://127.0.0.1:9004`. The loopback address is a trustworthy origin, so an HTTPS page
+served from Azure may open that socket. Where the server lives makes no difference to
+card reading.
+
+### Before putting the screens on the internet
+
+An API key guards `/api`. **It does not guard the screens.** The Visitor Report is a Blazor
+page, and on a public Web App with `Authentication:Enabled=false` it is served to anyone
+who finds the URL — every visitor's name, Emirates ID number, date of birth and
+photograph, with a CSV export button.
+
+That is a materially different exposure from the API alone, and the API key does nothing
+about it, because a browser cannot send one. So if the screens are going on a public
+hostname, one of these has to be true first:
+
+- **`Authentication:Enabled=true`.** Finish `docs/entra-id-setup.md`. This is the answer.
+- **Access restrictions** — Networking → Access restrictions, limited to the office's
+  outbound addresses. Works only while every user is on that network, so tablets on mobile
+  data stop working.
+- **App Service authentication** (Easy Auth) in front of the whole site. Zero code, but it
+  challenges `/api` too, so the tablet needs a real token — which is Entra again, the long
+  way round.
+
+Hosting the API alone in Azure and leaving the screens on UATWEB01 avoids the question
+entirely, which is the argument for two apps.
+
 ## Why this exists
 
 `vms.dipark.com` resolves to `192.168.28.13`. That is an internal address on internal DNS,
@@ -83,12 +128,12 @@ Azure portal → Create → **Web App**.
 |---|---|
 | Publish | Code |
 | Runtime stack | **.NET 8 (LTS)** |
-| Operating System | **Linux** |
+| Operating System | **Windows** for one app (Blazor + API), **Linux** for the API alone — see the top of this file |
 | Plan | B1 to start. Not Free — F1 sleeps, and a sleeping API means the first check-in of the morning times out. |
 
-The project targets plain `net8.0` precisely so this can be Linux. The Blazor app cannot:
-it is `net8.0-windows` and P/Invokes ICP's toolkit. This one never touches it — cards are
-read by the client and arrive as signed XML.
+`DI.Vms.Api` targets plain `net8.0` precisely so it can be Linux. `DI.Vms.Blazor` cannot:
+it is `net8.0-windows` and references ICP's toolkit, so hosting the screens means a
+Windows plan.
 
 ## 3. Configuration
 
@@ -98,7 +143,7 @@ configuration keys.
 | Name | Value |
 |---|---|
 | `ConnectionStrings__Vms` | The database, per the decision above. Mark it a **Connection string** of type SQLAzure rather than an app setting if you prefer; either is read. |
-| `Api__Key` | A long random string — see below. Required while sign-in is off; the app refuses to start without it. |
+| `Api__Key` | A long random string — see below. `DI.Vms.Api` refuses to start without it while sign-in is off. `DI.Vms.Blazor` treats it as optional and enforces it when set, so that UATWEB01 — which has never had one — keeps working; set it on any public host. |
 | `Authentication__Enabled` | `false` for now. `true` once the Entra work in `docs/entra-id-setup.md` is finished. |
 | `Toolkit__Agent__RequireSignature` | `false`, while ICP's licence is the offline bundle and responses come back unsigned. |
 | `AzureAd__TenantId` / `AzureAd__ClientId` | Only when `Authentication__Enabled` is `true`. Values are in `docs/entra-id-setup.md`. |
@@ -119,9 +164,20 @@ forwards plain HTTP internally, so redirecting in the app would either do nothin
 
 ## 4. Publish
 
+For the **API alone** (Linux Web App):
+
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
 .\deploy\publish-api.ps1 -Output C:\Deploy\vms-api
+```
+
+For **both on one Web App** (Windows), it is the existing script — the same output that
+goes to UATWEB01, zipped:
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force
+.\deploy\publish.ps1 -Output C:\Deploy\vms
+Compress-Archive -Path C:\Deploy\vms\* -DestinationPath C:\Deploy\vms.zip -Force
 ```
 
 That produces a zip. Deploy it with the Azure CLI:

@@ -36,6 +36,7 @@
     <Compile Include="..\DI.Vms.Blazor\Data\VmsDbContext.cs"     LinkBase="Shared\Data" />
 
     <Compile Include="..\DI.Vms.Blazor\Services\AgentCardReader.cs"    LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\ApiKey.cs"            LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardCapture.cs"        LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardData.cs"           LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardResponseParser.cs" LinkBase="Shared\Services" />

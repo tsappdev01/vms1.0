@@ -1,4 +1,3 @@
-using DI.Vms.Api;
 using DI.Vms.Blazor.Api;
 using DI.Vms.Blazor.Data;
 using DI.Vms.Blazor.Services;
@@ -32,7 +31,7 @@ builder.Services.AddSingleton(signIn);
 
 /* Throws at startup when there is neither Entra nor a key. The one thing this host must
    never be is reachable and unguarded. */
-var apiKey = ApiKey.Require(builder.Configuration, signIn.Enabled);
+var apiKey = ApiKey.RequireForPublicHost(builder.Configuration, signIn.Enabled);
 
 if (signIn.Enabled)
 {
