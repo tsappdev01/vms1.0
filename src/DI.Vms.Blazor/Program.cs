@@ -119,6 +119,13 @@ builder.Services.AddDbContextFactory<VmsDbContext>(options =>
         builder.Configuration.GetConnectionString("Vms"),
         sql => sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)));
 
+/* Where the image of the card that was read is kept: Azure Blob Storage when a storage
+   account is configured, the database column when it is not. UATWEB01 has no storage
+   account and needs none - see Services/CardImageStore.cs for why blob is the better home
+   for it in Azure. */
+builder.Services.AddSingleton(CardImageStorageOptions.FromConfiguration(builder.Configuration));
+builder.Services.AddSingleton<CardImageStore>();
+
 /* Where the host list comes from: the Entra ID tenant people already sign in with, or the
    vms.Person table the AD export was loaded into. Resolved once, so the desk screen and
    the tablet's /api/people cannot disagree about it. */
@@ -224,22 +231,33 @@ app.MapVisitsApi(signIn.Enabled);
 app.MapGet("/visits/{id:int}/card", async (
     int id,
     IDbContextFactory<VmsDbContext> factory,
+    CardImageStore images,
     HttpContext http,
     CancellationToken ct) =>
 {
     await using var db = await factory.CreateDbContextAsync(ct);
 
-    var image = await db.VisitorCardImages
+    var record = await db.VisitorCardImages
         .AsNoTracking()
         .FirstOrDefaultAsync(c => c.VisitorEntryId == id, ct);
 
-    if (image is null) return Results.NotFound();
+    if (record is null) return Results.NotFound();
+
+    /* Read here and served from this endpoint rather than redirected to the blob. A
+       redirect - even a signed one - would put the visitor's photograph on a URL that
+       leaves this app's authorization behind and can be forwarded; and the file is an SVG,
+       which is a document that can carry script, so it has to arrive under the policy
+       below rather than on the storage account's origin. */
+    var bytes = await images.ReadAsync(record, ct);
+
+    // The row says there is an image and there is not: a deleted blob, not a server fault.
+    if (bytes is null) return Results.NotFound();
 
     http.Response.Headers["Content-Security-Policy"] =
         "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox";
     http.Response.Headers["X-Content-Type-Options"] = "nosniff";
 
-    return Results.File(image.Image, image.ContentType);
+    return Results.File(bytes, record.ContentType);
 }).RequireAuthorization(VmsRoles.CanViewReport);
 
 /* App Service wants a health check path, and it is the quickest way to tell "the app is

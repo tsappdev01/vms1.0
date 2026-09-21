@@ -263,6 +263,22 @@ configuration keys.
 | `Authentication__Enabled` | `false` for now. `true` once the Entra work in `docs/entra-id-setup.md` is finished. |
 | `Toolkit__Agent__RequireSignature` | `false`, while ICP's licence is the offline bundle and responses come back unsigned. |
 | `AzureAd__TenantId` / `AzureAd__ClientId` | Only when `Authentication__Enabled` is `true`. Values are in `docs/entra-id-setup.md`. |
+| `Directory__Source` | `EntraId` — the "person to visit" list reads the SSO directory. `Database` uses the exported `vms.Person` table instead. |
+| `Directory__TenantId` / `Directory__ClientId` / `Directory__ClientSecret` | The registration the directory is read with. Each falls back to its `AzureAd__` equivalent, so one registration serving both needs only `Directory__Source`. The registration needs **`User.Read.All` as an application permission with admin consent** — `docs/entra-id-setup.md`. |
+| `Storage__ConnectionString` | The storage account the card images go to. Unset, they are stored in the database instead, which is what UATWEB01 does. |
+| `Storage__Container` | `vms`. Created on first use if it is not there. |
+
+Everything above is an **application setting**, including the two credentials. Nothing
+belongs in `appsettings.json`: that file is committed, and a secret committed once is in the
+history for good — a client secret and a storage account key are each a credential to the
+whole thing they name.
+
+The storage container is created private and stays private. Nothing is ever served from a
+storage URL: `/visits/{id}/card` reads the blob and returns it through the app, behind the
+report role and under a policy that forbids script. That matters because the card is an SVG,
+which is a document a browser will execute — on the storage account's origin, if it were
+ever fetched from there — and because a blob URL, signed or not, is a link to a visitor's
+Emirates ID photograph that can be forwarded.
 
 Generate the key on the machine you will build the tablet from, so it is never typed twice:
 

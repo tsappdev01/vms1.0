@@ -184,8 +184,25 @@ public class VisitorCardImage
 
     public VisitorEntry? VisitorEntry { get; set; }
 
-    /// <summary>The image itself. SVG today; see <see cref="ContentType"/>.</summary>
-    public required byte[] Image { get; set; }
+    /// <summary>
+    /// The image itself, when it is stored in the database - which is what happens where
+    /// there is no storage account, on UATWEB01. Null when it is in blob storage, where
+    /// <see cref="BlobName"/> says which blob.
+    ///
+    /// Exactly one of the two is set. Both null would be a row that says an image exists
+    /// and cannot produce it.
+    /// </summary>
+    public byte[]? Image { get; set; }
+
+    /// <summary>
+    /// The blob holding the image, as a name within the configured container - e.g.
+    /// <c>cards/2026/09/3f2a….svg</c>. Null when the image is in <see cref="Image"/>.
+    ///
+    /// The name rather than a URL: the account, the container and the credential are
+    /// deployment settings, and a stored URL would pin all three into the data and break
+    /// every historic row the day any of them changes.
+    /// </summary>
+    public string? BlobName { get; set; }
 
     /// <summary>
     /// What <see cref="Image"/> is, e.g. <c>image/svg+xml</c>. Stored rather than assumed,

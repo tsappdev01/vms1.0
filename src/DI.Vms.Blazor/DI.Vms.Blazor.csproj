@@ -15,6 +15,12 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <!-- Azure Blob Storage, where the card images go when a storage account is
+         configured. Only Blobs - not the Azure.Identity/Azure.Storage metapackages -
+         because the connection string is the credential and nothing here needs a token
+         credential. Falls back to the database column when the setting is absent, which
+         is what keeps UATWEB01 working without it. -->
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
     <!-- .NET 8 ships only ASCII, Latin-1 and the Unicode encodings. The ANSI code page
          the toolkit binding marshalled its strings with lives here - see CardText. -->
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />

@@ -20,6 +20,7 @@ against being run in `master` and stops without changing anything if it is.
 | `008_grant_app_user_azure.sql` | **Deployment, Azure SQL only.** The counterpart of `006`: a contained database user for the Web App, by managed identity for preference. Its header carries the order the whole Azure database has to be set up in. See [docs/azure-deployment.md](../docs/azure-deployment.md). |
 | `009_add_card_image.sql` | **Run before deploying the build that stores card images.** Creates `vms.VisitorCardImage` — the card as read, drawn as an image, one row per visit. Its own table so that listing visits never loads images; the script's header explains why that matters. |
 | `010_add_person_directory_object_id.sql` | **Run before deploying the build that reads the host list from Entra ID.** Adds `vms.Person.DirectoryObjectId` and a unique filtered index on it. The "person to visit" list becomes the SSO directory; this table stops being that list and becomes a record of who has actually been visited, so a visit stays readable after the person leaves the tenant. |
+| `011_add_card_image_blob.sql` | **Run before deploying the build that stores card images in Azure Blob Storage.** Adds `BlobName` to `vms.VisitorCardImage` and makes `Image` nullable, so a row holds either the bytes (UATWEB01, no storage account) or a blob name (Azure). Rows written before it keep working untouched. |
 
 ## Which scripts for which database
 

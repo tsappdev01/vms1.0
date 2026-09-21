@@ -69,7 +69,14 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.HasKey(x => x.VisitorEntryId);
 
             e.Property(x => x.ContentType).HasMaxLength(FieldLengths.ContentType).IsRequired();
-            e.Property(x => x.Image).IsRequired();
+            e.Property(x => x.BlobName).HasMaxLength(FieldLengths.BlobName);
+
+            /* Neither is required on its own: the image is in the column where there is no
+               storage account and in the blob where there is, and a row carries whichever
+               applies. That one of them is always set is enforced where the row is made -
+               CardImageStore returns null rather than an empty row - because a CHECK
+               constraint here would have to be written by hand in db/ as well, and two
+               definitions of the same rule is the thing this schema does not do. */
 
             /* Cascade, unlike the host link: the image is part of the visit and means
                nothing without it, so deleting the visit should not leave it orphaned. */

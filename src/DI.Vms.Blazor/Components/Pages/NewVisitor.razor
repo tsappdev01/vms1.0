@@ -9,6 +9,7 @@
 @inject ILogger<NewVisitor> Logger
 @inject IDbContextFactory<VmsDbContext> DbFactory
 @inject IStaffDirectory Directory
+@inject CardImageStore CardImages
 
 <PageTitle>New Visitor &middot; DI VMS</PageTitle>
 
@@ -1484,6 +1485,12 @@ else if (step == 3 && saved is not null)
         message = null;
         try
         {
+            /* Stored before the visit, because the row that goes on the visit carries the
+               blob's name. If the save then fails, the blob is taken back out below. */
+            var cardImage = IsManual
+                ? null
+                : await CardImages.StoreAsync(CardImageRenderer.Render(card), CardImageRenderer.ContentType);
+
             await using var db = await DbFactory.CreateDbContextAsync();
 
             /* The host row the visit's foreign key points at.
@@ -1538,12 +1545,11 @@ else if (step == 3 && saved is not null)
                 Photo = card.Photo,
 
                 /* The card as read, drawn on the server - the same renderer the tablet's
-                   saves go through, so one visitor log holds one kind of artefact.
-                   Nothing for a typed entry: a picture of a form somebody filled in is
-                   not a record of a card, and CaptureMethod already says which it was. */
-                CardImage = !IsManual && CardImageRenderer.Render(card) is { } drawnCard
-                    ? new VisitorCardImage { Image = drawnCard, ContentType = CardImageRenderer.ContentType }
-                    : null,
+                   saves go through, so one visitor log holds one kind of artefact - and
+                   put in blob storage or the database column by CardImageStore. Nothing
+                   for a typed entry: a picture of a form somebody filled in is not a
+                   record of a card, and CaptureMethod already says which it was. */
+                CardImage = cardImage,
 
                 IdType = Fit(card.IdType, FieldLengths.CardField, "ID type"),
                 IssueDate = Fit(card.IssueDate, FieldLengths.CardField, "issue date"),
@@ -1584,7 +1590,18 @@ else if (step == 3 && saved is not null)
             };
 
             db.VisitorEntries.Add(entry);
-            await db.SaveChangesAsync();
+
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch
+            {
+                // No visit, so no owner for the blob. Take it back out rather than leave a
+                // picture of somebody's Emirates ID that nothing will ever account for.
+                await CardImages.DiscardAsync(cardImage);
+                throw;
+            }
 
             saved = entry;
             confirming = false;

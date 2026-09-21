@@ -43,6 +43,7 @@
          save and a desk save store the same artefact. Pure SVG over System.Text - no
          System.Drawing, which is why it compiles for Linux. -->
     <Compile Include="..\DI.Vms.Blazor\Services\CardImageRenderer.cs"  LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\CardImageStore.cs"     LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardResponseParser.cs" LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardText.cs"           LinkBase="Shared\Services" />
     <!-- The host list from Entra ID, which /api/people serves. -->
@@ -59,6 +60,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+    <!-- Azure Blob Storage, where the card images go when a storage account is
+         configured. Only Blobs - not the Azure.Identity/Azure.Storage metapackages -
+         because the connection string is the credential and nothing here needs a token
+         credential. Falls back to the database column when the setting is absent, which
+         is what keeps UATWEB01 working without it. -->
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
     <!-- CardText decodes the ANSI code page the toolkit marshalled its strings with.
          .NET 8 ships only ASCII, Latin-1 and the Unicode encodings; the rest live here. -->
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />

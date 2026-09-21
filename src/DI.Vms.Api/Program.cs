@@ -162,6 +162,10 @@ builder.Services.AddDbContextFactory<VmsDbContext>(options =>
 /* Agent mode, always. This process has no reader and never will - the InProcess reader is
    not even compiled in. The options still carry the signature rules, which are what
    matter here: RequireSignature, the trusted signer thumbprints, the maximum age. */
+// Card images: blob storage when configured, the database column when not.
+builder.Services.AddSingleton(CardImageStorageOptions.FromConfiguration(builder.Configuration));
+builder.Services.AddSingleton<CardImageStore>();
+
 /* The host list. Same resolution as the Blazor host, so a tablet talking to this API and a
    browser talking to that one offer the same people. */
 var directory = DirectoryOptions.FromConfiguration(builder.Configuration);

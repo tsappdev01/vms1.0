@@ -44,29 +44,29 @@ public static class CardImageRenderer
 
         var svg = new StringBuilder(8 * 1024);
 
-        svg.Append($"""
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {Width} {Height}" width="{Width}" height="{Height}" role="img">
-            <title>Emirates ID record - {X(card.FullNameEnglish)}</title>
+        svg.Append($$"""
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{Width}} {{Height}}" width="{{Width}}" height="{{Height}}" role="img">
+            <title>Emirates ID record - {{X(card.FullNameEnglish)}}</title>
             <defs>
               <style>
-                .l  {{ font: 11px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #7b8794; }}
-                .v  {{ font: 600 17px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #16232e; }}
-                .vs {{ font: 600 14px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #16232e; }}
-                .ar {{ font: 15px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #16232e; direction: rtl; }}
-                .hd {{ font: 700 15px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #0a3255; }}
-                .hs {{ font: 9px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #5a6b7b; }}
-                .fp {{ font: 10px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #6b7a88; }}
+                .l  { font: 11px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #7b8794; }
+                .v  { font: 600 17px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #16232e; }
+                .vs { font: 600 14px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #16232e; }
+                .ar { font: 15px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #16232e; direction: rtl; }
+                .hd { font: 700 15px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #0a3255; }
+                .hs { font: 9px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #5a6b7b; }
+                .fp { font: 10px 'Segoe UI', Tahoma, Arial, sans-serif; fill: #6b7a88; }
               </style>
             </defs>
 
-            <rect width="{Width}" height="{Height}" rx="14" fill="#f7f9fb" stroke="#d7dfe6" />
-            <rect x="0" y="0" width="{Width}" height="70" rx="14" fill="#ffffff" />
-            <rect x="0" y="56" width="{Width}" height="14" fill="#ffffff" />
-            <line x1="0" y1="70" x2="{Width}" y2="70" stroke="#e2e8ee" />
+            <rect width="{{Width}}" height="{{Height}}" rx="14" fill="#f7f9fb" stroke="#d7dfe6" />
+            <rect x="0" y="0" width="{{Width}}" height="70" rx="14" fill="#ffffff" />
+            <rect x="0" y="56" width="{{Width}}" height="14" fill="#ffffff" />
+            <line x1="0" y1="70" x2="{{Width}}" y2="70" stroke="#e2e8ee" />
 
             <text class="hd" x="28" y="30">UNITED ARAB EMIRATES</text>
             <text class="hs" x="28" y="48">Federal Authority for Identity &amp; Citizenship, Customs &amp; Port Security</text>
-            <text class="hd" x="{Width - 28}" y="30" text-anchor="end" direction="rtl">&#1575;&#1604;&#1573;&#1605;&#1575;&#1585;&#1575;&#1578; &#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577; &#1575;&#1604;&#1605;&#1578;&#1581;&#1583;&#1577;</text>
+            <text class="hd" x="{{Width - 28}}" y="30" text-anchor="end" direction="rtl">&#1575;&#1604;&#1573;&#1605;&#1575;&#1585;&#1575;&#1578; &#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577; &#1575;&#1604;&#1605;&#1578;&#1581;&#1583;&#1577;</text>
 
             """);
 

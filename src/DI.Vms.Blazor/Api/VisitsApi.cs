@@ -153,6 +153,7 @@ public static class VisitsApi
             SaveVisitRequest request,
             AgentCardReader reader,
             IStaffDirectory directory,
+            CardImageStore images,
             IDbContextFactory<VmsDbContext> factory,
             ClaimsPrincipal user,
             ILoggerFactory loggers,
@@ -221,6 +222,12 @@ public static class VisitsApi
                 captureMethod = card.SignatureWarning is null ? "CardReader" : "CardReaderUnverified";
             }
 
+            /* Stored before the visit, because the row that goes on the visit carries the
+               blob's name. If the save then fails, the blob is taken back out below. */
+            var cardImage = request.Manual is null
+                ? await images.StoreAsync(CardImageRenderer.Render(card), CardImageRenderer.ContentType, ct)
+                : null;
+
             await using var db = await factory.CreateDbContextAsync(ct);
 
             /* The host the visit is recorded against.
@@ -262,12 +269,11 @@ public static class VisitsApi
                 Photo = card.Photo,
 
                 /* The card as read, drawn server-side so that this and the desk browser
-                   store the same artefact. Nothing for a typed entry - a picture of a
+                   store the same artefact, and written to blob storage or the database
+                   column by CardImageStore. Nothing for a typed entry - a picture of a
                    form somebody filled in is not a record of a card. Its own table, so a
                    report that lists visits never loads it: see VisitorCardImage. */
-                CardImage = request.Manual is null && CardImageRenderer.Render(card) is { } drawn
-                    ? new VisitorCardImage { Image = drawn, ContentType = CardImageRenderer.ContentType }
-                    : null,
+                CardImage = cardImage,
                 IdType = FieldLengths.Clamp(card.IdType, FieldLengths.CardField),
                 IssueDate = FieldLengths.Clamp(card.IssueDate, FieldLengths.CardField),
                 ExpiryDate = FieldLengths.Clamp(card.ExpiryDate, FieldLengths.CardField),
@@ -309,7 +315,18 @@ public static class VisitsApi
             };
 
             db.VisitorEntries.Add(entry);
-            await db.SaveChangesAsync(ct);
+
+            try
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch
+            {
+                // No visit, so no owner for the blob. Take it back out rather than leave
+                // a picture of somebody's Emirates ID that nothing will ever account for.
+                await images.DiscardAsync(cardImage, ct);
+                throw;
+            }
 
             log.LogInformation(
                 "Visit {Id} recorded from the tablet by {User}, capture {Capture}.",

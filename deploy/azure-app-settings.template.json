@@ -50,6 +50,16 @@
     "slotSetting": false
   },
   {
+    "name": "Storage__ConnectionString",
+    "value": "REPLACE-WITH-THE-STORAGE-ACCOUNT-CONNECTION-STRING",
+    "slotSetting": false
+  },
+  {
+    "name": "Storage__Container",
+    "value": "vms",
+    "slotSetting": false
+  },
+  {
     "name": "ASPNETCORE_ENVIRONMENT",
     "value": "Production",
     "slotSetting": false

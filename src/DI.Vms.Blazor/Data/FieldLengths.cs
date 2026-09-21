@@ -32,6 +32,12 @@ public static class FieldLengths
     /// <summary>A MIME type. "image/svg+xml" is 13; 100 is room for a parameterised one.</summary>
     public const int ContentType = 100;
 
+    /// <summary>
+    /// A blob name within its container. Azure allows 1024 characters; the names written
+    /// here are about 40, and 400 is room for a prefix somebody chooses later.
+    /// </summary>
+    public const int BlobName = 400;
+
     /// <summary>An Emirates ID number: 15 digits, the first three being 784.</summary>
     public const int EmiratesIdDigits = 15;
 
