@@ -721,11 +721,22 @@ else if (step == 2 && card is not null)
                 @* Offered rather than done silently: narrowing to the entity is the point
                    of the filter, and quietly widening it would hide that the host belongs
                    somewhere else. *@
+                @* Said plainly rather than left as an empty dropdown: an unconfigured
+                   directory, an unreachable one and a tenant with nobody in it look
+                   identical at the desk, and only one of them is anybody's fault. *@
                 @if (directoryFailure is not null)
                 {
                     <span class="field-note warn">
-                        The staff directory could not be read, so the list may be out of date or
+                        The staff directory could not be read, so this list may be out of date or
                         empty. Type the name instead — the visit is still recorded against it.
+                    </span>
+                }
+                else if (directoryEmpty)
+                {
+                    <span class="field-note warn">
+                        The staff directory returned nobody. Check that the app registration has
+                        <code>User.Read.All</code> as an application permission with admin consent —
+                        see <code>docs/entra-id-setup.md</code>. Type the name meanwhile.
                     </span>
                 }
 
@@ -1018,6 +1029,13 @@ else if (step == 3 && saved is not null)
     private string? directoryFailure;
 
     /// <summary>
+    /// The directory answered, and answered with nobody. Almost always the Graph permission:
+    /// without admin consent the read fails outright, but a registration consented to the
+    /// wrong thing returns an empty page rather than an error.
+    /// </summary>
+    private bool directoryEmpty;
+
+    /// <summary>
     /// Runs the host search, narrowed to the selected entity unless told otherwise.
     ///
     /// Matches anywhere in the name, not just the start: a visitor asking for "Kamau"
@@ -1039,6 +1057,8 @@ else if (step == 3 && saved is not null)
             directoryFailure = Directory is EntraStaffDirectory { LastError: { Length: > 0 } reason }
                 ? reason
                 : null;
+
+            directoryEmpty = directoryFailure is null && Directory.Count == 0;
 
             return found.Select(p => new Person
             {

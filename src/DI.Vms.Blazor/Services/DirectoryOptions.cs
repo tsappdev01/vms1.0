@@ -62,8 +62,20 @@ public sealed class DirectoryOptions
     /// </summary>
     public int MaximumUsers { get; init; } = 20000;
 
-    /// <summary>Suggestions shown at once. More than a dozen is a list nobody reads.</summary>
+    /// <summary>
+    /// Suggestions shown for a typed search. More than a dozen matches on a name means the
+    /// name was the wrong thing to narrow by, and a longer list does not help.
+    /// </summary>
     public int MaximumSuggestions { get; init; } = 12;
+
+    /// <summary>
+    /// How many are listed when nothing has been typed - the directory being browsed rather
+    /// than searched. Higher, because here the list is the point: the attendant is scrolling
+    /// for a name they half remember. Not the whole tenant, though. Every entry is a
+    /// component rendered over the circuit, and a thousand of them on focus is a stall at
+    /// the desk to show names nobody will scroll to; past a screen or two, typing is faster.
+    /// </summary>
+    public int MaximumListed { get; init; } = 50;
 
     /// <summary>
     /// True when Graph could actually be called. Configuration alone does not prove the
@@ -116,6 +128,7 @@ public sealed class DirectoryOptions
             CacheMinutes = section.GetValue("CacheMinutes", 20),
             MaximumUsers = section.GetValue("MaximumUsers", 20000),
             MaximumSuggestions = section.GetValue("MaximumSuggestions", 12),
+            MaximumListed = section.GetValue("MaximumListed", 50),
         };
     }
 }

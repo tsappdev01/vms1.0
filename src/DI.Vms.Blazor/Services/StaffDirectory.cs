@@ -137,9 +137,11 @@ public sealed class EntraStaffDirectory : IStaffDirectory, IDisposable
         var all = await CurrentAsync(ct);
         term = term.Trim();
 
+        // Nothing typed: the directory is being browsed, so show a scrollable run of it
+        // rather than a dozen names beginning with A.
         if (term.Length == 0)
         {
-            return all.Take(options.MaximumSuggestions).ToList();
+            return all.Take(options.MaximumListed).ToList();
         }
 
         /* Matched anywhere in the name and at the start of the address, which is what the
