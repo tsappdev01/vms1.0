@@ -181,10 +181,11 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "No connection string named Vms. In Azure, set it in the Web App's configuration - " +
         "either as a connection string of type SQLAzure named Vms, or as the application " +
         "setting ConnectionStrings__Vms. On UATWEB01 it goes in appsettings.Production.json. " +
-        "On a development machine, put it in appsettings.Development.Local.json beside " +
-        "appsettings.json - that file is gitignored, which is the point of it:\n\n" +
-        "  { \"ConnectionStrings\": { \"Vms\": \"Server=...;Database=VMS;...\" } }\n\n" +
-        "It is never in appsettings.json, which is committed.");
+        "On a development machine, run deploy\\dev-settings.ps1 - it creates " +
+        "appsettings.Development.Local.json, which is gitignored and is the only place on " +
+        "that machine a password belongs.\n\n" +
+        "It is never in appsettings.json, which is committed: a credential pushed once is " +
+        "in the repository's history for good.");
 }
 
 builder.Services.AddDbContextFactory<VmsDbContext>(options =>
