@@ -28,16 +28,23 @@ Decided and created in the portal:
 > does not start, and App Service answers **503** with "Issues Detected" on the overview
 > blade. There is no setting that fixes this; the OS is fixed when the plan is created.
 >
-> So there are two shapes, and which one you have is decided by the plan:
+> So pick the script that matches the plan:
 >
-> | Plan OS | What goes on it | What you get |
+> | Plan OS | Script | What you get |
 > |---|---|---|
-> | **Windows** | `DI.Vms.Blazor` | Reception screens **and** `/api` on one Web App. This is the documented deployment. |
-> | **Linux** | `DI.Vms.Api` | The tablet API only. The reception screens need a Windows host — UATWEB01, or a second Web App. |
+> | **Windows** | `deploy\publish-azure.ps1` | Screens and `/api`, with the in-process card reader — the build that also goes to UATWEB01 and to reception PCs. |
+> | **Linux** | `deploy\publish-azure-linux.ps1` | Screens and `/api`, portable, no toolkit. **Everything except reading a card from a reader plugged into the server** — which no server does. |
+> | **Linux, API only** | `deploy\publish-api.ps1` | `DI.Vms.Api` — the tablet endpoints alone, no screens. |
 >
-> `DI.Vms.Api` exists for exactly the second case: plain `net8.0`, agent mode only, no
-> toolkit compiled in. `deploy\publish-api.ps1` publishes it portable, with no runtime
-> identifier, for that reason.
+> The middle row is the one to use for a Linux Web App that has to serve the desk as well as
+> the tablet. `-p:VmsAgentOnly=true` builds the same application as plain `net8.0` with
+> ICP's toolkit left out; in agent mode the server never touches it anyway, because the card
+> is read by the desk browser through ICP's agent or by the tablet through the Android SDK
+> and what arrives is signed XML this process verifies itself.
+>
+> **`Toolkit__Mode=Agent` is required on that build.** `InProcess` there is a host told to
+> use a reader it cannot have — the screens say so plainly rather than failing obscurely,
+> but it is still a deployment that will not read cards.
 
 | SQL server | `ts-db.database.windows.net`, admin `sqladmin` |
 | Database | **`vms`** |
@@ -46,12 +53,31 @@ So it is the **one app** case: `src/DI.Vms.Blazor` publishes to that Web App and
 reception screens and `/api` together. `src/DI.Vms.Api` is not needed for this and stays
 for the day a Linux API-only host is wanted.
 
+On a **Windows** Web App:
+
 ```powershell
 git pull
 Set-ExecutionPolicy Bypass -Scope Process -Force
 .\deploy\publish-azure.ps1 -Output C:\Deploy\vms-azure
 
 az webapp deploy --resource-group DotNetSites --name VMS --src-path C:\Deploy\vms-azure\DI.Vms.zip --type zip
+```
+
+On a **Linux** Web App — same app, portable build:
+
+```powershell
+git pull
+Set-ExecutionPolicy Bypass -Scope Process -Force
+.\deploy\publish-azure-linux.ps1 -Output C:\Deploy\vms-linux
+
+az webapp deploy --resource-group DotNetSites --name VMS --src-path C:\Deploy\vms-linux\DI.Vms.zip --type zip
+
+az webapp config set -g DotNetSites -n VMS --linux-fx-version "DOTNETCORE|8.0" `
+  --web-sockets-enabled true --always-on true --min-tls-version 1.2 `
+  --generic-configurations '{\"healthCheckPath\": \"/health\"}'
+
+az webapp config appsettings set -g DotNetSites -n VMS --settings Toolkit__Mode=Agent
+az webapp update -g DotNetSites -n VMS --https-only true
 ```
 
 The platform settings below, in one command, for a Web App that has just been created:

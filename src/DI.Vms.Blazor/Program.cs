@@ -32,8 +32,13 @@ if (builder.Environment.IsDevelopment())
    whether the process really was started by the service control manager and does nothing
    when it was not, so `dotnet run` is unaffected. It also sets the content root to the
    executable's folder - a service starts in C:\Windows\System32 otherwise, and would
-   find neither wwwroot nor appsettings.json. See docs/deployment.md. */
+   find neither wwwroot nor appsettings.json. See docs/deployment.md.
+
+   Out of the portable build along with its package: a Windows service is not a thing on
+   the host that build exists for. App Service keeps the process alive there instead. */
+#if !VMS_AGENT_ONLY
 builder.Services.AddWindowsService(options => options.ServiceName = "DI VMS");
+#endif
 
 /* Sign-in: on with Entra ID, or off with the desk trusted as it was before any of this
    existed. One switch, resolved here, and everything downstream reads it from the
@@ -185,9 +190,20 @@ var capture = CardCaptureOptions.FromConfiguration(builder.Configuration);
 builder.Services.AddSingleton(capture);
 builder.Services.AddSingleton(capture.Agent);
 
-/* Singleton: the toolkit is a native context that is expensive to create and must not be
-   initialised concurrently. The service serialises access internally. */
-builder.Services.AddSingleton<CardReaderService>();
+/* The in-process reader, where this build has one.
+
+   Singleton: the toolkit is a native context that is expensive to create and must not be
+   initialised concurrently, and the service serialises access internally.
+
+   VMS_AGENT_ONLY is the portable build - net8.0, no ICP toolkit, runs on Linux. There
+   CardReaderService is not compiled at all, and what is registered says there is no reader
+   here, which is an answer the screens already know how to show. See the VmsAgentOnly
+   property in DI.Vms.Blazor.csproj. */
+#if VMS_AGENT_ONLY
+builder.Services.AddSingleton<ICardReader, NoCardReader>();
+#else
+builder.Services.AddSingleton<ICardReader, CardReaderService>();
+#endif
 
 /* Singleton because it holds the outstanding request IDs a browser's read is redeemed
    against. Scoped per circuit would let a second tab replay the first tab's read. */

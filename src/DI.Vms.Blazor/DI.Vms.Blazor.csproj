@@ -1,14 +1,50 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <!-- Two builds of one app.
+
+       The default is the reception build: net8.0-windows, x64, ICP's toolkit compiled in,
+       a card read in-process on the machine the reader is plugged into. That is what goes
+       to UATWEB01 and to a reception PC, and it is Windows-only because the toolkit is - a
+       .NET Framework assembly that P/Invokes native Windows DLLs.
+
+       -p:VmsAgentOnly=true is the portable build: plain net8.0, no toolkit, no Windows
+       service support, and it runs on Linux. It is not a cut-down app - every screen, the
+       visitor report and /api are all there. The only thing it cannot do is read a card
+       with a reader plugged into the server, which is a thing no server does: in agent
+       mode the desk browser reads the card through ICP's agent and the tablet reads it
+       through the Android SDK, and what reaches the server either way is signed XML that
+       System.Security.Cryptography.Xml verifies. That path never touches the toolkit,
+       which is what makes this possible at all - the same reasoning that let DI.Vms.Api
+       exist.
+
+       Set Toolkit:Mode to Agent on that build. InProcess there is a host configured to use
+       a reader it does not have, and NoCardReader says exactly that rather than failing
+       obscurely. -->
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <VmsAgentOnly Condition="'$(VmsAgentOnly)' == ''">false</VmsAgentOnly>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework Condition="'$(VmsAgentOnly)' != 'true'">net8.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(VmsAgentOnly)' == 'true'">net8.0</TargetFramework>
+
     <!-- IDCardToolkit.dll is x64 and P/Invokes the native EIDAToolkit.dll, so the host
-         process must be x64 too. -->
-    <PlatformTarget>x64</PlatformTarget>
+         process must be x64 too. The portable build has neither, and pinning the platform
+         there would only stop it running where it is meant to. -->
+    <PlatformTarget Condition="'$(VmsAgentOnly)' != 'true'">x64</PlatformTarget>
+
+    <DefineConstants Condition="'$(VmsAgentOnly)' == 'true'">$(DefineConstants);VMS_AGENT_ONLY</DefineConstants>
+
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DI.Vms.Blazor</RootNamespace>
   </PropertyGroup>
+
+  <!-- The one file that needs the toolkit. Everything else reaches a reader through
+       ICardReader, so leaving this out costs nothing but the in-process read. -->
+  <ItemGroup Condition="'$(VmsAgentOnly)' == 'true'">
+    <Compile Remove="Services\CardReaderService.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
@@ -25,8 +61,10 @@
          the toolkit binding marshalled its strings with lives here - see CardText. -->
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
     <!-- Lets the published app run as a Windows Service, so the reception PC serves the
-         desk from boot with nobody logged in. A no-op when started from a console. -->
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+         desk from boot with nobody logged in. A no-op when started from a console, and out
+         of the portable build entirely - App Service keeps that process alive instead. -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1"
+                      Condition="'$(VmsAgentOnly)' != 'true'" />
     <!-- Entra ID sign-in over OpenID Connect. Chosen over Windows Authentication because
          it survives a tablet browser and a connection from outside the office, and brings
          MFA and conditional access with it - none of which Negotiate does.
@@ -45,7 +83,7 @@
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.15.1" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(VmsAgentOnly)' != 'true'">
     <!-- The toolkit binding is .NET Framework 4.7.2. It is a thin P/Invoke wrapper, so
          .NET 8 can normally load it; NU1701 is suppressed because the warning is about
          framework mismatch in general, not about anything this assembly does.
@@ -71,7 +109,7 @@
 
        IDCardToolkit.dll is excluded: it is already present as an assembly reference, and
        copying a second instance invites a load conflict. -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(VmsAgentOnly)' != 'true'">
     <ToolkitNative Include="$(ToolkitNativeDir)\*.dll"
                    Exclude="$(ToolkitNativeDir)\IDCardToolkit.dll" />
     <None Include="@(ToolkitNative)">
@@ -84,7 +122,7 @@
     </None>
   </ItemGroup>
 
-  <Target Name="WarnIfToolkitNativeMissing" BeforeTargets="Build">
+  <Target Name="WarnIfToolkitNativeMissing" BeforeTargets="Build" Condition="'$(VmsAgentOnly)' != 'true'">
     <Warning Condition="!Exists('$(ToolkitNativeDir)\EIDAToolkit.dll')"
              Text="Native toolkit DLLs not found at $(ToolkitNativeDir). Card reading will fail at runtime with 0x8007007E." />
   </Target>
