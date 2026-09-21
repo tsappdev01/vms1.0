@@ -355,6 +355,7 @@ class VisitorViewModel(
             entityId = current.entityId!!,
             personToVisit = current.personToVisit,
             personToVisitId = current.host?.id,
+            personToVisitDirectoryId = current.host?.directoryObjectId,
             purpose = current.purpose!!,
             purposeOther = current.purposeOther.trim().ifBlank { null },
         )

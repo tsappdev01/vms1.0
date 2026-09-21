@@ -15,6 +15,18 @@ public class DiEntity
 public class Person
 {
     public int Id { get; set; }
+
+    /// <summary>
+    /// The Entra ID object ID, when this row came from the directory rather than from the
+    /// export - which is the only identifier the tenant guarantees is stable. A display
+    /// name is not unique and an address changes with a marriage or a rebrand, so matching
+    /// on either would either duplicate people or merge two of them.
+    ///
+    /// Null on the rows db/004_seed_people.sql loaded, and filled in the first time one of
+    /// them is picked out of the directory - see DirectoryPeople.EnsureAsync.
+    /// </summary>
+    public string? DirectoryObjectId { get; set; }
+
     public required string DisplayName { get; set; }
     public string? Title { get; set; }
     public string? Email { get; set; }

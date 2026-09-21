@@ -119,6 +119,22 @@ builder.Services.AddDbContextFactory<VmsDbContext>(options =>
         builder.Configuration.GetConnectionString("Vms"),
         sql => sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)));
 
+/* Where the host list comes from: the Entra ID tenant people already sign in with, or the
+   vms.Person table the AD export was loaded into. Resolved once, so the desk screen and
+   the tablet's /api/people cannot disagree about it. */
+var directory = DirectoryOptions.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(directory);
+
+if (directory.UsesEntraId)
+{
+    builder.Services.AddHttpClient(EntraStaffDirectory.HttpClientName);
+    builder.Services.AddSingleton<IStaffDirectory, EntraStaffDirectory>();
+}
+else
+{
+    builder.Services.AddSingleton<IStaffDirectory, NoStaffDirectory>();
+}
+
 /* Where the reader is, relative to this process - the deployment's central decision.
    Resolved once here so both readers and every screen agree on it. */
 var capture = CardCaptureOptions.FromConfiguration(builder.Configuration);

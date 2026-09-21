@@ -24,13 +24,19 @@ data class ReferenceDto(
 )
 
 /** A host. No email address: the screen never showed one, and the server records the
-    host's email from its own copy when the visit is saved. */
+    host's email from its own copy when the visit is saved.
+
+    [id] is 0 for somebody the server found in the Entra ID directory but who has no
+    vms.Person row yet - one is written when a visit to them is saved. [directoryObjectId]
+    is what identifies them until then, so both go back in the save request and the server
+    uses whichever it was given. */
 @Serializable
 data class PersonDto(
     val id: Int,
     val displayName: String,
     val title: String? = null,
     val companyName: String? = null,
+    val directoryObjectId: String? = null,
 )
 
 @Serializable
@@ -65,6 +71,7 @@ data class SaveVisitRequest(
     val entityId: Int,
     val personToVisit: String,
     val personToVisitId: Int? = null,
+    val personToVisitDirectoryId: String? = null,
     val purpose: String,
     val purposeOther: String? = null,
 )

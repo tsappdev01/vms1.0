@@ -23,6 +23,9 @@ public static class FieldLengths
     /// <summary>A UPN, which is an email address, so the same room as one.</summary>
     public const int RecordedBy = 256;
 
+    /// <summary>An Entra ID object ID: a GUID, 36 characters. 64 leaves room and costs nothing.</summary>
+    public const int DirectoryObjectId = 64;
+
     /// <summary>Everything read off the card that is not a name.</summary>
     public const int CardField = 150;
 

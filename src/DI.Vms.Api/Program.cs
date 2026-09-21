@@ -162,6 +162,21 @@ builder.Services.AddDbContextFactory<VmsDbContext>(options =>
 /* Agent mode, always. This process has no reader and never will - the InProcess reader is
    not even compiled in. The options still carry the signature rules, which are what
    matter here: RequireSignature, the trusted signer thumbprints, the maximum age. */
+/* The host list. Same resolution as the Blazor host, so a tablet talking to this API and a
+   browser talking to that one offer the same people. */
+var directory = DirectoryOptions.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(directory);
+
+if (directory.UsesEntraId)
+{
+    builder.Services.AddHttpClient(EntraStaffDirectory.HttpClientName);
+    builder.Services.AddSingleton<IStaffDirectory, EntraStaffDirectory>();
+}
+else
+{
+    builder.Services.AddSingleton<IStaffDirectory, NoStaffDirectory>();
+}
+
 var capture = CardCaptureOptions.FromConfiguration(builder.Configuration);
 builder.Services.AddSingleton(capture);
 builder.Services.AddSingleton(capture.Agent);

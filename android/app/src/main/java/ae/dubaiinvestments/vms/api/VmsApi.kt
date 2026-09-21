@@ -13,8 +13,10 @@ interface VmsApi {
     @GET("api/reference")
     suspend fun reference(): ReferenceDto
 
-    /** Host search, run on the server. The list is 725 people with titles, emails and
-        employers, and that is a staff directory not to be sitting on a tablet. */
+    /** Host search, run on the server - against the Entra ID directory where the tenant is
+        configured, otherwise against vms.Person. Either way it is the whole staff
+        directory, with titles, emails and employers, and that is not a thing to be sitting
+        on a tablet at a reception desk. */
     @GET("api/people")
     suspend fun people(
         @Query("q") q: String,

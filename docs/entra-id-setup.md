@@ -249,3 +249,80 @@ the report shows and the export carries.
    visit". Nothing deletes it.
 
 Sign-in was the first of these and the smallest.
+
+---
+
+## The staff directory (the "Person to visit" list)
+
+The host list at the desk reads Entra ID directly, so it is the same directory people sign
+in with: a joiner appears without a new AD export, a leaver stops appearing without one, and
+a change of title or company follows the tenant.
+
+It replaces `db/004_seed_people.sql` as the *source*. It does not replace `vms.Person`:
+`vms.VisitorEntry.PersonToVisitId` points there, and a visit has to stay readable years
+after the person has left the tenant. So the table becomes a record of the people who have
+actually been visited — a row is written the first time somebody is picked, matched on the
+Entra object ID, and kept afterwards. The rows the export already loaded are adopted on
+their email address rather than duplicated. Run `db/010_add_person_directory_object_id.sql`
+before deploying the build that does this; the app checks for the column at startup and
+refuses to run without it.
+
+### The permission to grant
+
+Graph is called with the application's own identity, not the receptionist's — the desk must
+be able to look a host up whether or not anyone has signed in.
+
+1. **App registrations → the VMS registration → API permissions → Add a permission →
+   Microsoft Graph → *Application* permissions → `User.Read.All`.**
+   It must be the Application column, not Delegated. A delegated permission is exercised on
+   behalf of a signed-in user, and there may not be one.
+2. **Grant admin consent** for the tenant. Without this every directory read fails with
+   `Authorization_RequestDenied`, which the app logs in full and the picker reports as
+   "The staff directory could not be read".
+3. `User.Read.All` is read-only over user objects. `Directory.Read.All` also works and is
+   broader than this needs; prefer the narrower one.
+
+### The settings
+
+In the Web App's **Configuration → Application settings** (never in `appsettings.json`,
+which is committed):
+
+| Setting | Value |
+| --- | --- |
+| `Directory__Source` | `EntraId`, or `Database` to go back to the exported table |
+| `Directory__TenantId` | the directory (tenant) ID |
+| `Directory__ClientId` | the application (client) ID |
+| `Directory__ClientSecret` | the secret **value**, not its ID |
+
+Each falls back to the `AzureAd` equivalent, so a deployment where sign-in and the directory
+read use the same registration needs only `Directory__Source`. Left entirely unset, the app
+uses Entra ID when it has credentials and the table when it does not.
+
+Optional, and rarely wanted: `Directory__CacheMinutes` (default 20 — see below),
+`Directory__MaximumUsers` (default 20000), `Directory__MaximumSuggestions` (default 12).
+
+### How it behaves
+
+The whole directory is fetched once, paged, and searched in memory. A type-ahead issues a
+request every few characters; one Graph call per keystroke per desk is a great deal of
+traffic against a tenant-wide throttle for a list that changes when somebody joins. The
+copy is re-fetched every `Directory__CacheMinutes`.
+
+Two consequences worth knowing:
+
+- Focusing the empty field lists the directory, because the list is already in memory.
+  Nothing needs to be typed first.
+- A Graph outage costs the desk nothing until the copy expires, and even then the last good
+  copy is kept and served rather than the picker going blank — with a note on the field
+  saying the list may be out of date. Stale names beat no names at a desk with a visitor
+  waiting.
+
+The **entity filter does not apply** to the directory. "Entity being visited" is which group
+company is being visited; the directory's `companyName` is the tenant's spelling, which is
+not the entity list's — mapping one to the other is guesswork, and a wrong guess hides a
+host rather than narrowing to them. The checkbox is therefore hidden when the directory is
+the source. The visit still records both, independently.
+
+Disabled accounts are filtered out (`accountEnabled eq true`). Guests and service accounts
+are not: a guest can be somebody's host, and a rule that guesses which accounts are people
+belongs in the tenant, not in a visitor book.

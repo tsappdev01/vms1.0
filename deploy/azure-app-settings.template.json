@@ -30,6 +30,26 @@
     "slotSetting": false
   },
   {
+    "name": "Directory__Source",
+    "value": "EntraId",
+    "slotSetting": false
+  },
+  {
+    "name": "Directory__TenantId",
+    "value": "REPLACE-WITH-THE-DIRECTORY-TENANT-ID",
+    "slotSetting": false
+  },
+  {
+    "name": "Directory__ClientId",
+    "value": "REPLACE-WITH-THE-APPLICATION-CLIENT-ID",
+    "slotSetting": false
+  },
+  {
+    "name": "Directory__ClientSecret",
+    "value": "REPLACE-WITH-THE-CLIENT-SECRET-VALUE",
+    "slotSetting": false
+  },
+  {
     "name": "ASPNETCORE_ENVIRONMENT",
     "value": "Production",
     "slotSetting": false

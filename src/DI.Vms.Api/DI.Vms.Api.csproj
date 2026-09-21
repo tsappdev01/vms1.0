@@ -39,8 +39,15 @@
     <Compile Include="..\DI.Vms.Blazor\Services\ApiKey.cs"            LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardCapture.cs"        LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardData.cs"           LinkBase="Shared\Services" />
+    <!-- Draws the card that was read. Linked because VisitsApi.cs calls it, so a tablet
+         save and a desk save store the same artefact. Pure SVG over System.Text - no
+         System.Drawing, which is why it compiles for Linux. -->
+    <Compile Include="..\DI.Vms.Blazor\Services\CardImageRenderer.cs"  LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardResponseParser.cs" LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardText.cs"           LinkBase="Shared\Services" />
+    <!-- The host list from Entra ID, which /api/people serves. -->
+    <Compile Include="..\DI.Vms.Blazor\Services\DirectoryOptions.cs"   LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\StaffDirectory.cs"     LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\SignInOptions.cs"      LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\VisitPurposes.cs"      LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\VmsRoles.cs"           LinkBase="Shared\Services" />

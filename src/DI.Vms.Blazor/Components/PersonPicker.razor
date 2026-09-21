@@ -11,7 +11,7 @@
            value="@Text"
            @oninput="OnInput"
            @onkeydown="OnKeyDown"
-           @onfocusin="() => open = suggestions.Count > 0"
+           @onfocusin="OnFocus"
            placeholder="@Placeholder" maxlength="@MaxLength"
            autocomplete="off" role="combobox" aria-expanded="@open"
            aria-autocomplete="list" aria-controls="@($"{Id}-list")" />
@@ -71,8 +71,13 @@
 
     [Parameter] public string? Placeholder { get; set; }
 
-    /// <summary>Characters before searching. One letter would match most of the list.</summary>
-    private const int MinimumTerm = 2;
+    /// <summary>
+    /// Characters before searching. Two against the database, where every search is a
+    /// query and one letter would match most of the list. Zero against the staff directory,
+    /// which is held in memory - there the list can simply be shown on focus, which is what
+    /// makes the field a directory to browse rather than a guess to type into.
+    /// </summary>
+    [Parameter] public int MinimumTerm { get; set; } = 2;
 
     private List<Person> suggestions = [];
     private bool open;
@@ -85,6 +90,23 @@
     /// the circuit and a query against the database.
     /// </summary>
     private CancellationTokenSource? debounce;
+
+    /// <summary>
+    /// Reopens the last set of suggestions, and fetches one where the field lists without
+    /// being typed into - so focusing an empty box shows the directory rather than nothing.
+    /// </summary>
+    private async Task OnFocus()
+    {
+        if (suggestions.Count > 0)
+        {
+            open = true;
+            return;
+        }
+
+        if (MinimumTerm > 0) return;
+
+        await RunSearch(Text.Trim(), CancellationToken.None);
+    }
 
     private async Task OnInput(ChangeEventArgs e)
     {
@@ -108,13 +130,26 @@
             return;
         }
 
+        try
+        {
+            await Task.Delay(250, token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a later keystroke; the newer search owns the state.
+            return;
+        }
+
+        await RunSearch(text.Trim(), token);
+    }
+
+    private async Task RunSearch(string term, CancellationToken token)
+    {
         searching = true;
 
         try
         {
-            await Task.Delay(250, token);
-
-            var found = await Search(text.Trim());
+            var found = await Search(term);
             if (token.IsCancellationRequested) return;
 
             suggestions = [.. found];
@@ -123,7 +158,6 @@
         }
         catch (OperationCanceledException)
         {
-            // Superseded by a later keystroke; the newer search owns the state.
             return;
         }
         finally

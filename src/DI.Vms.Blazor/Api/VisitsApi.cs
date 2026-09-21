@@ -86,17 +86,38 @@ public static class VisitsApi
             return Results.Ok(new ReferenceDto(entities, VisitPurposes.All, VisitPurposes.Other));
         });
 
-        /* The host list, searched server-side. Not shipped to the device: it is 725 people
-           with names, titles, email addresses and employers, and that is a staff
-           directory sitting on a tablet at a reception desk. */
+        /* The host list, searched server-side. Not shipped to the device: it is the whole
+           staff directory - names, titles, email addresses and employers - and that is not
+           a thing to leave sitting on a tablet at a reception desk.
+
+           Two sources, and the device cannot tell which it got: Entra ID when the tenant
+           is configured, otherwise the vms.Person table. A directory hit carries an object
+           ID instead of a row ID, because it has no row yet - one is written when a visit
+           to that person is saved. */
         api.MapGet("/people", async (
             string? q,
             int? entityId,
             bool allEntities,
+            IStaffDirectory directory,
             IDbContextFactory<VmsDbContext> factory,
             CancellationToken ct) =>
         {
             var term = (q ?? string.Empty).Trim();
+
+            if (directory.Enabled)
+            {
+                /* No entity narrowing. The entity is which company is being visited; the
+                   directory is the tenant, and its companyName does not use the same names
+                   the entity list does. Filtering on a guess at that mapping would hide
+                   hosts rather than narrow to them. An empty term lists the head of the
+                   directory, so the picker can show it before anything is typed. */
+                var found = await directory.SearchAsync(term, ct);
+
+                return Results.Ok(found
+                    .Select(p => new PersonDto(0, p.DisplayName, p.Title, p.CompanyName, p.ObjectId))
+                    .ToList());
+            }
+
             if (term.Length < 2) return Results.Ok(Array.Empty<PersonDto>());
 
             await using var db = await factory.CreateDbContextAsync(ct);
@@ -115,7 +136,7 @@ public static class VisitsApi
             var people = await all
                 .OrderBy(p => p.DisplayName)
                 .Take(12)
-                .Select(p => new PersonDto(p.Id, p.DisplayName, p.Title, p.CompanyName))
+                .Select(p => new PersonDto(p.Id, p.DisplayName, p.Title, p.CompanyName, p.DirectoryObjectId))
                 .ToListAsync(ct);
 
             return Results.Ok(people);
@@ -131,6 +152,7 @@ public static class VisitsApi
         api.MapPost("/visits", async (
             SaveVisitRequest request,
             AgentCardReader reader,
+            IStaffDirectory directory,
             IDbContextFactory<VmsDbContext> factory,
             ClaimsPrincipal user,
             ILoggerFactory loggers,
@@ -201,9 +223,37 @@ public static class VisitsApi
 
             await using var db = await factory.CreateDbContextAsync(ct);
 
-            var host = request.PersonToVisitId is { } personId
-                ? await db.People.FirstOrDefaultAsync(p => p.Id == personId, ct)
-                : null;
+            /* The host the visit is recorded against.
+
+               A directory pick has no row yet, so one is written here - in the same
+               SaveChanges as the visit, so a host row can never be left behind by a visit
+               that failed to save. Looked up by object ID rather than by anything the
+               device sent about them: the name, title and employer stored on the visit
+               come from the server's own copy of the directory, not from the tablet. */
+            Person? host = null;
+
+            if (request.PersonToVisitDirectoryId is { Length: > 0 } objectId)
+            {
+                var fromDirectory = await directory.FindAsync(objectId, ct);
+
+                if (fromDirectory is null)
+                {
+                    /* Picked from a list this server did not produce, or produced before a
+                       refresh dropped them. Recording the typed name is the right outcome -
+                       the visitor is at the desk - so this is a warning, not a refusal. */
+                    log.LogWarning(
+                        "A tablet sent directory object {ObjectId} for a host the directory does not return. " +
+                        "The visit is recorded with the typed name only.", objectId);
+                }
+                else
+                {
+                    host = await DirectoryPeople.EnsureAsync(db, fromDirectory, ct);
+                }
+            }
+            else if (request.PersonToVisitId is { } personId and > 0)
+            {
+                host = await db.People.FirstOrDefaultAsync(p => p.Id == personId, ct);
+            }
 
             var entry = new VisitorEntry
             {
@@ -242,7 +292,10 @@ public static class VisitsApi
 
                 DiEntityId = request.EntityId,
                 PersonToVisit = FieldLengths.Clamp(request.PersonToVisit!.Trim(), FieldLengths.PersonToVisit) ?? string.Empty,
-                PersonToVisitId = host?.Id,
+                /* EF fills this in from the navigation when the host row is new and both are
+                   saved together - which is why the row is added to the same context above
+                   rather than saved separately first. */
+                PersonToVisitPerson = host,
                 PersonToVisitTitle = FieldLengths.Clamp(host?.Title, FieldLengths.Title),
                 PersonToVisitEmail = FieldLengths.Clamp(host?.Email, FieldLengths.Email),
                 PersonToVisitCompany = FieldLengths.Clamp(host?.CompanyName, FieldLengths.Company),
@@ -308,7 +361,20 @@ public sealed record EntityDto(int Id, string Name);
 /// the host's email - <see cref="MapVisitsApi"/> reads it from the database by ID, on the
 /// server, where it never leaves.
 /// </summary>
-public sealed record PersonDto(int Id, string DisplayName, string? Title, string? CompanyName);
+/// <param name="Id">
+/// The vms.Person row, or 0 for somebody who is in the directory but has never been
+/// visited from here and so has no row yet. Send it back as PersonToVisitId.
+/// </param>
+/// <param name="DirectoryObjectId">
+/// The Entra ID object ID, when the list came from the directory. Send it back as
+/// PersonToVisitDirectoryId - it is what identifies the person when Id is 0.
+/// </param>
+public sealed record PersonDto(
+    int Id,
+    string DisplayName,
+    string? Title,
+    string? CompanyName,
+    string? DirectoryObjectId);
 
 public sealed record ReferenceDto(IReadOnlyList<EntityDto> Entities, IReadOnlyList<string> Purposes, string OtherPurpose);
 
@@ -342,5 +408,6 @@ public sealed record SaveVisitRequest(
     int EntityId,
     string? PersonToVisit,
     int? PersonToVisitId,
+    string? PersonToVisitDirectoryId,
     string? Purpose,
     string? PurposeOther);

@@ -8,6 +8,7 @@
 @inject IJSRuntime JS
 @inject ILogger<NewVisitor> Logger
 @inject IDbContextFactory<VmsDbContext> DbFactory
+@inject IStaffDirectory Directory
 
 <PageTitle>New Visitor &middot; DI VMS</PageTitle>
 
@@ -678,19 +679,31 @@ else if (step == 2 && card is not null)
 
             <div class="field">
                 <label for="person">Person to visit</label>
+                @* MinimumTerm 0 against the directory: it is held in memory here, so the
+                   whole tenant can be listed the moment the field is focused rather than
+                   made to guess two letters first. Against the database it stays at two,
+                   where every search is a query. *@
                 <PersonPicker Id="person"
                               Text="@personToVisit"
                               TextChanged="@(t => personToVisit = t)"
                               PersonChanged="@(p => host = p)"
                               Search="SearchPeople"
+                              MinimumTerm="@(Directory.Enabled ? 0 : 2)"
                               MaxLength="@FieldLengths.PersonToVisit"
-                              Placeholder="Start typing a name" />
+                              Placeholder="@(Directory.Enabled ? "Search the directory" : "Start typing a name")" />
 
                 <div class="field-aside">
-                    <label class="check">
-                        <input type="checkbox" @bind="searchAllEntities" @bind:after="ClearHost" />
-                        Search all entities
-                    </label>
+                    @* The entity filter belongs to the exported list, which carries a
+                       DiEntityId per person. The directory does not: its companyName is
+                       the tenant's spelling, not the entity list's, and narrowing on a
+                       guess at that mapping would hide hosts rather than find them. *@
+                    @if (!Directory.Enabled)
+                    {
+                        <label class="check">
+                            <input type="checkbox" @bind="searchAllEntities" @bind:after="ClearHost" />
+                            Search all entities
+                        </label>
+                    }
 
                     @if (host is not null)
                     {
@@ -707,7 +720,15 @@ else if (step == 2 && card is not null)
                 @* Offered rather than done silently: narrowing to the entity is the point
                    of the filter, and quietly widening it would hide that the host belongs
                    somewhere else. *@
-                @if (noMatchInEntity && !searchAllEntities)
+                @if (directoryFailure is not null)
+                {
+                    <span class="field-note warn">
+                        The staff directory could not be read, so the list may be out of date or
+                        empty. Type the name instead — the visit is still recorded against it.
+                    </span>
+                }
+
+                @if (noMatchInEntity && !searchAllEntities && !Directory.Enabled)
                 {
                     <span class="field-note warn">
                         No match in @(entities.FirstOrDefault(e => e.Id == entityId)?.Name ?? "this entity").
@@ -989,6 +1010,13 @@ else if (step == 3 && saved is not null)
     private bool noMatchInEntity;
 
     /// <summary>
+    /// Why the directory search came back short, when it did. Shown rather than swallowed:
+    /// an empty picker with no explanation is indistinguishable from an empty tenant, and
+    /// the attendant needs to know whether to type the name instead.
+    /// </summary>
+    private string? directoryFailure;
+
+    /// <summary>
     /// Runs the host search, narrowed to the selected entity unless told otherwise.
     ///
     /// Matches anywhere in the name, not just the start: a visitor asking for "Kamau"
@@ -998,6 +1026,28 @@ else if (step == 3 && saved is not null)
     private async Task<IReadOnlyList<Person>> SearchPeople(string term)
     {
         noMatchInEntity = false;
+
+        if (Directory.Enabled)
+        {
+            /* Detached Person objects with no row ID, built only so the picker and the
+               confirmation dialog can go on speaking one type. The row is written when the
+               visit is saved - see Save - and until then Id is 0 and DirectoryObjectId is
+               what identifies them. */
+            var found = await Directory.SearchAsync(term, CancellationToken.None);
+
+            directoryFailure = Directory is EntraStaffDirectory { LastError: { Length: > 0 } reason }
+                ? reason
+                : null;
+
+            return found.Select(p => new Person
+            {
+                DirectoryObjectId = p.ObjectId,
+                DisplayName = p.DisplayName,
+                Title = p.Title,
+                Email = p.Email,
+                CompanyName = p.CompanyName,
+            }).ToList();
+        }
 
         await using var db = await DbFactory.CreateDbContextAsync();
 
@@ -1434,6 +1484,43 @@ else if (step == 3 && saved is not null)
         message = null;
         try
         {
+            await using var db = await DbFactory.CreateDbContextAsync();
+
+            /* The host row the visit's foreign key points at.
+
+               A pick from the directory has no row yet, so one is written - into this same
+               context, so it is committed by the same SaveChanges as the visit and a host
+               row can never be left behind by a visit that failed to save. Its title,
+               address and employer are taken from the directory rather than from what the
+               picker happened to be holding, so what is stored is what the tenant says.
+
+               A pick from the database is re-read here for the same reason the API does it:
+               the object in `host` came from a context that has since been disposed, and
+               assigning a detached entity to the navigation would have EF insert a second
+               copy of the person. */
+            Person? hostRow = null;
+
+            if (host is { DirectoryObjectId: { Length: > 0 } objectId })
+            {
+                if (await Directory.FindAsync(objectId, CancellationToken.None) is { } fromDirectory)
+                {
+                    hostRow = await DirectoryPeople.EnsureAsync(db, fromDirectory);
+                }
+                else
+                {
+                    /* Picked before a refresh dropped them, or the directory is unreachable.
+                       The visitor is at the desk: record the typed name and say nothing that
+                       stops the check-in. */
+                    Logger.LogWarning(
+                        "Directory object {ObjectId} was picked but the directory no longer returns it. " +
+                        "The visit is recorded with the typed name only.", objectId);
+                }
+            }
+            else if (host is { Id: > 0 })
+            {
+                hostRow = await db.People.FirstOrDefaultAsync(p => p.Id == host.Id);
+            }
+
             var entry = new VisitorEntry
             {
                 /* Every string is fitted to its column on the way in. Nothing a real card
@@ -1481,10 +1568,12 @@ else if (step == 3 && saved is not null)
                 AddressEmail = Fit(card.AddressEmail, FieldLengths.Email, "email"),
                 DiEntityId = entityId,
                 PersonToVisit = Fit(personToVisit.Trim(), FieldLengths.PersonToVisit, "person to visit") ?? string.Empty,
-                PersonToVisitId = host?.Id,
-                PersonToVisitTitle = Fit(host?.Title, FieldLengths.Title, "host title"),
-                PersonToVisitEmail = Fit(host?.Email, FieldLengths.Email, "host email"),
-                PersonToVisitCompany = Fit(host?.CompanyName, FieldLengths.Company, "host company"),
+                /* The navigation, not the ID: a host row created a moment ago has no ID
+                   until SaveChanges runs, and EF fills the key in from the navigation. */
+                PersonToVisitPerson = hostRow,
+                PersonToVisitTitle = Fit(hostRow?.Title, FieldLengths.Title, "host title"),
+                PersonToVisitEmail = Fit(hostRow?.Email, FieldLengths.Email, "host email"),
+                PersonToVisitCompany = Fit(hostRow?.CompanyName, FieldLengths.Company, "host company"),
                 Purpose = Fit(purpose, FieldLengths.Purpose, "purpose") ?? string.Empty,
                 PurposeOther = purpose == OtherPurpose
                     ? Fit(purposeOther.Trim(), FieldLengths.PurposeOther, "purpose details")
@@ -1494,7 +1583,6 @@ else if (step == 3 && saved is not null)
                 RecordedBy = Fit(await SignedInAs(), FieldLengths.RecordedBy, "recorded by"),
             };
 
-            await using var db = await DbFactory.CreateDbContextAsync();
             db.VisitorEntries.Add(entry);
             await db.SaveChangesAsync();
 

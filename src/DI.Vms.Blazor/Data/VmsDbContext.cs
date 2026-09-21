@@ -37,6 +37,7 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
         b.Entity<Person>(e =>
         {
             e.ToTable("Person");
+            e.Property(x => x.DirectoryObjectId).HasMaxLength(FieldLengths.DirectoryObjectId);
             e.Property(x => x.DisplayName).HasMaxLength(200).IsRequired();
             e.Property(x => x.Title).HasMaxLength(200);
             e.Property(x => x.Email).HasMaxLength(256);
@@ -50,6 +51,13 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
                table is small enough that a scan is cheap either way. */
             e.HasIndex(x => x.DisplayName);
             e.HasIndex(x => new { x.DiEntityId, x.IsActive });
+
+            /* Unique, and filtered so the rows the export loaded - which have no object ID
+               - do not all collide on NULL. This is the key a directory pick is matched
+               on, and two rows for one person would split their visit history in two. */
+            e.HasIndex(x => x.DirectoryObjectId)
+             .IsUnique()
+             .HasFilter("[DirectoryObjectId] IS NOT NULL");
         });
 
         b.Entity<VisitorCardImage>(e =>
