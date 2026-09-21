@@ -9,6 +9,8 @@ The deployment taken is **the app on UATWEB01, ICP's agent on every reception de
 | File | Run where | What it does |
 |---|---|---|
 | `publish.ps1` | Build machine, .NET 8 SDK, this repo | `dotnet publish -r win-x64`, then verifies the native toolkit DLLs actually came with it. |
+| `azure-app-settings.template.json` | Paste into the Web App | App settings → **Advanced edit**, in bulk. Replace the `REPLACE-WITH-` value first. |
+| `azure-connection-strings.template.json` | Paste into the Web App | Connection strings → **Advanced edit**. The database belongs on this tab, not in app settings: it arrives as `SQLAZURECONNSTR_Vms`, which `GetConnectionString` reads, and the portal masks it. |
 | `publish-azure.ps1` | Build machine, .NET 8 SDK, this repo | Publishes the whole app — screens and API — and zips it for the **VMS** Azure Web App (Windows). [`docs/azure-deployment.md`](../docs/azure-deployment.md) is its runbook. |
 | `publish-api.ps1` | Build machine, .NET 8 SDK, this repo | Packages `src\DI.Vms.Api` as a zip for an Azure Web App, and fails if anything Windows-only got into the output. [`docs/azure-deployment.md`](../docs/azure-deployment.md) is its runbook. |
 | `appsettings.Production.uatweb01.json.template` | Copy beside the published app on UATWEB01 | Agent mode, the local database, and the signer to pin. |

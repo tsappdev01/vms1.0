@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Vms",
+    "value": "Server=tcp:ts-db.database.windows.net,1433;Initial Catalog=vms;User ID=sqladmin;Password=REPLACE-WITH-THE-PASSWORD;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=True;Connection Timeout=30;",
+    "type": "SQLAzure",
+    "slotSetting": false
+  }
+]

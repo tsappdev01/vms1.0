@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Toolkit__Mode",
+    "value": "Agent",
+    "slotSetting": false
+  },
+  {
+    "name": "Toolkit__Agent__TlsEnabled",
+    "value": "false",
+    "slotSetting": false
+  },
+  {
+    "name": "Toolkit__Agent__RequireSignature",
+    "value": "false",
+    "slotSetting": false
+  },
+  {
+    "name": "Toolkit__Agent__MaximumResponseAge",
+    "value": "00:10:00",
+    "slotSetting": false
+  },
+  {
+    "name": "Authentication__Enabled",
+    "value": "false",
+    "slotSetting": false
+  },
+  {
+    "name": "Api__Key",
+    "value": "REPLACE-WITH-48-RANDOM-BYTES-BASE64",
+    "slotSetting": false
+  },
+  {
+    "name": "ASPNETCORE_ENVIRONMENT",
+    "value": "Production",
+    "slotSetting": false
+  },
+  {
+    "name": "Logging__LogLevel__Default",
+    "value": "Information",
+    "slotSetting": false
+  },
+  {
+    "name": "Logging__LogLevel__Microsoft.AspNetCore",
+    "value": "Warning",
+    "slotSetting": false
+  }
+]
