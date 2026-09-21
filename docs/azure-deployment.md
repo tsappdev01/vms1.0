@@ -9,6 +9,75 @@ is one definition of what a valid visit is, and it does not fork.
 
 ---
 
+## This deployment
+
+Decided and created in the portal:
+
+| | |
+|---|---|
+| Web App | **VMS**, resource group `DotNetSites`, plan `ASP-DotNetSites-8061` |
+| | `vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net`, UAE North |
+| OS / stack | **Windows**, .NET 8 — which is what allows the Blazor app to run there |
+| SQL server | `ts-db.database.windows.net`, admin `sqladmin` |
+| Database | **`vms`** |
+
+So it is the **one app** case: `src/DI.Vms.Blazor` publishes to that Web App and serves the
+reception screens and `/api` together. `src/DI.Vms.Api` is not needed for this and stays
+for the day a Linux API-only host is wanted.
+
+```powershell
+git pull
+Set-ExecutionPolicy Bypass -Scope Process -Force
+.\deploy\publish-azure.ps1 -Output C:\Deploy\vms-azure
+
+az webapp deploy --resource-group DotNetSites --name VMS --src-path C:\Deploy\vms-azure\DI.Vms.zip --type zip
+```
+
+### App Service settings that are not defaults
+
+Configuration → General settings:
+
+| | | |
+|---|---|---|
+| **Web sockets** | **On** | Blazor Server is SignalR. Without WebSockets it falls back to long polling: the screens work, slowly, and drop their connection under any load. This is the one that gets missed. |
+| **Always On** | **On** | Otherwise the app unloads after 20 minutes idle and the first check-in of the morning waits for a cold start. |
+| **HTTPS Only** | **On** | The app does no redirect of its own, deliberately — App Service terminates TLS and forwards plain HTTP internally, so a redirect in the app either does nothing or loops. |
+| **Minimum inbound TLS** | **1.2** | |
+| **ARR affinity** | **On** (default) | Blazor circuits are stateful, and `AgentCardReader` holds outstanding read IDs in memory. Leave it on, and keep the plan at one instance. |
+
+Monitoring → Health check → Path: **`/health`**. It answers `{"status":"ok"}` when the
+database is reachable and `degraded` when it is not — 200 either way on purpose, so a brief
+database outage does not turn into a restart loop on a single instance.
+
+### Environment variables
+
+Settings → Environment variables. Azure maps `__` to `:`.
+
+| Name | Value |
+|---|---|
+| `ConnectionStrings__Vms` | `Server=tcp:ts-db.database.windows.net,1433;Initial Catalog=vms;User ID=sqladmin;Password=<the password>;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=True;Connection Timeout=30;` |
+| `Toolkit__Mode` | **`Agent`** — not optional. Unset, the app assumes the in-process reader and looks for a smartcard reader in a datacentre. |
+| `Toolkit__Agent__TlsEnabled` | `false` |
+| `Toolkit__Agent__RequireSignature` | `false`, while ICP's licence is the offline bundle |
+| `Authentication__Enabled` | `false` for now — **but read the warning below** |
+| `Api__Key` | A long random string. Guards `/api`; see the security section. |
+
+`Toolkit__Agent__HostName` stays unset — blank means the literal `127.0.0.1`, which is what
+earns the loopback exemption that lets an HTTPS page open a plain `ws://` socket.
+
+Card reading is unaffected by the move: ICP's agent runs on the attendant's own PC and the
+page talks to it at `ws://127.0.0.1:9004`, wherever the server is.
+
+### Two things to check on the portal side
+
+**Public access.** The Web App shows a private endpoint and VNet integration
+(`ApplicationGateway1VN/webapp1Subnet`). If public network access is disabled, tablets on
+the internet cannot reach it and only traffic through the Application Gateway will. Confirm
+which you want before wondering why the tablet cannot connect.
+
+**SQL firewall.** On `ts-db` → Networking, allow Azure services (or the Web App's outbound
+addresses), and your own address for SSMS.
+
 ## One Web App, or two
 
 The Blazor app **already contains the API**. `Program.cs` calls `MapVisitsApi`, so
@@ -68,7 +137,7 @@ guest network, an event desk, a phone hotspot.
 
 ## 1. The database
 
-**Decided: Azure SQL, created in the portal alongside the Web App.**
+**Decided: Azure SQL — server `ts-db.database.windows.net`, database `vms`.**
 
 Create the SQL Database and its logical server first — the Web App needs its connection
 string, and the database needs schema in it before the app will serve anything. Basic or
@@ -104,8 +173,9 @@ Azure SQL database is.
 1. Point `ConnectionStrings__Vms` at the **SQL admin** account and start the Web App once.
    The log names each table it creates.
 2. Run `db\001`–`005` and `db\007` against the database — the reference data, the entity
-   list and the columns added since. Connect to **VMS**; the scripts do not switch
-   databases, because Azure SQL cannot.
+   list and the columns added since. Connect to **`vms`** in SSMS before executing: the
+   scripts do not switch databases, because Azure SQL cannot, and they refuse to run in
+   `master`.
 3. Run `db\008_grant_app_user_azure.sql` to create the app's own least-privileged user.
    `db\006` is for SQL Server and does not work here — Azure SQL has no Windows logins.
 4. Change `ConnectionStrings__Vms` to that user and restart. The admin credential is not
