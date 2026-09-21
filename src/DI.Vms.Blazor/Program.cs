@@ -11,6 +11,23 @@ using Microsoft.Identity.Web.UI;
 
 var builder = WebApplication.CreateBuilder(args);
 
+/* A local overlay for the machine this is running on, and the answer to "where do I put the
+   connection string?" on a development box.
+
+   appsettings.json holds no credentials - it is committed, and a secret committed once is
+   in the history for good. appsettings.Development.json is committed too. This file is not:
+   .gitignore has covered appsettings.*.Local.json since the beginning, and nothing loaded
+   one, so there was no place for a developer's own connection string to go.
+
+   Development only, deliberately. In Azure the settings come from the Web App's
+   configuration, which arrives as environment variables; a JSON file added here would sit
+   above those in the order and silently win if one were ever deployed by accident. Scoping
+   it to Development means it cannot. */
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Development.Local.json", optional: true, reloadOnChange: true);
+}
+
 /* So the reception PC can serve the desk from boot with nobody logged in. This checks
    whether the process really was started by the service control manager and does nothing
    when it was not, so `dotnet run` is unaffected. It also sets the content root to the
@@ -114,9 +131,27 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
    surface as a failure on a connection that was fine a second earlier; without this a
    routine failover shows up at the desk as a failed check-in. It costs nothing on-premises,
    where those failures do not happen. */
+
+/* Checked here rather than left to the first query. Without it the failure is
+   "The ConnectionString property has not been initialized" thrown from inside EF at
+   startup, which says nothing about which setting is missing or where it should go. */
+var connectionString = builder.Configuration.GetConnectionString("Vms");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "No connection string named Vms. In Azure, set it in the Web App's configuration - " +
+        "either as a connection string of type SQLAzure named Vms, or as the application " +
+        "setting ConnectionStrings__Vms. On UATWEB01 it goes in appsettings.Production.json. " +
+        "On a development machine, put it in appsettings.Development.Local.json beside " +
+        "appsettings.json - that file is gitignored, which is the point of it:\n\n" +
+        "  { \"ConnectionStrings\": { \"Vms\": \"Server=...;Database=VMS;...\" } }\n\n" +
+        "It is never in appsettings.json, which is committed.");
+}
+
 builder.Services.AddDbContextFactory<VmsDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("Vms"),
+        connectionString,
         sql => sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)));
 
 /* Where the image of the card that was read is kept: Azure Blob Storage when a storage
