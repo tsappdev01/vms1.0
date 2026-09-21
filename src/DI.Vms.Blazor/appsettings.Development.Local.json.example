@@ -10,7 +10,7 @@
 {
   "ConnectionStrings": {
     // Azure SQL:
-    "Vms": "Server=tcp:ts-db.database.windows.net,1433;Initial Catalog=vms;User ID=sqladmin;Password=PUT-IT-HERE;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
+    "Vms": "Server=tcp:ts-db.database.windows.net,1433;Initial Catalog=vms;User ID=sqladmin;Password=Did$db&Did$db&;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
 
     // SQL Server on UATWEB01, or a local instance:
     // "Vms": "Server=UATWEB01;Database=VMS;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
