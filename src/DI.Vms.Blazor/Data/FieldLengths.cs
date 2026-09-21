@@ -26,6 +26,9 @@ public static class FieldLengths
     /// <summary>Everything read off the card that is not a name.</summary>
     public const int CardField = 150;
 
+    /// <summary>A MIME type. "image/svg+xml" is 13; 100 is room for a parameterised one.</summary>
+    public const int ContentType = 100;
+
     /// <summary>An Emirates ID number: 15 digits, the first three being 784.</summary>
     public const int EmiratesIdDigits = 15;
 

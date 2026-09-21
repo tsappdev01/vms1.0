@@ -188,6 +188,37 @@ app.MapControllers();
 // The Android reception app's endpoints. Bearer-only when sign-in is on; see Api/VisitsApi.cs.
 app.MapVisitsApi(signIn.Enabled);
 
+/* The stored card for one visit.
+
+   Behind the report's own policy, because it is the same data the report shows and the
+   same people should see it.
+
+   Served inline so a click opens it, with headers that make that safe: an SVG is a
+   document a browser will execute script in, and this one is served from the app's own
+   origin. Nothing in a generated card carries script - every value goes through XML
+   escaping - but "nothing does today" is not a control. The policy says: no scripts, no
+   network, images only from the data URI that is already inside the file. */
+app.MapGet("/visits/{id:int}/card", async (
+    int id,
+    IDbContextFactory<VmsDbContext> factory,
+    HttpContext http,
+    CancellationToken ct) =>
+{
+    await using var db = await factory.CreateDbContextAsync(ct);
+
+    var image = await db.VisitorCardImages
+        .AsNoTracking()
+        .FirstOrDefaultAsync(c => c.VisitorEntryId == id, ct);
+
+    if (image is null) return Results.NotFound();
+
+    http.Response.Headers["Content-Security-Policy"] =
+        "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox";
+    http.Response.Headers["X-Content-Type-Options"] = "nosniff";
+
+    return Results.File(image.Image, image.ContentType);
+}).RequireAuthorization(VmsRoles.CanViewReport);
+
 /* App Service wants a health check path, and it is the quickest way to tell "the app is
    down" from "the network is in the way" without opening a browser or holding a card.
 

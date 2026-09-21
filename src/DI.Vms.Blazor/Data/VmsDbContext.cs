@@ -8,6 +8,11 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
     public DbSet<Person> People => Set<Person>();
     public DbSet<VisitorEntry> VisitorEntries => Set<VisitorEntry>();
 
+    /* Queried directly by the download endpoint. Everything else reaches it - or rather,
+       deliberately does not reach it - through VisitorEntry.CardImage, which is a
+       navigation and so is loaded only when something asks. */
+    public DbSet<VisitorCardImage> VisitorCardImages => Set<VisitorCardImage>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.HasDefaultSchema("vms");
@@ -45,6 +50,25 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
                table is small enough that a scan is cheap either way. */
             e.HasIndex(x => x.DisplayName);
             e.HasIndex(x => new { x.DiEntityId, x.IsActive });
+        });
+
+        b.Entity<VisitorCardImage>(e =>
+        {
+            e.ToTable("VisitorCardImage");
+
+            /* The visit's own ID is the key, so a visit can have at most one image and
+               there is no separate identity to keep in step. */
+            e.HasKey(x => x.VisitorEntryId);
+
+            e.Property(x => x.ContentType).HasMaxLength(FieldLengths.ContentType).IsRequired();
+            e.Property(x => x.Image).IsRequired();
+
+            /* Cascade, unlike the host link: the image is part of the visit and means
+               nothing without it, so deleting the visit should not leave it orphaned. */
+            e.HasOne(x => x.VisitorEntry)
+             .WithOne(v => v.CardImage)
+             .HasForeignKey<VisitorCardImage>(x => x.VisitorEntryId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<VisitorEntry>(e =>

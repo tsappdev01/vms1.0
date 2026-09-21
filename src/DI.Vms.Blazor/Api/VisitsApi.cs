@@ -210,6 +210,14 @@ public static class VisitsApi
                 IdNumber = FieldLengths.Clamp(card.IdNumber, FieldLengths.IdNumber) ?? string.Empty,
                 CardNumber = FieldLengths.Clamp(card.CardNumber, FieldLengths.CardNumber),
                 Photo = card.Photo,
+
+                /* The card as read, drawn server-side so that this and the desk browser
+                   store the same artefact. Nothing for a typed entry - a picture of a
+                   form somebody filled in is not a record of a card. Its own table, so a
+                   report that lists visits never loads it: see VisitorCardImage. */
+                CardImage = request.Manual is null && CardImageRenderer.Render(card) is { } drawn
+                    ? new VisitorCardImage { Image = drawn, ContentType = CardImageRenderer.ContentType }
+                    : null,
                 IdType = FieldLengths.Clamp(card.IdType, FieldLengths.CardField),
                 IssueDate = FieldLengths.Clamp(card.IssueDate, FieldLengths.CardField),
                 ExpiryDate = FieldLengths.Clamp(card.ExpiryDate, FieldLengths.CardField),

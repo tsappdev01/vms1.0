@@ -48,6 +48,20 @@ public class VisitorEntry
     /// <summary>JPEG from the chip.</summary>
     public byte[]? Photo { get; set; }
 
+    /// <summary>
+    /// The card as it was read, drawn as an image and kept with the visit.
+    ///
+    /// Its own table, not a column here, and that is the point of it. The visitor report
+    /// loads whole VisitorEntry rows to render a table that shows neither the photograph
+    /// nor the card; a 40 KB image on this entity would be 40 KB per row dragged across
+    /// the wire every time somebody opens a month. A navigation is loaded only when
+    /// something asks for it, and nothing but the download endpoint ever does.
+    ///
+    /// Null for a manual entry: a picture of a form somebody typed is not a record of a
+    /// card, and CaptureMethod already says which happened.
+    /// </summary>
+    public VisitorCardImage? CardImage { get; set; }
+
     /// <summary>The holder's signature as held on the card.</summary>
     /// <summary>
     /// The cardholder's signature image, as stored by earlier reads.
@@ -141,4 +155,29 @@ public class VisitorEntry
     /// distinction rather than backfilling something that reads like a name.
     /// </summary>
     public string? RecordedBy { get; set; }
+}
+
+/// <summary>
+/// The rendered card for one visit, kept apart from <see cref="VisitorEntry"/> so that
+/// reading a visit does not mean reading an image.
+///
+/// One row per visit at most - the primary key is the visit's own - so there is no way to
+/// end up with two images for one check-in, and deleting the visit takes the image with
+/// it.
+/// </summary>
+public class VisitorCardImage
+{
+    /// <summary>The visit this belongs to. Primary key and foreign key both.</summary>
+    public int VisitorEntryId { get; set; }
+
+    public VisitorEntry? VisitorEntry { get; set; }
+
+    /// <summary>The image itself. SVG today; see <see cref="ContentType"/>.</summary>
+    public required byte[] Image { get; set; }
+
+    /// <summary>
+    /// What <see cref="Image"/> is, e.g. <c>image/svg+xml</c>. Stored rather than assumed,
+    /// so changing the format later is a change of value and not of schema.
+    /// </summary>
+    public required string ContentType { get; set; }
 }

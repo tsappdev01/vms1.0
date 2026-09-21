@@ -1449,6 +1449,15 @@ else if (step == 3 && saved is not null)
                 IdNumber = Fit(IsManual ? IdDigits : card.IdNumber, FieldLengths.IdNumber, "ID number") ?? string.Empty,
                 CardNumber = Fit(card.CardNumber, FieldLengths.CardNumber, "card number"),
                 Photo = card.Photo,
+
+                /* The card as read, drawn on the server - the same renderer the tablet's
+                   saves go through, so one visitor log holds one kind of artefact.
+                   Nothing for a typed entry: a picture of a form somebody filled in is
+                   not a record of a card, and CaptureMethod already says which it was. */
+                CardImage = !IsManual && CardImageRenderer.Render(card) is { } drawnCard
+                    ? new VisitorCardImage { Image = drawnCard, ContentType = CardImageRenderer.ContentType }
+                    : null,
+
                 IdType = Fit(card.IdType, FieldLengths.CardField, "ID type"),
                 IssueDate = Fit(card.IssueDate, FieldLengths.CardField, "issue date"),
                 ExpiryDate = Fit(card.ExpiryDate, FieldLengths.CardField, "expiry date"),

@@ -101,7 +101,21 @@ else
                                 <td class="mono">@Dash(v.AddressMobile)</td>
                                 <td>@Dash(v.AddressEmail)</td>
                                 <td class="wrap">@Dash(PostalAddress(v))</td>
-                                <td>@CaptureLabel(v.CaptureMethod)</td>
+                                @* The capture cell is the way to the stored card, rather
+                                   than a column of its own - the header, body and CSV
+                                   counts stay in step, and it is where somebody asking
+                                   "what was presented?" is already looking. A card read
+                                   always has an image; a manual entry never does. *@
+                                <td>
+                                    @if (v.CaptureMethod?.StartsWith("CardReader") == true)
+                                    {
+                                        <a href="/visits/@v.Id/card" target="_blank" rel="noopener">@CaptureLabel(v.CaptureMethod)</a>
+                                    }
+                                    else
+                                    {
+                                        @CaptureLabel(v.CaptureMethod)
+                                    }
+                                </td>
                                 <td>@(v.RecordedBy ?? "—")</td>
                             </tr>
                         }

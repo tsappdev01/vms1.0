@@ -235,6 +235,40 @@ email. The screen says "No postal address held on this card" rather than renderi
 boxes that look like a failed read. Mobile and email are highlighted, since they are the
 fields that did carry data.
 
+## The card is kept as an image
+
+`Services/CardImageRenderer.cs` draws the card that was read as an SVG, and it is stored
+in `vms.VisitorCardImage`, one row per visit, reachable from the report by clicking the
+capture label.
+
+Three decisions in it are worth knowing before changing any of them.
+
+**The server draws it, not the browser.** The obvious approach is a screenshot library
+against the card mock-up on the New Visitor screen. That would give the web desk an
+artefact and the tablet none — the Android app's screen is Compose, not HTML — and one
+visitor log would hold two kinds of record. Drawing it server-side means both clients
+produce exactly the same thing without either of them cooperating, and it is drawn from the
+data parsed out of the signed response rather than from something a client sent.
+
+**SVG, not PNG.** No image library, so no new dependency and nothing needing a native codec
+on a Linux Web App; self-contained, because the photograph is embedded; and sharp when
+printed. The content type is stored beside the bytes, so moving to PNG later is a change of
+value, not of schema.
+
+**Its own table.** The visitor report loads whole `VisitorEntry` rows to render a table
+that shows neither the photograph nor the card. A 40 KB image on that entity would be 40 KB
+per row across the wire every time somebody opens a month — over the internet, now that the
+app and the database are both in Azure. As a navigation it is loaded only when something
+asks, and nothing but the download endpoint ever does.
+
+It is a record, not a reproduction, and the image says so on its face: a banner reading
+*record of an Emirates ID chip read, not an identity document*, with the timestamp and
+whether the signature verified. An artefact that resembles an identity document and is not
+one should say which it is — to the auditor who finds it, and to anyone it is ever shown
+to. The endpoint serves it with a content security policy that forbids script, because an
+SVG is a document a browser will execute script in and "nothing generates script today" is
+not a control.
+
 ## Sign-in is built, and switched off
 
 `Services/SignInOptions.cs` is the whole of it. `Authentication:Enabled` decides between
