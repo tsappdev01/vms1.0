@@ -1,0 +1,103 @@
+<Project>
+
+  <!-- Refuses to build when a credential has been typed into a committed file.
+
+       This has happened three times, in five different files, and each time the cost was
+       the same: a password pushed to GitHub is in the history for good, and rotating it in
+       the portal is the only fix. It is an easy mistake to make - appsettings.json is
+       exactly where a connection string looks like it belongs - so it is checked rather
+       than remembered.
+
+       Deliberately a build error and not a warning. A warning in a 40-line build log is a
+       warning nobody reads, and by the time it is read the commit is pushed.
+
+       Where a credential does belong:
+         Azure          the Web App's configuration (application settings)
+         UATWEB01       appsettings.Production.json, which is gitignored
+         a dev machine  appsettings.Development.Local.json, which is gitignored
+         db/apply.cmd   an argument on the command line, never in the file
+
+       If this fires on something that is genuinely not a secret - a placeholder, a
+       Trusted_Connection string - widen the placeholder list below rather than removing
+       the check. -->
+
+  <Target Name="RefuseCommittedSecrets" BeforeTargets="Build">
+
+    <ItemGroup>
+      <_CommittedSettings Include="$(MSBuildProjectDirectory)/appsettings.json" />
+      <_CommittedSettings Include="$(MSBuildProjectDirectory)/appsettings.Development.json" />
+      <_CommittedSettings Include="$(MSBuildProjectDirectory)/appsettings.Development.Local.json.example" />
+      <_CommittedSettings Include="$(MSBuildThisFileDirectory)db/apply.cmd" />
+      <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/azure-app-settings.template.json" />
+      <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/azure-connection-strings.template.json" />
+
+      <!-- Only the ones that are actually there. A project has its own appsettings files
+           and not another project's, and the templates come and go. -->
+      <_Checked Include="@(_CommittedSettings)" Condition="Exists('%(Identity)')" />
+    </ItemGroup>
+
+    <!-- One task invocation per file, so the error names the file rather than saying that
+         one of six has something in it. -->
+    <RefuseSecret Files="@(_Checked)" />
+  </Target>
+
+  <!-- Inline rather than a separate build task project: this has to run on a machine that
+       has just cloned the repository, before anything has been built. -->
+  <UsingTask TaskName="RefuseSecret" TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs">
+      <![CDATA[
+        // A value that is obviously a stand-in. Matched case-insensitively and loosely,
+        // because the point is to let a template say "put it here" in whatever words.
+        var placeholder = new Regex(
+            @"^(|PUT-IT-HERE|REPLACE-[A-Z0-9-]+|<[^>]*>|\.\.\.|xxx+|changeme|your-[a-z-]+|%~[0-9]|%[A-Z_]+%)$",
+            RegexOptions.IgnoreCase);
+
+        // Password= in a connection string, AccountKey= in a storage one, and the two
+        // shapes a secret is pasted in as. Stops at the delimiter, so a trailing
+        // ;Encrypt=True is not read as part of the value.
+        var secrets = new Regex(
+            @"(?<name>Password|AccountKey|ClientSecret|SharedAccessSignature)\s*[=:]\s*""?(?<value>[^"";,\r\n]*)",
+            RegexOptions.IgnoreCase);
+
+        foreach (var item in Files)
+        {
+            var path = item.GetMetadata("FullPath");
+            var text = File.ReadAllText(path);
+
+            foreach (Match match in secrets.Matches(text))
+            {
+                var value = match.Groups["value"].Value.Trim();
+                if (placeholder.IsMatch(value)) continue;
+
+                // The line number, so the error is clickable in the IDE.
+                var line = text.Substring(0, match.Index).Split('\n').Length;
+
+                Log.LogError(
+                    null, "VMS0001", null, path, line, 1, 0, 0,
+                    "{0} has a real value on line {1} ({2}=...). This file is committed, so a " +
+                    "credential here is published to everyone who can read the repository and " +
+                    "stays in its history after it is removed - rotating it in the portal " +
+                    "becomes the only fix. Put it in the Web App's configuration (Azure), " +
+                    "appsettings.Production.json (UATWEB01), appsettings.Development.Local.json " +
+                    "(a development machine - gitignored, copy the .example beside it), or pass " +
+                    "it as an argument (db/apply.cmd).",
+                    Path.GetFileName(path), line, match.Groups["name"].Value);
+            }
+        }
+
+        // No explicit return: a Fragment task is compiled into a method that already
+        // reports failure from Log.HasLoggedErrors.
+      ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+</Project>

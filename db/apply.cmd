@@ -10,8 +10,9 @@ rem    030_permissions.sql   needs the environment's principal names set inside 
 rem    9xx_*.sql             migration loads, which are run deliberately and once
 rem
 rem  Usage:
+rem    apply.cmd ts-db.database.windows.net vms sqladmin <password>
 rem    apply.cmd UATWEB01 VMS bpuser bpuser
-rem    apply.cmd UATWEB01 VMS                 (Windows authentication)
+rem    apply.cmd UATWEB01 VMS                 (Windows authentication; not available on Azure SQL)
 rem
 rem  Stops on the first error and exits non-zero, so a failure is never buried under the
 rem  scripts that follow it.
@@ -20,14 +21,25 @@ setlocal enabledelayedexpansion
 
 set "SERVER=%~1"
 set "DATABASE=%~2"
-set "DBUSER=sqladmin"
-set "DBPASS=Did$db&Did$db&"
+set "DBUSER=%~3"
+set "DBPASS=%~4"
 
+rem Azure SQL by default now, since that is where VMS is hosted. Pass UATWEB01 as the first
+rem argument to run against the on-premises server instead.
 if "%SERVER%"=="" set "SERVER=ts-db.database.windows.net"
 if "%DATABASE%"=="" set "DATABASE=VMS"
 
-set "AUTH=-U %DBUSER% -P %DBPASS%"
-set "AUTHDESC=SQL login %DBUSER%"
+rem The login and password are arguments, never written in here: this file is committed, and
+rem a password committed once is in the repository's history for good - rotating it in the
+rem portal is then the only fix. Azure SQL has no Windows authentication, so a run against
+rem ts-db always passes them.
+if "%DBUSER%"=="" (
+    set "AUTH=-E"
+    set "AUTHDESC=Windows authentication"
+) else (
+    set "AUTH=-U %DBUSER% -P %DBPASS%"
+    set "AUTHDESC=SQL login %DBUSER%"
+)
 
 rem -b stops on error and sets ERRORLEVEL. -I turns quoted identifiers on, as the scripts expect.
 rem -C trusts the server certificate, which an on-premises server with a self-signed one needs.
