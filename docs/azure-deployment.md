@@ -9,6 +9,75 @@ is one definition of what a valid visit is, and it does not fork.
 
 ---
 
+## This deployment
+
+Decided and created in the portal:
+
+| | |
+|---|---|
+| Web App | **VMS**, resource group `DotNetSites`, plan `ASP-DotNetSites-8061` |
+| | `vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net`, UAE North |
+| OS / stack | **Windows**, .NET 8 — which is what allows the Blazor app to run there |
+| SQL server | `ts-db.database.windows.net`, admin `sqladmin` |
+| Database | **`vms`** |
+
+So it is the **one app** case: `src/DI.Vms.Blazor` publishes to that Web App and serves the
+reception screens and `/api` together. `src/DI.Vms.Api` is not needed for this and stays
+for the day a Linux API-only host is wanted.
+
+```powershell
+git pull
+Set-ExecutionPolicy Bypass -Scope Process -Force
+.\deploy\publish-azure.ps1 -Output C:\Deploy\vms-azure
+
+az webapp deploy --resource-group DotNetSites --name VMS --src-path C:\Deploy\vms-azure\DI.Vms.zip --type zip
+```
+
+### App Service settings that are not defaults
+
+Configuration → General settings:
+
+| | | |
+|---|---|---|
+| **Web sockets** | **On** | Blazor Server is SignalR. Without WebSockets it falls back to long polling: the screens work, slowly, and drop their connection under any load. This is the one that gets missed. |
+| **Always On** | **On** | Otherwise the app unloads after 20 minutes idle and the first check-in of the morning waits for a cold start. |
+| **HTTPS Only** | **On** | The app does no redirect of its own, deliberately — App Service terminates TLS and forwards plain HTTP internally, so a redirect in the app either does nothing or loops. |
+| **Minimum inbound TLS** | **1.2** | |
+| **ARR affinity** | **On** (default) | Blazor circuits are stateful, and `AgentCardReader` holds outstanding read IDs in memory. Leave it on, and keep the plan at one instance. |
+
+Monitoring → Health check → Path: **`/health`**. It answers `{"status":"ok"}` when the
+database is reachable and `degraded` when it is not — 200 either way on purpose, so a brief
+database outage does not turn into a restart loop on a single instance.
+
+### Environment variables
+
+Settings → Environment variables. Azure maps `__` to `:`.
+
+| Name | Value |
+|---|---|
+| `ConnectionStrings__Vms` | `Server=tcp:ts-db.database.windows.net,1433;Initial Catalog=vms;User ID=sqladmin;Password=<the password>;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=True;Connection Timeout=30;` |
+| `Toolkit__Mode` | **`Agent`** — not optional. Unset, the app assumes the in-process reader and looks for a smartcard reader in a datacentre. |
+| `Toolkit__Agent__TlsEnabled` | `false` |
+| `Toolkit__Agent__RequireSignature` | `false`, while ICP's licence is the offline bundle |
+| `Authentication__Enabled` | `false` for now — **but read the warning below** |
+| `Api__Key` | A long random string. Guards `/api`; see the security section. |
+
+`Toolkit__Agent__HostName` stays unset — blank means the literal `127.0.0.1`, which is what
+earns the loopback exemption that lets an HTTPS page open a plain `ws://` socket.
+
+Card reading is unaffected by the move: ICP's agent runs on the attendant's own PC and the
+page talks to it at `ws://127.0.0.1:9004`, wherever the server is.
+
+### Two things to check on the portal side
+
+**Public access.** The Web App shows a private endpoint and VNet integration
+(`ApplicationGateway1VN/webapp1Subnet`). If public network access is disabled, tablets on
+the internet cannot reach it and only traffic through the Application Gateway will. Confirm
+which you want before wondering why the tablet cannot connect.
+
+**SQL firewall.** On `ts-db` → Networking, allow Azure services (or the Web App's outbound
+addresses), and your own address for SSMS.
+
 ## One Web App, or two
 
 The Blazor app **already contains the API**. `Program.cs` calls `MapVisitsApi`, so
@@ -68,7 +137,7 @@ guest network, an event desk, a phone hotspot.
 
 ## 1. The database
 
-**Decided: Azure SQL, created in the portal alongside the Web App.**
+**Decided: Azure SQL — server `ts-db.database.windows.net`, database `vms`.**
 
 Create the SQL Database and its logical server first — the Web App needs its connection
 string, and the database needs schema in it before the app will serve anything. Basic or
@@ -104,8 +173,9 @@ Azure SQL database is.
 1. Point `ConnectionStrings__Vms` at the **SQL admin** account and start the Web App once.
    The log names each table it creates.
 2. Run `db\001`–`005` and `db\007` against the database — the reference data, the entity
-   list and the columns added since. Connect to **VMS**; the scripts do not switch
-   databases, because Azure SQL cannot.
+   list and the columns added since. Connect to **`vms`** in SSMS before executing: the
+   scripts do not switch databases, because Azure SQL cannot, and they refuse to run in
+   `master`.
 3. Run `db\008_grant_app_user_azure.sql` to create the app's own least-privileged user.
    `db\006` is for SQL Server and does not work here — Azure SQL has no Windows logins.
 4. Change `ConnectionStrings__Vms` to that user and restart. The admin credential is not
@@ -232,6 +302,54 @@ network security config. That is the second thing this host fixes, after routing
 on any network can verify it.
 
 ---
+
+## Security on a public host
+
+What the API does on its own, with no configuration:
+
+| | |
+|---|---|
+| **Credential on every `/api` call** | Entra bearer token, or the API key. `DI.Vms.Api` refuses to start with neither. Compared in fixed time; rejections are logged with the caller's address, so someone trying keys leaves a visible trail. |
+| **Rate limiting** | 300 requests a minute per calling address, with rejections logged. It is a flood limit, not a quota — a check-in is roughly twenty requests. |
+| **Real client addresses** | `UseForwardedHeaders`, so the rate limiter and the logs see the caller rather than App Service's load balancer. Without it both are one global bucket and quietly useless. |
+| **Request size cap** | 12 MB at Kestrel. The default is 30 MB, which is 30 MB buffered before any of our code looks at it. |
+| **No stack traces** | `AddProblemDetails` plus `UseExceptionHandler`: a structured answer, and nothing about the inside of the server. |
+| **Least data on the wire** | `/api/people` returns name, title and employer. No email addresses — the tablet never displayed them, and the saved visit takes the host's email from the database on the server. |
+| **Health says one word** | `/health` is anonymous and answers `ok` or `degraded`. The detail — which authentication, whether the database is reachable, whether signatures are required — is at `/api/health`, behind the same credential as everything else. |
+| **Single-use card reads** | The request ID is issued by the server, removed when redeemed, expires in five minutes, and must match the one inside the signed document. A captured response cannot be replayed. |
+
+What is still yours to do in the portal, and each of these matters more than anything above:
+
+1. **Turn Entra sign-in on.** `Authentication__Enabled=true`. The API key is a shared secret
+   in an APK: it does not expire, it names a fleet rather than a person, and anyone who
+   unpacks the app can read it. Every visit recorded with it says `(not signed in)`.
+   Everything else on this page is mitigation for not having done this.
+2. **HTTPS Only**, and **minimum inbound TLS 1.2**. Configuration → General settings.
+3. **Access restrictions** if reception's addresses are known. Networking → Access
+   restrictions. An API on `*.azurewebsites.net` is found by scanners within hours.
+4. **Put `Api__Key` and the connection string in Key Vault** and reference them, rather
+   than as plain App Service settings — so they are not readable by everyone with portal
+   access to the Web App.
+5. **Rotate the key** on a schedule, and whenever a tablet is lost. Rotating means changing
+   it in the portal and rebuilding the APK; there is no revocation short of that, which is
+   another reason (1) is the real answer.
+6. **Turn on diagnostic logging** to a Log Analytics workspace, so the rejection and rate
+   limit warnings survive a restart and can be alerted on.
+
+### What this does not protect against
+
+**A stolen tablet is a valid client.** The key is in the APK. Until Entra is on, losing a
+device means rotating the key and rebuilding every other device. With Entra on it means
+disabling one account.
+
+**The key holder can read the staff directory.** `/api/people` answers name-fragment
+queries across 725 people. Rate limiting makes scraping slow and noisy; it does not make it
+impossible. Roles do.
+
+**Nothing is encrypted at rest beyond what the database does.** Emirates ID numbers and
+photographs sit in `vms.VisitorEntry` as they do on-premises. Azure SQL is encrypted at
+rest by default (TDE), which is more than UATWEB01 offers, but column-level protection for
+the ID number is still an open item.
 
 ## What is not solved
 

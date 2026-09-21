@@ -23,12 +23,13 @@ data class ReferenceDto(
     val otherPurpose: String,
 )
 
+/** A host. No email address: the screen never showed one, and the server records the
+    host's email from its own copy when the visit is saved. */
 @Serializable
 data class PersonDto(
     val id: Int,
     val displayName: String,
     val title: String? = null,
-    val email: String? = null,
     val companyName: String? = null,
 )
 

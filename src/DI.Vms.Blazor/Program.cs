@@ -188,6 +188,29 @@ app.MapControllers();
 // The Android reception app's endpoints. Bearer-only when sign-in is on; see Api/VisitsApi.cs.
 app.MapVisitsApi(signIn.Enabled);
 
+/* App Service wants a health check path, and it is the quickest way to tell "the app is
+   down" from "the network is in the way" without opening a browser or holding a card.
+
+   Anonymous - everything else is behind the fallback policy - and it answers 200 either
+   way, with the verdict in the body. A 503 would have App Service take the instance out of
+   rotation and restart it, which for a single-instance app with a briefly unreachable
+   database turns a blip into a restart loop. */
+app.MapGet("/health", async (IDbContextFactory<VmsDbContext> factory, CancellationToken ct) =>
+{
+    bool database;
+    try
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        database = await db.Database.CanConnectAsync(ct);
+    }
+    catch (Exception)
+    {
+        database = false;
+    }
+
+    return Results.Ok(new { status = database ? "ok" : "degraded" });
+}).AllowAnonymous();
+
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.Run();

@@ -1,8 +1,11 @@
+using System.Threading.RateLimiting;
 using DI.Vms.Blazor.Api;
 using DI.Vms.Blazor.Data;
 using DI.Vms.Blazor.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 
@@ -23,6 +26,75 @@ using Microsoft.Identity.Web;
     stores it. That is what makes a plain net8.0 Linux Web App enough. */
 
 var builder = WebApplication.CreateBuilder(args);
+
+/* Named once. A rate-limiting policy that is not registered throws at startup, so the
+   name applied to the endpoints and the name registered below must be the same string. */
+const string TabletRateLimit = "tablet";
+
+// ---------------------------------------------------------------- public-host hardening
+
+/* A card read with a photograph is a few hundred kilobytes; the parser refuses anything
+   over 8 MB. Kestrel's own default is 30 MB, so without this a caller can make the server
+   buffer 30 MB before any of our code looks at it. 12 MB leaves room for the largest
+   plausible read and nothing else. */
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = 12 * 1024 * 1024);
+
+/* App Service terminates TLS at its front end and forwards the request internally, so
+   without this every request appears to come from the load balancer. That would make the
+   rate limiter one global bucket and every rejection log name the same address - both
+   features quietly useless. KnownNetworks and KnownProxies are cleared because the front
+   end's addresses are not fixed and not knowable here; this is the documented App Service
+   arrangement. */
+builder.Services.Configure<ForwardedHeadersOptions>(forwarded =>
+{
+    forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    forwarded.KnownNetworks.Clear();
+    forwarded.KnownProxies.Clear();
+});
+
+/* Turns an unhandled exception into a ProblemDetails response. Without it the client gets
+   an empty 500 and the reason lives only in the log; with it the client gets a structured
+   answer and still no stack trace, because this is not the developer exception page. */
+builder.Services.AddProblemDetails();
+
+/* Rate limiting, per calling address per minute.
+
+   The endpoint most worth limiting is /api/people: with a valid credential it answers
+   name-fragment queries out of a 725-person staff directory, twelve at a time. A limit
+   does not stop enumeration by someone holding the key - only Entra and roles do that -
+   but it turns "scrape the directory in a minute" into something slow and visible in the
+   logs.
+
+   300 a minute is generous for reception: a check-in is roughly twenty requests including
+   the debounced host search, and several tablets behind one office NAT share an address.
+   It is a flood limit, not a quota. */
+builder.Services.AddRateLimiter(limiter =>
+{
+    limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    limiter.AddPolicy<string>(TabletRateLimit, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+
+    limiter.OnRejected = (context, _) =>
+    {
+        context.HttpContext.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("RateLimiter")
+            .LogWarning(
+                "Rate limit reached by {Address} on {Path}.",
+                context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "(unknown)",
+                context.HttpContext.Request.Path);
+
+        return ValueTask.CompletedTask;
+    };
+});
 
 // ---------------------------------------------------------------- who may call
 
@@ -138,14 +210,22 @@ using (var scope = app.Services.CreateScope())
    plain HTTP inside, so redirecting here either does nothing or loops. The right control
    is "HTTPS Only" on the Web App, which refuses the plain request before it arrives. */
 
+/* First, so everything downstream - the rate limiter's partition, the rejection log, the
+   audit trail - sees the caller's real address rather than the load balancer's. */
+app.UseForwardedHeaders();
+
+app.UseExceptionHandler();
+
 app.UseAuthentication();
 
 // Before authorisation: a request without the key is refused without reaching a policy.
 app.UseApiKey(signIn.Enabled ? null : apiKey);
 
+app.UseRateLimiter();
+
 app.UseAuthorization();
 
-app.MapVisitsApi(signIn.Enabled);
+app.MapVisitsApi(signIn.Enabled, TabletRateLimit);
 
 /* For App Service's health check, and for answering "is it the API or the network?"
    without a card or a tablet. Anonymous on purpose - a probe that needs a credential is a
@@ -154,23 +234,43 @@ app.MapVisitsApi(signIn.Enabled);
    the network to anyone who asks. */
 app.MapGet("/health", async (IDbContextFactory<VmsDbContext> factory, CancellationToken ct) =>
 {
-    bool database;
-    try
-    {
-        await using var db = await factory.CreateDbContextAsync(ct);
-        database = await db.Database.CanConnectAsync(ct);
-    }
-    catch (Exception)
-    {
-        database = false;
-    }
+    var database = await CanReachDatabase(factory, ct);
+
+    /* One word, and no more. App Service's health probe needs to know whether to take the
+       instance out of rotation; an anonymous caller on the internet needs to know nothing
+       else. "Which authentication is configured" and "is the database reachable" are both
+       useful to somebody deciding whether to keep prodding. */
+    return Results.Ok(new { status = database ? "ok" : "degraded" });
+}).AllowAnonymous();
+
+/* The same question with the detail, behind the same credential as everything else under
+   /api - so it is answerable when something is wrong, without publishing the shape of the
+   deployment to anyone who asks. */
+app.MapGet("/api/health", async (IDbContextFactory<VmsDbContext> factory, CancellationToken ct) =>
+{
+    var database = await CanReachDatabase(factory, ct);
 
     return Results.Ok(new
     {
         status = database ? "ok" : "degraded",
         database = database ? "ok" : "unreachable",
         authentication = signIn.Enabled ? "entra" : "api-key",
+        signatureRequired = capture.Agent.RequireSignature,
     });
-}).AllowAnonymous();
+}).RequireAuthorization(VmsRoles.CanCheckIn).RequireRateLimiting(TabletRateLimit);
 
 app.Run();
+
+static async Task<bool> CanReachDatabase(IDbContextFactory<VmsDbContext> factory, CancellationToken ct)
+{
+    try
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        return await db.Database.CanConnectAsync(ct);
+    }
+    catch (Exception)
+    {
+        return false;
+    }
+}
+
