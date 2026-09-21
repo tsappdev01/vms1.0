@@ -62,6 +62,29 @@ ToolkitNative ItemGroup in DI.Vms.Blazor.csproj still has CopyToPublishDirectory
     }
 }
 
+<# Startup logging on, in the package rather than in the portal.
+
+   A .NET app that throws before the host starts does not serve a page saying so: App
+   Service answers 503, or 500.30, and the reason is only in the Windows event log or in
+   stdout. stdout is off by default, and turning it on afterwards means editing web.config
+   on a site that is already down - through Kudu, on a machine nobody wants to be learning
+   about at that moment.
+
+   So it ships on. The cost is a log file per process under LogFiles\stdout; the benefit is
+   that "why is it 503" is answered by reading a file rather than by guessing. Every reason
+   this app refuses to start is deliberate and has a written message - no connection string,
+   a column missing from the database, no API key on a public host - and every one of them
+   is in there. #>
+$webConfig = Join-Path $site 'web.config'
+$xml = [xml](Get-Content $webConfig)
+$handler = $xml.SelectSingleNode('//aspNetCore')
+
+if (-not $handler) { throw "web.config has no aspNetCore element. The publish did not produce the expected file." }
+
+$handler.SetAttribute('stdoutLogEnabled', 'true')
+$handler.SetAttribute('stdoutLogFile', '.\\logs\\stdout')
+$xml.Save($webConfig)
+
 <# appsettings.Production.json must NOT ship. In Azure the settings live in the Web App's
    configuration; a file in the package would silently win over some of them and would put
    a connection string into a zip that gets emailed around. #>
@@ -90,5 +113,10 @@ Write-Host "  Configuration > General settings > Web sockets  : ON   (Blazor Ser
 Write-Host "  Configuration > General settings > Always On    : ON"
 Write-Host "  Configuration > General settings > HTTPS Only   : ON"
 Write-Host "  Monitoring > Health check > Path                : /health"
+Write-Host ""
+Write-Host ""
+Write-Host "If it answers 503, the app threw before the host started. The reason is in:" -ForegroundColor Cyan
+Write-Host "  https://vms-cebrd3evb0cyg0gn.scm.uaenorth-01.azurewebsites.net/api/vfs/LogFiles/stdout/"
+Write-Host "  az webapp log tail --resource-group DotNetSites --name VMS"
 Write-Host ""
 Write-Host "docs/azure-deployment.md has the environment variables and the database order."

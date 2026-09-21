@@ -18,6 +18,27 @@ Decided and created in the portal:
 | Web App | **VMS**, resource group `DotNetSites`, plan `ASP-DotNetSites-8061` |
 | | `vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net`, UAE North |
 | OS / stack | **Windows**, .NET 8 — which is what allows the Blazor app to run there |
+
+> **The Web App's operating system decides which project can go on it, and it cannot be
+> changed after the Web App is created.**
+>
+> `DI.Vms.Blazor` is `net8.0-windows`. It has to be, because it references ICP's
+> `IDCardToolkit.dll` — a .NET Framework assembly that P/Invokes native Windows DLLs — and
+> because `publish-azure.ps1` publishes it `-r win-x64`. Deployed to a **Linux** Web App it
+> does not start, and App Service answers **503** with "Issues Detected" on the overview
+> blade. There is no setting that fixes this; the OS is fixed when the plan is created.
+>
+> So there are two shapes, and which one you have is decided by the plan:
+>
+> | Plan OS | What goes on it | What you get |
+> |---|---|---|
+> | **Windows** | `DI.Vms.Blazor` | Reception screens **and** `/api` on one Web App. This is the documented deployment. |
+> | **Linux** | `DI.Vms.Api` | The tablet API only. The reception screens need a Windows host — UATWEB01, or a second Web App. |
+>
+> `DI.Vms.Api` exists for exactly the second case: plain `net8.0`, agent mode only, no
+> toolkit compiled in. `deploy\publish-api.ps1` publishes it portable, with no runtime
+> identifier, for that reason.
+
 | SQL server | `ts-db.database.windows.net`, admin `sqladmin` |
 | Database | **`vms`** |
 
