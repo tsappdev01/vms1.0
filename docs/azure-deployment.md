@@ -33,12 +33,29 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 az webapp deploy --resource-group DotNetSites --name VMS --src-path C:\Deploy\vms-azure\DI.Vms.zip --type zip
 ```
 
+The platform settings below, in one command, for a Web App that has just been created:
+
+```powershell
+az webapp config set --resource-group DotNetSites --name VMS `
+  --net-framework-version v8.0 `
+  --use-32bit-worker-process false `
+  --web-sockets-enabled true `
+  --always-on true `
+  --min-tls-version 1.2 `
+  --generic-configurations '{\"healthCheckPath\": \"/health\"}'
+
+az webapp update --resource-group DotNetSites --name VMS --https-only true
+az webapp restart --resource-group DotNetSites --name VMS
+```
+
 ### App Service settings that are not defaults
 
 Configuration → General settings:
 
 | | | |
 |---|---|---|
+| **Stack / .NET version** | **.NET 8 (LTS)** | The portal showed `Dotnet - v10.0` on the Web App as created. The app is `net8.0`, and .NET does not roll forward across a major version on its own, so it would be looking for a runtime the site is not configured for. Set it to 8. |
+| **Platform** | **64 Bit** | `DI.Vms.Blazor` is `PlatformTarget x64` and its toolkit reference P/Invokes native x64 DLLs. In a 32-bit worker the process starts and fails on the first card read with `0x8007000B` — a message about a bad image format, not about the bitness. Basic and Free plans default to 32-bit. |
 | **Web sockets** | **On** | Blazor Server is SignalR. Without WebSockets it falls back to long polling: the screens work, slowly, and drop their connection under any load. This is the one that gets missed. |
 | **Always On** | **On** | Otherwise the app unloads after 20 minutes idle and the first check-in of the morning waits for a cold start. |
 | **HTTPS Only** | **On** | The app does no redirect of its own, deliberately — App Service terminates TLS and forwards plain HTTP internally, so a redirect in the app either does nothing or loops. |
