@@ -109,8 +109,15 @@ if (signIn.Enabled)
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
+/* EnableRetryOnFailure, because this app now runs against Azure SQL as well as against
+   SQL Server on UATWEB01. Azure SQL moves a database between nodes and throttles, and both
+   surface as a failure on a connection that was fine a second earlier; without this a
+   routine failover shows up at the desk as a failed check-in. It costs nothing on-premises,
+   where those failures do not happen. */
 builder.Services.AddDbContextFactory<VmsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Vms")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("Vms"),
+        sql => sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)));
 
 /* Where the reader is, relative to this process - the deployment's central decision.
    Resolved once here so both readers and every screen agree on it. */
