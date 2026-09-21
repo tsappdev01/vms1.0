@@ -49,9 +49,55 @@ Monitoring → Health check → Path: **`/health`**. It answers `{"status":"ok"}
 database is reachable and `degraded` when it is not — 200 either way on purpose, so a brief
 database outage does not turn into a restart loop on a single instance.
 
-### Environment variables
+### Everything comes from Azure, nothing from a file
 
-Settings → Environment variables. Azure maps `__` to `:`.
+ASP.NET Core reads environment variables last and they win over every file, so App Service
+configuration overrides `appsettings.json` without anything in the code. Two details make
+that dependable rather than accidental:
+
+- **`appsettings.Production.json` must not be in the package.** If one is present it is
+  loaded, and it beats `appsettings.json` — so a stale local copy would silently override
+  half of what you set in the portal. `publish-azure.ps1` deletes it from the package and
+  says so.
+- **`__` is the separator.** `Toolkit__Agent__TlsEnabled` becomes `Toolkit:Agent:TlsEnabled`.
+  For a list it is an index: `Toolkit__Agent__TrustedSignerThumbprints__0`.
+
+Two tabs, and the difference matters. **App settings** for everything; **Connection
+strings** for the database. A connection string entered on its own tab arrives as
+`SQLAZURECONNSTR_Vms`, which `GetConnectionString("Vms")` reads exactly as it reads the
+file — and the portal treats it as a credential: masked by default, and it does not appear
+in the app settings list where it is easy to screenshot.
+
+Both tabs have an **Advanced edit** button that takes JSON in bulk, which beats adding nine
+rows by hand. The two files to paste are in the repository:
+
+| | |
+|---|---|
+| App settings → Advanced edit | [`deploy/azure-app-settings.template.json`](../deploy/azure-app-settings.template.json) |
+| Connection strings → Advanced edit | [`deploy/azure-connection-strings.template.json`](../deploy/azure-connection-strings.template.json) |
+
+Replace the two `REPLACE-WITH-` values before pasting — the API key and the SQL password.
+Neither file carries a real secret, which is why they can live in git; do not paste the
+filled-in versions back into them.
+
+Generate the key once, on the machine that builds the tablet:
+
+```powershell
+[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
+```
+
+After Apply, App Service restarts the app. Confirm it took:
+
+```powershell
+Invoke-RestMethod https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/health
+```
+
+`{"status":"ok"}` means the app started and reached `vms` on `ts-db`. `degraded` means the
+connection string or the SQL firewall.
+
+### The settings themselves
+
+Azure maps `__` to `:`.
 
 | Name | Value |
 |---|---|
