@@ -20,19 +20,14 @@ setlocal enabledelayedexpansion
 
 set "SERVER=%~1"
 set "DATABASE=%~2"
-set "DBUSER=%~3"
-set "DBPASS=%~4"
+set "DBUSER=sqladmin"
+set "DBPASS=Did$db&Did$db&"
 
-if "%SERVER%"=="" set "SERVER=UATWEB01"
+if "%SERVER%"=="" set "SERVER=ts-db.database.windows.net"
 if "%DATABASE%"=="" set "DATABASE=VMS"
 
-if "%DBUSER%"=="" (
-    set "AUTH=-E"
-    set "AUTHDESC=Windows authentication"
-) else (
-    set "AUTH=-U %DBUSER% -P %DBPASS%"
-    set "AUTHDESC=SQL login %DBUSER%"
-)
+set "AUTH=-U %DBUSER% -P %DBPASS%"
+set "AUTHDESC=SQL login %DBUSER%"
 
 rem -b stops on error and sets ERRORLEVEL. -I turns quoted identifiers on, as the scripts expect.
 rem -C trusts the server certificate, which an on-premises server with a self-signed one needs.
