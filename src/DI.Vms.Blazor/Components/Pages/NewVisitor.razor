@@ -997,7 +997,20 @@ else if (step == 3 && saved is not null)
     /// <summary>The person picked from the list, or null when the name was simply typed.</summary>
     private Person? host;
 
-    private bool searchAllEntities;
+    /// <summary>
+    /// Whether the host search looks beyond the entity being visited. On by default.
+    ///
+    /// Narrowing to the entity was the original behaviour and it is the wrong default for
+    /// this data. The company names in the AD export do not all map onto the entity list -
+    /// the ones that do not get a null DiEntityId - so a person with no mapping is
+    /// invisible until the box is ticked, and nothing on the screen says that is why. The
+    /// attendant sees a name they know is in the directory simply not appear.
+    ///
+    /// Finding a host who works for another group company is normal at this desk anyway,
+    /// and recording which entity is being visited is a separate field that this does not
+    /// touch. So: search everywhere, and let it be narrowed deliberately.
+    /// </summary>
+    private bool searchAllEntities = true;
 
     /// <summary>True while the confirmation is up. Saving is only reachable through it.</summary>
     private bool confirming;
@@ -1649,7 +1662,7 @@ else if (step == 3 && saved is not null)
         purpose = string.Empty;
         purposeOther = string.Empty;
         host = null;
-        searchAllEntities = false;
+        searchAllEntities = true;
         noMatchInEntity = false;
         message = null;
 

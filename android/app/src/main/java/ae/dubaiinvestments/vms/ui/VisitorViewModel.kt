@@ -75,7 +75,10 @@ data class UiState(
     val hostQuery: String = "",
     val hostResults: List<PersonDto> = emptyList(),
     val hostSearching: Boolean = false,
-    val searchAllEntities: Boolean = false,
+    /** On by default, matching the desk. The export's company names do not all map onto the
+        entity list, so a host with no mapping is invisible until this is on - and nothing on
+        the screen says that is why. */
+    val searchAllEntities: Boolean = true,
     val host: PersonDto? = null,
 
     val purpose: String? = null,
