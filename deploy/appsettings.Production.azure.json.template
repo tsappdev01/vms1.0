@@ -48,6 +48,24 @@
   "Toolkit": {
     "Mode": "Agent",
     "Agent": {
+      // FALSE, and this is not a preference. ICP's agent serves plain ws:// on
+      // 127.0.0.1:9004 - the installer can serve wss://, but ICP ships no certificate, so
+      // out of the box there is nothing to serve TLS with.
+      //
+      // An HTTPS page may not open a plain ws:// socket - except to an origin the browser
+      // already trusts, and the loopback ADDRESS is one. So ws://127.0.0.1:9004 from
+      // https://vms.dubaiinvestments.com is allowed and needs no certificate on any desk.
+      //
+      // TlsEnabled true makes the page try wss://toolkitagent.emiratesid.ae:9004 instead.
+      // That name resolves to 127.0.0.1, but it is still a host name to the mixed-content
+      // check, so the browser blocks it - and the desk sees "No reader detected" however
+      // correctly the agent is installed.
+      "TlsEnabled": false,
+
+      // Blank, which means the literal 127.0.0.1. The loopback exemption is for the
+      // address as written, not for a name that resolves to it.
+      "HostName": "",
+
       // False while ICP's licence is the offline bundle and responses come back unsigned.
       // Those reads are recorded as CardReaderUnverified rather than CardReader, so the
       // visitor log says which is which. See docs/icp-signed-response-request.md.
