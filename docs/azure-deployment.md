@@ -103,6 +103,7 @@ Configuration → General settings:
 |---|---|---|
 | **Stack / .NET version** | **.NET 8 (LTS)** | The portal showed `Dotnet - v10.0` on the Web App as created. The app is `net8.0`, and .NET does not roll forward across a major version on its own, so it would be looking for a runtime the site is not configured for. Set it to 8. |
 | **Platform** | **64 Bit** | `DI.Vms.Blazor` is `PlatformTarget x64` and its toolkit reference P/Invokes native x64 DLLs. In a 32-bit worker the process starts and fails on the first card read with `0x8007000B` — a message about a bad image format, not about the bitness. Basic and Free plans default to 32-bit. |
+| **Startup Command** | **empty**, or `dotnet DI.Vms.Blazor.dll` | On Linux, a startup command of `dotnet DI.Vms.Blazor` - without the extension - makes the runtime look for a *tool* by that name and answer "The application 'DI.Vms.Blazor' does not exist. No .NET SDKs were found", which reads like a missing runtime and is not. Left empty, Oryx finds the assembly itself from `DI.Vms.Blazor.runtimeconfig.json`; empty is better, because there is then nothing to keep in step if the assembly is renamed. The site answers **503** while this is wrong, with nothing in the browser to say why - the reason is only in the container log. |
 | **Web sockets** | **On** | Blazor Server is SignalR. Without WebSockets it falls back to long polling: the screens work, slowly, and drop their connection under any load. This is the one that gets missed. |
 | **Always On** | **On** | Otherwise the app unloads after 20 minutes idle and the first check-in of the morning waits for a cold start. |
 | **HTTPS Only** | **On** | The app does no redirect of its own, deliberately — App Service terminates TLS and forwards plain HTTP internally, so a redirect in the app either does nothing or loops. |
@@ -422,6 +423,29 @@ az webapp deploy --resource-group <rg> --name <app-name> --src-path C:\Deploy\vm
 
 Or drag the zip into the portal's Advanced Tools → Kudu. Publishing from Visual Studio
 works too; the project is an ordinary ASP.NET Core app.
+
+## When it answers 503
+
+App Service returns 503 when the request reached it and no healthy worker answered - which
+for this app always means it failed to start. The browser says nothing useful; the reason is
+in the container log:
+
+```
+https://vms-cebrd3evb0cyg0gn.scm.uaenorth-01.azurewebsites.net/api/logs/docker
+```
+
+That returns a short JSON list; open the `_default_docker.log` href. Or **Monitoring → Log
+stream** in the portal, with a restart to trigger it.
+
+Every reason this app refuses to start is a written sentence, so the log names the cause:
+
+| In the log | Cause |
+|---|---|
+| `The application 'DI.Vms.Blazor' does not exist` / `No .NET SDKs were found` | The **Startup Command**, missing `.dll` — see the settings table above. Not a missing runtime, despite what it says. |
+| `No connection string named Vms` | Neither the app settings nor `appsettings.Production.json` supplied one. Note that `appsettings.json` ships in the package, so a deployment overwrites an edited copy in `wwwroot`. |
+| `The database is missing N column(s) the code expects` | The `db/` scripts have not been run against this database. It names them. |
+| `Api:Key is N characters` | Under 32, or missing while sign-in is off. |
+| `Toolkit:Mode is '...'` | Not one of InProcess, Agent or Off. |
 
 ## 5. Check it before involving a tablet
 
