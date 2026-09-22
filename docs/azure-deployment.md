@@ -144,10 +144,11 @@ Replace the two `REPLACE-WITH-` values before pasting — the API key and the SQ
 Neither file carries a real secret, which is why they can live in git; do not paste the
 filled-in versions back into them.
 
-Generate the key once, on the machine that builds the tablet:
+Generate the key once, on the machine that builds the tablet. **In PowerShell**, not the
+Command Prompt:
 
 ```powershell
-[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
+[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
 ```
 
 After Apply, App Service restarts the app. Confirm it took:
@@ -347,9 +348,14 @@ Emirates ID photograph that can be forwarded.
 Generate the key on the machine you will build the tablet from, so it is never typed twice:
 
 ```powershell
-$key = [Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
+$key = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
 $key
 ```
+
+`RandomNumberGenerator`, not `Get-Random`. `Get-Random` is a general-purpose PRNG seeded
+from the clock — fine for shuffling a list, not for the one credential standing in front of
+the visitor database on a public host, where an attacker who can guess the seed can
+enumerate the key. 48 bytes is 64 base64 characters; the app refuses anything under 32.
 
 Paste it into `Api__Key`, and build the tablet with the same value —
 `-PVMS_API_KEY="$key"`. It goes in neither repository.
