@@ -221,9 +221,7 @@ using (var scope = app.Services.CreateScope())
     var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<VmsDbContext>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    await using var db = await factory.CreateDbContextAsync();
-
-    await DbBootstrapper.EnsureSchemaAsync(db, logger);
+    await DbBootstrapper.EnsureSchemaWithRetryAsync(factory, logger).ConfigureAwait(false);
 
     capture.LogTo(logger);
     signIn.LogTo(logger);

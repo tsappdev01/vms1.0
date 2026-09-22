@@ -446,6 +446,38 @@ Every reason this app refuses to start is a written sentence, so the log names t
 | `The database is missing N column(s) the code expects` | The `db/` scripts have not been run against this database. It names them. |
 | `Api:Key is N characters` | Under 32, or missing while sign-in is off. |
 | `Toolkit:Mode is '...'` | Not one of InProcess, Agent or Off. |
+| `error 35 - An internal exception was caught` / `Connection reset by peer` | Azure SQL reset the connection **during login** — the TCP connection was made and the credential never got through. See below. |
+
+### "Connection reset by peer" during the SQL login
+
+This one is worth its own note because it reads like a wrong password and is not: the log
+says *"A connection was successfully established with the server, but then an error occurred
+during the login process"*. The server was reachable; the login handshake was cut off.
+
+The usual cause from inside Azure is the SQL server's **connection policy**. The default for
+connections originating in Azure is **Redirect**, which answers on 1433 and then moves the
+session to a port in **11000–11999** on the node holding the database. Through a VNet with
+NSGs or user-defined routes, that second hop is often not allowed — so the connection
+establishes and the login then dies, intermittently, depending on which node answers.
+
+**Fix:** SQL server `ts-db` → **Networking → Connection policy → Proxy**, then Save. Proxy
+keeps the whole session on 1433 through the gateway. It costs a little latency and removes
+the port range from the picture entirely.
+
+```powershell
+az sql server conn-policy update --connection-type Proxy --resource-group <rg> --name ts-db
+```
+
+The alternative, if you would rather keep Redirect for the latency, is to allow outbound
+11000–11999 from the Web App's integration subnet to the SQL service tag.
+
+The application also survives this now rather than dying at boot: the schema check is
+retried five times, five seconds apart, before it gives up. EF's own retry strategy does not
+cover this error — a socket reset inside a SqlException is not on its transient list — so
+without that, one blip during startup took the whole site down and left App Service to
+restart it. That is recovery by luck; a minute of patience is recovery by design. A database
+still unreachable after that minute still stops the app, deliberately.
+
 
 ## 5. Check it before involving a tablet
 

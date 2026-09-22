@@ -241,12 +241,12 @@ using (var scope = app.Services.CreateScope())
     var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<VmsDbContext>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    await using var db = await factory.CreateDbContextAsync();
-
     /* Creates absent tables and refuses to start if the model has columns the database
        does not, naming them. The same check the Blazor app runs, and worth repeating
-       here: this host may well meet a database that the other one migrated. */
-    await DbBootstrapper.EnsureSchemaAsync(db, logger);
+       here: this host may well meet a database that the other one migrated. Retried,
+       because Azure SQL is briefly unreachable often enough that a boot-time blip should
+       not be an outage - see DbBootstrapper. */
+    await DbBootstrapper.EnsureSchemaWithRetryAsync(factory, logger).ConfigureAwait(false);
 
     capture.LogTo(logger);
     signIn.LogTo(logger);

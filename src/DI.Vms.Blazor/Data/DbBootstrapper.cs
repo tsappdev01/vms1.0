@@ -24,6 +24,53 @@ namespace DI.Vms.Blazor.Data;
 /// </summary>
 public static class DbBootstrapper
 {
+    /// <summary>
+    /// Runs the schema check, tolerating a database that is briefly unreachable at startup.
+    ///
+    /// EF's own retry strategy covers the errors Azure SQL raises when it throttles or moves
+    /// a database between nodes. It does not cover all of them: a connection that is
+    /// established and then reset during the TLS login arrives as a raw socket error inside
+    /// a SqlException, which the strategy does not recognise as transient, so it gives up at
+    /// once. That has happened twice on this deployment, and each time it took the whole
+    /// application down at boot - App Service restarted it and the next attempt succeeded,
+    /// which is recovery by luck rather than by design.
+    ///
+    /// So the check itself is retried. Deliberately not forever and deliberately not
+    /// silently: a database that is still unreachable after a minute is a real problem, and
+    /// the application should still refuse to start rather than serve a desk it cannot
+    /// record anything for.
+    /// </summary>
+    public static async Task EnsureSchemaWithRetryAsync(
+        IDbContextFactory<VmsDbContext> factory,
+        ILogger logger,
+        int attempts = 5,
+        CancellationToken ct = default)
+    {
+        var delay = TimeSpan.FromSeconds(5);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await using var db = await factory.CreateDbContextAsync(ct);
+                await EnsureSchemaAsync(db, logger, ct);
+                return;
+            }
+            catch (Exception ex) when (ex is not InvalidOperationException && attempt < attempts)
+            {
+                /* InvalidOperationException is excluded on purpose: those are this
+                   bootstrapper's own refusals - a missing table, a missing column - and they
+                   are facts about the database rather than weather. Retrying one only delays
+                   a message that already says exactly which script to run. */
+                logger.LogWarning(ex,
+                    "Could not reach the database to check the schema (attempt {Attempt} of {Attempts}). Retrying in {Delay}.",
+                    attempt, attempts, delay);
+
+                await Task.Delay(delay, ct);
+            }
+        }
+    }
+
     public static async Task EnsureSchemaAsync(VmsDbContext db, ILogger logger, CancellationToken ct = default)
     {
         var creator = db.GetService<IRelationalDatabaseCreator>();
