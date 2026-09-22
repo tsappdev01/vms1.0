@@ -17,6 +17,3 @@ EIDAToolkit_*.log
 
 # Excel leaves these behind while a workbook is open.
 ~$*
-/deploy/dev-settings.ps1
-/deploy
-/src/DI.Vms.Blazor/Services

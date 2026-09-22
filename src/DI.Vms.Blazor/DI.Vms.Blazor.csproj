@@ -8,6 +8,16 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DI.Vms.Blazor</RootNamespace>
+
+    <!-- Visual Studio's "Manage User Secrets" (right-click the project), or
+         `dotnet user-secrets set` from the project folder.
+         Either writes to %APPDATA%\Microsoft\UserSecrets\di-vms-blazor-secrets\secrets.json,
+         outside the repository. CreateBuilder loads it in Development and nowhere else.
+
+         The point is that there is then nowhere inside the checkout for a password to be
+         typed. Every attempt at a gitignored file inside the solution has ended with the
+         password in a committed one instead. -->
+    <UserSecretsId>di-vms-blazor-secrets</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

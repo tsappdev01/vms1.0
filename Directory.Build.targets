@@ -14,7 +14,8 @@
        Where a credential does belong:
          Azure          the Web App's configuration (application settings)
          UATWEB01       appsettings.Production.json, which is gitignored
-         a dev machine  appsettings.Development.Local.json, which is gitignored
+         a dev machine  user secrets - right-click the project in Visual Studio and
+                        choose Manage User Secrets, or `dotnet user-secrets set`
          db/apply.cmd   an argument on the command line, never in the file
 
        If this fires on something that is genuinely not a secret - a placeholder, a
@@ -26,7 +27,6 @@
     <ItemGroup>
       <_CommittedSettings Include="$(MSBuildProjectDirectory)/appsettings.json" />
       <_CommittedSettings Include="$(MSBuildProjectDirectory)/appsettings.Development.json" />
-      <_CommittedSettings Include="$(MSBuildProjectDirectory)/appsettings.Development.Local.json.example" />
       <_CommittedSettings Include="$(MSBuildThisFileDirectory)db/apply.cmd" />
       <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/azure-app-settings.template.json" />
       <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/azure-connection-strings.template.json" />
@@ -86,9 +86,9 @@
                     "credential here is published to everyone who can read the repository and " +
                     "stays in its history after it is removed - rotating it in the portal " +
                     "becomes the only fix. Put it in the Web App's configuration (Azure), " +
-                    "appsettings.Production.json (UATWEB01), appsettings.Development.Local.json " +
-                    "(a development machine - gitignored, copy the .example beside it), or pass " +
-                    "it as an argument (db/apply.cmd).",
+                    "appsettings.Production.json (UATWEB01), user secrets (a development " +
+                    "machine - right-click the project, Manage User Secrets), or pass it as an " +
+                    "argument (db/apply.cmd).",
                     Path.GetFileName(path), line, match.Groups["name"].Value);
             }
         }
