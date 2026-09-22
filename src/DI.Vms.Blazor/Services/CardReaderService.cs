@@ -17,7 +17,7 @@ namespace DI.Vms.Blazor.Services;
 public sealed class CardReaderService(
     IConfiguration configuration,
     CardCaptureOptions capture,
-    ILogger<CardReaderService> logger) : IDisposable
+    ILogger<CardReaderService> logger) : ICardReader, IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private Toolkit? _toolkit;
@@ -57,7 +57,7 @@ public sealed class CardReaderService(
             try { version = _toolkit!.GetToolkitVersion(); } catch { /* reported as unavailable below */ }
             try { licenceRaw = _toolkit!.GetLicenseExpiryDate(); } catch { /* ditto */ }
 
-            var (licence, licenceDays) = ReadLicence(licenceRaw);
+            var (licence, licenceDays) = ToolkitLicence.Read(licenceRaw);
 
             try
             {
@@ -348,50 +348,6 @@ public sealed class CardReaderService(
         if (progress is null) return;
         progress.Report(phase);
         await Task.Delay(1);
-    }
-
-    private static readonly string[] LicenceDateFormats =
-        ["yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy", "yyyy/MM/dd"];
-
-    /// <summary>
-    /// Reads the toolkit's licence expiry string into something showable and a day count.
-    ///
-    /// The format is the toolkit's own business, and what it actually returns is
-    /// <c>2027-04-14+04:00</c> - an ISO date carrying the Gulf offset and no time at all.
-    /// So the offset-aware parse is tried first, then the leading ten characters, then it
-    /// gives up: an unreadable date is shown verbatim with no count, because a wrong
-    /// count is worse than none.
-    /// </summary>
-    internal static (string? Display, int? Days) ReadLicence(string? expiry)
-    {
-        if (string.IsNullOrWhiteSpace(expiry)) return (null, null);
-
-        var text = expiry.Trim();
-
-        if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture,
-                                    DateTimeStyles.AllowWhiteSpaces, out var offset))
-        {
-            return Format(DateOnly.FromDateTime(offset.Date));
-        }
-
-        // The date on its own, for a suffix the offset-aware parse did not take.
-        var head = text.Length >= 10 ? text[..10] : text;
-        if (DateOnly.TryParseExact(head, LicenceDateFormats, CultureInfo.InvariantCulture,
-                                   DateTimeStyles.None, out var date))
-        {
-            return Format(date);
-        }
-
-        return (text, null);
-
-        static (string?, int?) Format(DateOnly date)
-        {
-            // Gulf Standard Time, because that is the day the desk is having.
-            var today = DateOnly.FromDateTime(
-                DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(4)).DateTime);
-            return (date.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
-                    date.DayNumber - today.DayNumber);
-        }
     }
 
     /// <summary>40 cryptographically random bytes, as the vendor sample uses.</summary>
