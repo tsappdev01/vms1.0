@@ -1,0 +1,112 @@
+{
+  // Copy to appsettings.Production.json in the Web App's /site/wwwroot and edit.
+  // appsettings.Production.json is gitignored, which is what makes it a place a credential
+  // can go. It is never in appsettings.json, which is committed.
+  //
+  // This is the AZURE template - the app on an App Service Web App, the database on Azure
+  // SQL, the card read by the desk browser through ICP's agent or by the tablet.
+  // docs/azure-deployment.md is the runbook.
+  //
+  // ---------------------------------------------------------------------------------
+  // IMPORTANT: a setting here is IGNORED if the same one exists in the Web App's
+  // configuration.
+  //
+  // Configuration sources are read in order and the last one wins: appsettings.json, then
+  // appsettings.Production.json, then environment variables - which is what App Service
+  // application settings are. So ConnectionStrings__Vms in the portal overrides
+  // ConnectionStrings:Vms here, silently, and you would be editing a file that does
+  // nothing.
+  //
+  // Pick one place per setting. To use this file, DELETE the matching application settings
+  // in the portal.
+  //
+  // ---------------------------------------------------------------------------------
+  // What this costs, so it is a choice and not an accident.
+  //
+  // A file in wwwroot is readable by anyone with FTP or Kudu access to the Web App, it is
+  // in any backup of the site, and it survives in the file system where an application
+  // setting does not. App Service settings are encrypted at rest, are not in the site's
+  // files, and changing one is in the activity log. That is why the runbook prefers them.
+  //
+  // It is still a reasonable choice: one file to edit, visible next to the app, and no
+  // portal round trip to change a setting. Restrict FTP access and treat this file as the
+  // credential it is.
+  //
+  // It does NOT ship in the deployment package. publish-azure-linux.ps1 strips it, so a
+  // connection string never travels in a zip. Upload it separately, once - and re-upload it
+  // after any deployment that empties wwwroot.
+
+  "ConnectionStrings": {
+    // Azure SQL. Encrypt=True and TrustServerCertificate=False: the certificate is a real
+    // one from a public CA, so there is nothing to trust blindly and no reason to.
+    "Vms": "Server=tcp:ts-db.database.windows.net,1433;Initial Catalog=vms;User ID=sqladmin;Password=PUT-IT-HERE;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
+  },
+
+  // Agent mode, and it is not optional on this deployment: the portable build has no card
+  // reader compiled into it. The card is read by the desk browser through ICP's agent, or
+  // by the tablet, and what arrives here is signed XML this process verifies itself.
+  "Toolkit": {
+    "Mode": "Agent",
+    "Agent": {
+      // False while ICP's licence is the offline bundle and responses come back unsigned.
+      // Those reads are recorded as CardReaderUnverified rather than CardReader, so the
+      // visitor log says which is which. See docs/icp-signed-response-request.md.
+      "RequireSignature": false,
+      "MaximumResponseAge": "00:10:00",
+      "TrustedSignerThumbprints": []
+    }
+  },
+
+  // The "person to visit" list, read live from the Entra ID tenant people sign in with.
+  // The registration needs User.Read.All as an APPLICATION permission with admin consent -
+  // docs/entra-id-setup.md. Set Source to Database to use the vms.Person table instead.
+  "Directory": {
+    "Source": "EntraId",
+    "TenantId": "PUT-IT-HERE",
+    "ClientId": "PUT-IT-HERE",
+    "ClientSecret": "PUT-IT-HERE"
+  },
+
+  // Where the image of the card that was read is kept. Leave ConnectionString empty to
+  // store it in the database instead, which is what UATWEB01 does.
+  "Storage": {
+    "ConnectionString": "PUT-IT-HERE",
+    "Container": "vms"
+  },
+
+  // The API key the tablet sends. While sign-in is off this is the only thing standing in
+  // front of the visitor database on a public host, so it is not optional here. At least 32
+  // characters; generate it with a cryptographic RNG, not Get-Random - docs/azure-deployment.md.
+  "Api": {
+    "Key": "PUT-IT-HERE"
+  },
+
+  // Sign-in. OFF for now, which means EVERY page - the visitor report included - and every
+  // API endpoint is open to anyone who can reach this Web App, and visits are recorded
+  // against "(not signed in)" rather than a person. On *.azurewebsites.net that is a public
+  // address scanners find within hours.
+  //
+  // Set it to true once docs/entra-id-setup.md is done, and fill in AzureAd below. Nothing
+  // else changes: the Entra wiring is already in the build.
+  "Authentication": {
+    "Enabled": false
+  },
+
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "",
+    "TenantId": "",
+    "ClientId": "",
+    "ClientSecret": "",
+    "CallbackPath": "/signin-oidc",
+    "SignedOutCallbackPath": "/signout-callback-oidc"
+  },
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
+    }
+  }
+}

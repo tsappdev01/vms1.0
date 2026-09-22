@@ -113,6 +113,29 @@ Monitoring → Health check → Path: **`/health`**. It answers `{"status":"ok"}
 database is reachable and `degraded` when it is not — 200 either way on purpose, so a brief
 database outage does not turn into a restart loop on a single instance.
 
+### Or the other way round: a settings file on the Web App
+
+The settings above can live in `appsettings.Production.json` in `/site/wwwroot` instead,
+uploaded over FTPS. `deploy/appsettings.Production.azure.json.template` is the starting
+point; that file name is gitignored, which is what makes it a place a credential can go.
+
+**One setting belongs in one place.** Configuration sources are read in order and the last
+wins: `appsettings.json`, then `appsettings.Production.json`, then environment variables —
+which is what App Service application settings *are*. So a setting left in the portal
+silently overrides the same setting in the file, and you would be editing something that
+does nothing. To use the file, delete the matching application settings in the portal.
+
+What it costs, so it is a choice and not an accident: a file in `wwwroot` is readable by
+anyone with FTP or Kudu access, is in any backup of the site, and persists in the file
+system. Application settings are encrypted at rest, are not in the site's files, and a
+change to one appears in the activity log. That is why this runbook prefers them — but a
+single file next to the app, with FTP access restricted, is a defensible trade for not
+having to go through the portal to change a setting.
+
+It is deliberately not in the deployment package: `publish-azure-linux.ps1` strips it, so a
+connection string never travels in a zip. Upload it separately — and again after any
+deployment that empties `wwwroot`.
+
 ### Everything comes from Azure, nothing from a file
 
 ASP.NET Core reads environment variables last and they win over every file, so App Service

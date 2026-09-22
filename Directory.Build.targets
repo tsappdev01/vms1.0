@@ -30,6 +30,9 @@
       <_CommittedSettings Include="$(MSBuildThisFileDirectory)db/apply.cmd" />
       <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/azure-app-settings.template.json" />
       <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/azure-connection-strings.template.json" />
+      <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/appsettings.Production.azure.json.template" />
+      <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/appsettings.Production.uatweb01.json.template" />
+      <_CommittedSettings Include="$(MSBuildThisFileDirectory)deploy/appsettings.Production.reception-pc.json.template" />
 
       <!-- Only the ones that are actually there. A project has its own appsettings files
            and not another project's, and the templates come and go. -->
