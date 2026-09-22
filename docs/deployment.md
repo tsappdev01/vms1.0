@@ -6,6 +6,46 @@ a server-hosted web app, and it is what the rest of this document describes.
 
 Everything about it follows from one fact, so it is worth stating before the steps.
 
+## Running it on your own machine
+
+The app refuses to start without a connection string, and names where to put one. There is
+nowhere in the repository that is one of those places — `appsettings.json` and
+`appsettings.Development.json` are both committed, and a password pushed once is in the
+history for good.
+
+**In Visual Studio**, right-click **DI.Vms.Blazor** in Solution Explorer → **Manage User
+Secrets**. A `secrets.json` opens. Paste this and fill it in:
+
+```json
+{
+  "ConnectionStrings": {
+    "Vms": "Server=tcp:ts-db.database.windows.net,1433;Initial Catalog=vms;User ID=sqladmin;Password=...;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
+  },
+  "Toolkit": { "Mode": "Off" },
+
+  "Directory": {
+    "Source": "EntraId",
+    "TenantId": "...",
+    "ClientId": "...",
+    "ClientSecret": "..."
+  }
+}
+```
+
+Save, then F5.
+
+That file is under `%APPDATA%\Microsoft\UserSecrets\di-vms-blazor-secrets\`, outside the
+repository altogether — there is no path to get wrong and nothing that could be committed.
+It is loaded only when `ASPNETCORE_ENVIRONMENT` is `Development`, so it can never affect
+UATWEB01 or Azure.
+
+`"Toolkit": { "Mode": "Off" }` lets the card step accept typed details, so the screens can be
+worked on without a reader plugged in. Leave it out to use one.
+
+**Without Visual Studio**, `deploy\dev-settings.ps1` creates
+`appsettings.Development.Local.json` in the project folder instead — gitignored, and loaded
+the same way. Either works; only one is needed.
+
 ## Why the desk needs anything installed at all
 
 The Emirates ID is read from the **chip**, over PC/SC, by a reader plugged into a physical

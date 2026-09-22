@@ -13,6 +13,18 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DI.Vms.Api</RootNamespace>
+
+    <!-- Visual Studio's "Manage User Secrets" (right-click the project) writes to
+         %APPDATA%\Microsoft\UserSecrets\di-vms-api-secrets\secrets.json, outside the
+         repository altogether. CreateBuilder loads it in Development and nowhere else.
+
+         This is here because the alternative kept failing. A gitignored file inside the
+         solution has to be created at exactly the right path, and three attempts at that
+         produced three commits with a live password in them and no working settings. A
+         menu item has no path to get wrong and nothing to commit, because the file is not
+         in the repository to begin with. appsettings.Development.Local.json still works
+         for anyone not using Visual Studio. -->
+    <UserSecretsId>di-vms-api-secrets</UserSecretsId>
     <InvariantGlobalization>true</InvariantGlobalization>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>

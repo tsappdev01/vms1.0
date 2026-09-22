@@ -148,9 +148,11 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "No connection string named Vms. In Azure, set it in the Web App's configuration - " +
         "either as a connection string of type SQLAzure named Vms, or as the application " +
         "setting ConnectionStrings__Vms. On UATWEB01 it goes in appsettings.Production.json. " +
-        "On a development machine, run deploy\\dev-settings.ps1 - it creates " +
-        "appsettings.Development.Local.json, which is gitignored and is the only place on " +
-        "that machine a password belongs.\n\n" +
+        "On a development machine, in Visual Studio: right-click the project in Solution " +
+        "Explorer, choose Manage User Secrets, and paste\n\n" +
+        "  { \"ConnectionStrings\": { \"Vms\": \"Server=...;Database=vms;...\" } }\n\n" +
+        "That file lives outside the repository, so it cannot be committed. Without Visual " +
+        "Studio, run deploy\\dev-settings.ps1 instead.\n\n" +
         "It is never in appsettings.json, which is committed: a credential pushed once is " +
         "in the repository's history for good.");
 }
