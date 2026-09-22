@@ -148,8 +148,15 @@ Generate the key once, on the machine that builds the tablet. **In PowerShell**,
 Command Prompt:
 
 ```powershell
-[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+$bytes = New-Object byte[] 48
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
 ```
+
+`RandomNumberGenerator.Create()`, rather than the static `GetBytes(48)` overload: that
+static exists only on modern .NET, and Windows PowerShell 5.1 - the blue one, and the
+default on a Windows desktop - runs on .NET Framework, where it fails with
+"does not contain a method named 'GetBytes'". The form above works on both.
 
 After Apply, App Service restarts the app. Confirm it took:
 
@@ -348,7 +355,9 @@ Emirates ID photograph that can be forwarded.
 Generate the key on the machine you will build the tablet from, so it is never typed twice:
 
 ```powershell
-$key = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+$bytes = New-Object byte[] 48
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+$key = [Convert]::ToBase64String($bytes)
 $key
 ```
 
