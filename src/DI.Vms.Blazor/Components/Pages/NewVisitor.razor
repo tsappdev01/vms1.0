@@ -729,6 +729,14 @@ else if (step == 2 && card is not null)
                     <span class="field-note warn">
                         The staff directory could not be read, so this list may be out of date or
                         empty. Type the name instead — the visit is still recorded against it.
+
+                        @* The reason, on the screen rather than only in a log file. Reading it
+                           out of the container log on App Service means Kudu, a log stream and
+                           knowing that the read happens on focus rather than at startup - which
+                           between them turned a one-line misconfiguration into an afternoon.
+                           Every one of these messages names what to do: a consent that was not
+                           granted, a secret that expired, a tenant that does not hold the app. *@
+                        <span class="field-note-detail">@directoryFailure</span>
                     </span>
                 }
                 else if (directoryEmpty)

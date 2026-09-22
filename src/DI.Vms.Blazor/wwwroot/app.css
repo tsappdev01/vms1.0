@@ -1081,6 +1081,19 @@ button.link:hover { background: none; color: var(--accent-hover); }
 .field-note { display: block; margin-top: 4px; font-size: 11.5px; }
 .field-note.warn { color: var(--status-warning); }
 
+/* The reason a directory read failed, shown under the warning it belongs to. Monospace and
+   selectable because it is a message to be read carefully and often pasted somewhere -
+   an AADSTS code, or Graph's own reply. Wrapped rather than clipped: the interesting part
+   of "Authorization_RequestDenied" is at the end. */
+.field-note-detail {
+  display: block; margin-top: 3px;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 11px; line-height: 1.45;
+  color: var(--text-secondary);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  user-select: all;
+}
+
 .empty { padding: 48px 16px; text-align: center; color: var(--text-secondary); }
 .empty strong { display: block; color: var(--text-primary); margin-bottom: 4px; }
 
