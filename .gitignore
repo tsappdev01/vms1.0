@@ -19,3 +19,4 @@ EIDAToolkit_*.log
 ~$*
 /deploy/dev-settings.ps1
 /deploy
+/src/DI.Vms.Blazor/Services
