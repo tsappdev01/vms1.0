@@ -1,10 +1,9 @@
 package ae.dubaiinvestments.vms
 
-import ae.dubaiinvestments.vms.api.VmsApi
-import ae.dubaiinvestments.vms.api.VmsClient
-import ae.dubaiinvestments.vms.auth.Auth
+import ae.dubaiinvestments.vms.api.ApiProvider
 import ae.dubaiinvestments.vms.card.EmiratesIdReader
 import ae.dubaiinvestments.vms.card.ToolkitEmiratesIdReader
+import ae.dubaiinvestments.vms.settings.Settings
 import android.app.Application
 
 /**
@@ -20,9 +19,9 @@ import android.app.Application
  */
 class VmsApplication : Application() {
 
-    val auth: Auth by lazy { Auth(this) }
+    val settings: Settings by lazy { Settings(this) }
 
-    val api: VmsApi by lazy { VmsClient.create(auth) }
+    val apis: ApiProvider by lazy { ApiProvider(settings) }
 
     val reader: EmiratesIdReader by lazy { ToolkitEmiratesIdReader(this) }
 }

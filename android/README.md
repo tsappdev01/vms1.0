@@ -5,8 +5,8 @@ same database the web app uses, through the same server.
 
 This file is the engineering record for the Android side, the way
 `src/DI.Vms.Blazor/README.md` is for the server. Read it before changing the card-reading
-or sign-in paths — most of what is here was learned from the SDK's binaries and from real
-cards, not from the documentation.
+path — most of what is here was learned from the SDK's binaries and from real cards, not
+from the documentation.
 
 ## What it is, and what it is not
 
@@ -110,76 +110,58 @@ The laptop's address, the HTTP port, and the trailing slash. Check it from the t
 browser first - `http://192.168.1.188:7100` should show the reception screens. If that
 fails, the firewall or the binding is the problem and the app will not do better.
 
-## Sign-in is currently off
+## Nobody signs in
 
-`VMS_AUTH_ENABLED=false` in `gradle.properties`, matching the server's
-`Authentication:Enabled`. **The two must agree** — a tablet sending no token to a server
-that requires one gets a 401 on every screen, and the reverse is a prompt for nothing.
+There is no sign-in screen, no MSAL and no `auth_config.json`. The app opens on step one.
 
-While it is off:
+That is a decision about what the tablet *is*. It sits on a counter, it is handed to
+nobody, and it is in the room the visitors are in — so it is not a person's device and it
+cannot carry a person's credential. It identifies itself to the server with an API key
+instead, which is why every visit is recorded against `(not signed in)` rather than against
+an officer, and why the key is a **tablet** credential: anyone holding the APK, or the
+tablet, has it.
 
-- MSAL is never initialised, so **`res/raw/auth_config.json` is not needed** and the app
-  builds and runs from a clean clone. `auth/MsalConfig.kt` looks the resource up by name
-  rather than as `R.raw.auth_config` precisely so the build does not insist on a file it
-  will not open.
-- No token is attached to any request — `VmsClient` does not even install the interceptor.
-- The top bar says **Sign-in is off** where the officer's name goes, and the server
-  records every visit against `(not signed in)`.
+What follows from that:
 
-To turn it on: put `auth_config.json` in place, finish the directory work in
-`docs/entra-id-setup.md`, then build with `-PVMS_AUTH_ENABLED=true` and set the server's
-`Authentication:Enabled` to true. None of the sign-in code was removed to get here.
+- The server's `Authentication:Enabled` must stay `false` for the endpoints the tablet
+  uses. A server that requires a token answers 401 to every screen here, and the app says
+  so in those words rather than offering a sign-in button that does not exist.
+- The API key is the whole of the tablet's access. Rotate it by changing it on the server
+  and typing the new one into **Settings** on each tablet — no rebuild.
+- The top bar shows **which server** the tablet is talking to, in the place the officer's
+  name used to be. It is the one thing about a reception tablet that can quietly be wrong.
 
-## Two things are not in this repository
+The sign-in code (`auth/Auth.kt`, `auth/MsalConfig.kt`, the MSAL dependency and the
+`BrowserTabActivity` in the manifest) was removed rather than left switched off. It is in
+the git history if a tablet ever needs a signed-in officer; `docs/entra-id-setup.md` covers
+the server side, which is unaffected.
 
-### `app/src/main/res/raw/auth_config.json`
+## Settings, on the tablet
 
-MSAL's configuration. It carries the client and tenant IDs of the Entra app registration,
-and `auth/MsalConfig.kt` reads the client ID back out of it so the API scope
-(`api://<client id>/Visits.Write`) cannot drift from a second copy of the GUID.
+The gear in the top bar. Two fields, and both of them are addressed to whoever installs a
+tablet rather than to reception:
 
-`auth_config.template.json` in this directory is the file to copy:
+- **Server address** — where visits are sent. It defaults to what the build was made with
+  (`VMS_API_BASE_URL`), currently
+  `https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/`. A bare host is accepted
+  and `https://` is added; a missing trailing slash is added too, because without it
+  Retrofit silently drops the last path segment of the base URL.
+- **API key** — what the tablet identifies itself with. Blank is right for the
+  on-premises host, which is reachable only from the office network and asks for none.
 
-```bash
-cp auth_config.template.json app/src/main/res/raw/auth_config.json
-```
+**Test connection** tries the typed address before it is saved, against a client of its
+own, so a test cannot leave the tablet pointed somewhere it was not meant to go. Saving
+clears the entity and purpose lists and reloads them, because those belong to the server
+that was just replaced.
 
-It is only needed for a build with `-PVMS_AUTH_ENABLED=true`. Without it, a sign-in
-build fails at startup with the message `MsalConfig.kt` writes, naming this file — rather
-than at the desk with a redirect error.
+The address used to be compiled in, which meant moving a tablet to another server was a
+rebuild — and the person who needs to do that is standing in front of the tablet with a
+reader plugged into it, not in front of Android Studio. `settings/Settings.kt` holds it in
+`SharedPreferences`, which `android:allowBackup="false"` keeps out of cloud backups and
+device-to-device transfers. `api/ApiProvider.kt` rebuilds the Retrofit client when, and
+only when, the address changes.
 
-The client and tenant IDs in the template are the real ones
-(`docs/entra-id-setup.md` records the registration). The **signature hash is the one
-value to fill in**, because it belongs to the signing keystore rather than to the source.
-Filled in, the file looks like this:
-
-```json
-{
-  "client_id": "dd0fec3e-2476-4823-a73b-7706c5f8ce7e",
-  "authorization_user_agent": "DEFAULT",
-  "redirect_uri": "msauth://ae.dubaiinvestments.vms/<url-encoded signature hash>",
-  "account_mode": "SINGLE",
-  "broker_redirect_uri_registered": false,
-  "authorities": [
-    {
-      "type": "AAD",
-      "audience": {
-        "type": "AzureADMyOrg",
-        "tenant_id": "ba42ffd1-f322-49fa-81b7-74dcbd5f52a7"
-      }
-    }
-  ]
-}
-```
-
-`account_mode` must be `SINGLE`. `auth/Auth.kt` uses the single-account client on purpose:
-a reception tablet is one desk with one signed-in officer, and the multiple-account client
-offers an account picker on every token request — a prompt with a visitor waiting.
-
-**There is no client secret in this file and there must never be one.** The tablet is a
-public client: anything shipped in an APK is readable by anyone holding the APK, so a
-secret there is a published secret. The server's secret belongs only in
-`appsettings.Production.json` on UATWEB01.
+## One thing is not in this repository
 
 ### `app/src/main/assets/toolkit-config/`
 
@@ -189,71 +171,8 @@ publish. Copy the same directory the desk agent's MSI is given as `CONFIG_DIRECT
 names the omission rather than letting the toolkit report "invalid or incomplete
 configuration data".
 
-Both are in `.gitignore`. Neither is a secret in the sense a password is, but neither
-belongs in a public repository either.
-
-## Entra ID
-
-The server side is in `docs/entra-id-setup.md`. The app needs three additions to the same
-registration:
-
-1. **Expose an API** → Add a scope `Visits.Write`. The Application ID URI must be
-   `api://<client id>`, which is the default. This is the scope the tablet asks for and
-   the audience the server checks — a Graph token will not do.
-2. **Authentication → Add a platform → Android**, package name `ae.dubaiinvestments.vms`,
-   signature hash from the command below. This produces the
-   `msauth://ae.dubaiinvestments.vms/<hash>` redirect URI.
-3. **No new app roles.** The API requires the `CanCheckIn` policy, which
-   `Vms.Officer`, `Vms.Supervisor`, `Vms.Admin` and `Vms.SystemAdmin` already satisfy — so
-   anyone who can check a visitor in on the web can do it on the tablet. A signed-in user
-   with none of them gets a 403 and is told on screen to ask IT for the role.
-
-### Getting the signature hash
-
-Entra wants the base64 hash. The manifest and `auth_config.json` want the same value
-**URL-encoded** — base64 contains `+`, `/` and `=`, and those have to be escaped inside a
-URI. This is the usual reason a first sign-in attempt fails.
-
-On Windows, in PowerShell from this directory (`keytool` comes with the JDK Android
-Studio installs, so add it to `PATH` or call it by full path):
-
-```powershell
-$store = "$env:USERPROFILE\.android\debug.keystore"   # release: your own keystore
-$alias = 'androiddebugkey'                            # release: your own alias
-$pass  = 'android'                                    # release: your own store password
-
-$sha1 = (keytool -list -v -alias $alias -keystore $store -storepass $pass |
-    Select-String 'SHA1:' | Select-Object -First 1).ToString().Split(':', 2)[1].Trim()
-
-$hash = [Convert]::ToBase64String([byte[]]($sha1 -split ':' | ForEach-Object { [Convert]::ToByte($_, 16) }))
-
-"Entra portal      : $hash"
-"auth_config / hash: $([uri]::EscapeDataString($hash))"
-```
-
-`./gradlew signingReport` prints the same SHA1 for every variant if you would rather read
-it that way.
-
-On Linux or macOS the one-liner is:
-
-```bash
-keytool -exportcert -alias androiddebugkey -keystore ~/.android/debug.keystore \
-    -storepass android -keypass android \
-  | openssl sha1 -binary | openssl base64
-```
-
-The URL-encoded hash then goes in three places, and they must agree:
-
-| Where | Which form |
-|---|---|
-| Entra → Authentication → Android platform | base64, as printed |
-| `redirect_uri` in `res/raw/auth_config.json` | URL-encoded |
-| `MSAL_SIGNATURE_HASH` in `gradle.properties` (or `-PMSAL_SIGNATURE_HASH=…`) | URL-encoded |
-
-Leave the Gradle property unset and the build succeeds, installs, and then fails the
-return leg of sign-in with a redirect mismatch. That is why the default is the visibly
-wrong `MSAL_SIGNATURE_HASH_NOT_SET` rather than an empty string that looks plausible in a
-manifest.
+It is in `.gitignore`. It is not a secret in the sense a password is, but it does not
+belong in a public repository either.
 
 ## Building
 
@@ -442,10 +361,14 @@ between attempts when something is stuck.
   modules through `rootProject.file`, so the binaries are referenced from one place
   instead of copied into three. A wrong value fails the build naming the file it looked
   for.
-- `VMS_API_BASE_URL` — the server, `https://vms.dipark.com/` by default. The trailing
-  slash matters to Retrofit; without it Retrofit drops the last path segment.
-- `VMS_AUTH_ENABLED` — sign-in, currently `false`. Must match the server's
-  `Authentication:Enabled`.
+- `VMS_API_BASE_URL` — the server a build points at *by default*;
+  `https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/` unless overridden. The
+  tablet can be moved elsewhere from the settings screen, so this only decides where a
+  fresh install looks first. The trailing slash matters to Retrofit; without it Retrofit
+  drops the last path segment.
+- `VMS_API_KEY` — the API key a build ships with, also only a default. Never set it in
+  this file: it is a credential and this file is in git. Pass `-PVMS_API_KEY=…`, or keep it
+  in `%USERPROFILE%\.gradle\gradle.properties`.
 
 ## Each tablet needs registering with ICP
 

@@ -1,14 +1,12 @@
 package ae.dubaiinvestments.vms.api
 
 import ae.dubaiinvestments.vms.BuildConfig
-import ae.dubaiinvestments.vms.auth.Auth
-import ae.dubaiinvestments.vms.auth.SignInRequired
+import ae.dubaiinvestments.vms.settings.ServerSettings
 import android.util.Log
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
@@ -31,20 +29,15 @@ object VmsClient {
         explicitNulls = false
     }
 
-    fun create(auth: Auth, baseUrl: String = BuildConfig.API_BASE_URL): VmsApi {
+    fun create(settings: ServerSettings): VmsApi {
         val client = OkHttpClient.Builder()
             .apply {
-                /* One credential or the other, never both.
-
-                   With Entra on, the token is it, and MSAL is what supplies it. With it
-                   off, the Azure-hosted API wants an API key instead - it is on the public
+                /* The app signs nobody in - see the note on VisitorViewModel. The API key
+                   is what the Azure-hosted server accepts instead: it is on the public
                    internet, and unlike the on-premises host it cannot rely on the office
                    network being the door. The on-premises host asks for no key, so a blank
                    one attaches nothing and costs nothing. */
-                when {
-                    BuildConfig.AUTH_ENABLED -> addInterceptor(bearerToken(auth))
-                    BuildConfig.API_KEY.isNotBlank() -> addInterceptor(apiKey(BuildConfig.API_KEY))
-                }
+                if (settings.apiKey.isNotBlank()) addInterceptor(apiKey(settings.apiKey))
             }
             .apply {
                 if (BuildConfig.DEBUG) {
@@ -65,7 +58,7 @@ object VmsClient {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(settings.baseUrl)
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
@@ -73,41 +66,14 @@ object VmsClient {
     }
 
     /**
-     * The shared key the Azure-hosted API asks for while sign-in is off.
+     * The shared key the Azure-hosted API asks for.
      *
      * Every tablet sends the same one, so it says "a reception tablet" and not "which
      * reception officer" - which is exactly why the visit is recorded against
-     * "(not signed in)" and why this is an interim rather than a destination.
+     * "(not signed in)".
      */
     private fun apiKey(key: String) = Interceptor { chain ->
         chain.proceed(chain.request().newBuilder().header("X-Vms-Key", key).build())
-    }
-
-    /**
-     * Attaches the access token when one can be had silently.
-     *
-     * When it cannot, the request goes out bare and the server answers 401 - which
-     * [translate] turns into a sign-in prompt on the screen. The alternative, driving an
-     * interactive sign-in from inside an interceptor, would mean launching an activity
-     * from a background thread in the middle of a request.
-     */
-    private fun bearerToken(auth: Auth) = Interceptor { chain ->
-        val token = try {
-            runBlocking { auth.token(activity = null) }
-        } catch (e: SignInRequired) {
-            null
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not get a token", e)
-            null
-        }
-
-        val request = if (token == null) {
-            chain.request()
-        } else {
-            chain.request().newBuilder().header("Authorization", "Bearer $token").build()
-        }
-
-        chain.proceed(request)
     }
 
     /**
@@ -125,41 +91,35 @@ object VmsClient {
         } catch (e: HttpException) {
             throw ApiException(describe(e), e.code())
         } catch (e: UnknownHostException) {
-            throw ApiException("The server could not be reached. Check the tablet is on the office network.")
+            throw ApiException(
+                "The server could not be reached. Check the tablet's network, and the " +
+                    "server address under Settings.",
+            )
         } catch (e: SocketTimeoutException) {
             throw ApiException("The server did not answer in time. Try again.")
         } catch (e: IOException) {
-            throw ApiException("The connection to the server failed. Check the tablet is on the office network.")
+            throw ApiException(
+                "The connection to the server failed. Check the tablet's network, and the " +
+                    "server address under Settings.",
+            )
         } catch (e: SerializationException) {
             /* A 200 whose body is not what this build expects - an IIS interstitial, or a
                server newer than the tablet. Worth its own message: it is not a network
                fault and retrying will not help. */
             Log.w(TAG, "Could not read the server's answer", e)
-            throw ApiException("The server's answer could not be read. The tablet may need updating.")
+            throw ApiException(
+                "The server's answer could not be read. Check the address under Settings " +
+                    "points at the VMS server, and that the tablet is up to date.",
+            )
         }
 
     private fun describe(e: HttpException): String {
-        if (e.code() == 401) {
-            /* With sign-in off this is not an expired token, it is a mismatch: the server
-               wants one and this build sends none. Saying "sign in again" would send
-               reception looking for a button that is not there. */
-            return when {
-                BuildConfig.AUTH_ENABLED ->
-                    "Your sign-in has expired. Sign in again."
-
-                BuildConfig.API_KEY.isBlank() ->
-                    "The server is asking for a credential but this build carries none. " +
-                        "It needs either sign-in turned on or an API key."
-
-                else ->
-                    "The server did not accept this tablet's API key. It may have been " +
-                        "rotated - the tablet needs rebuilding with the new one."
-            }
-        }
-
-        if (e.code() == 403) {
-            return "Your account is not allowed to record visits. " +
-                "Ask IT for the Vms.Officer role."
+        /* Nobody signs in on the tablet, so a 401 is never an expired session - it is the
+           API key. Saying "sign in again" would send reception looking for a button that
+           does not exist. */
+        if (e.code() == 401 || e.code() == 403) {
+            return "The server did not accept this tablet's API key. Check it under Settings; " +
+                "it may have been rotated."
         }
 
         /* ProblemDetails, if that is what came back. An HTML error page from IIS is the

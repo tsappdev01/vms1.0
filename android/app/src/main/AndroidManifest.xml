@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Sign-in and the API. The reader is local; nothing else here is. -->
+    <!-- The API. The reader is local; nothing else here is. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -58,21 +58,5 @@
                 android:resource="@xml/device_filter" />
         </activity>
 
-        <!-- MSAL's return leg. The scheme and host must match the redirect URI on the
-             Entra app registration exactly, which is why both come from one place in
-             build.gradle.kts. -->
-        <activity
-            android:name="com.microsoft.identity.client.BrowserTabActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="${msalRedirectScheme}"
-                    android:host="${msalRedirectHost}"
-                    android:path="/${msalSignatureHash}" />
-            </intent-filter>
-        </activity>
     </application>
 </manifest>

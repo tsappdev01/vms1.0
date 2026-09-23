@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             VmsTheme {
                 val model: VisitorViewModel = viewModel(factory = VisitorViewModel.Factory(app))
-                VmsApp(viewModel = model, onSignIn = { model.signIn(this) })
+                VmsApp(viewModel = model)
             }
         }
     }

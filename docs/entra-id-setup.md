@@ -13,25 +13,25 @@ Nothing here needs a code change. Everything the server reads is in
 ```
 
 The Entra wiring is in the build and works. What is not finished is the directory work on
-this page — the API scope, the Android platform registration, the role assignments — and
-reception needs the desk working before it is. So sign-in is switched off, and while it is:
+this page — the role assignments — and reception needs the desk working before it is. So
+sign-in is switched off, and while it is:
 
 - every page and every API endpoint is open to anyone who can reach the server;
 - visits are recorded against `(not signed in)` instead of a person;
 - the layout carries a **Sign-in is off** badge on every page, and the startup log carries
   a warning, so the state is not quiet.
 
-The Android app has the matching switch, `VMS_AUTH_ENABLED` in `android/gradle.properties`.
-**The two have to agree.** A tablet sending no token to a server that requires one gets a
-401 on every screen; a tablet signing in against a server that ignores tokens is a prompt
-for nothing.
+**The Android app does not sign in at all**, and this page does not apply to it. A
+reception tablet sits on a counter and is handed to nobody, so it is not a person's device;
+it identifies itself with an API key and its visits are recorded against
+`(not signed in)` permanently, not temporarily. See `android/README.md`. That means the
+endpoints the tablet uses — `Api/VisitsApi.cs` — have to stay reachable without a token
+whatever this switch does to the web app.
 
-Turning it on, once the steps below are done:
+Turning it on for the web app, once the steps below are done:
 
 1. Set `"Authentication": { "Enabled": true }` in `appsettings.Production.json` and
    restart the app pool.
-2. Rebuild the tablet app with `-PVMS_AUTH_ENABLED=true`, with
-   `res/raw/auth_config.json` in place.
 
 Nothing else changes. `Services/SignInOptions.cs` explains what the switch does and why it
 defaults to off.
@@ -152,39 +152,16 @@ In `C:\Websites\vms\appsettings.Production.json`:
 That file holds a credential. It should be readable by the app pool identity and
 administrators, and nobody else.
 
-## 6. Two more things, for the Android app
+## 6. No app roles to add for the tablet
 
-The tablet uses the same registration. It is a public client — an app on a device cannot
-keep a secret — so it authenticates by being the app it says it is, and gets a token for
-the server's own API rather than reusing the server's cookie.
+The Android app authenticates with an API key rather than with Entra, so it needs no
+platform registration, no redirect URI and no API scope. `Api/VisitsApi.cs` accepts the key
+on `X-Vms-Key`; `android/README.md` explains why the tablet is a device credential and not
+a person's.
 
-**Expose an API.** *Expose an API* → the Application ID URI is `api://<client id>`, which
-is the default → **Add a scope**:
-
-| | |
-|---|---|
-| Scope name | `Visits.Write` |
-| Who can consent | Admins and users |
-| Admin consent display name | Record visitor entries |
-
-This is the scope the tablet asks for and the audience `Api/VisitsApi.cs` checks. A Graph
-token will not do, and neither will the cookie a desk browser holds — which is the point:
-a session cookie lifted from a desk cannot be replayed against the API.
-
-**Add the Android platform.** *Authentication* → **Add a platform** → **Android**:
-
-| | |
-|---|---|
-| Package name | `ae.dubaiinvestments.vms` |
-| Signature hash | from the signing keystore — `android/README.md` has the command |
-
-That produces the redirect URI `msauth://ae.dubaiinvestments.vms/<hash>`. The hash belongs
-to the keystore, not to the source, so debug and release builds have different ones and
-both need registering.
-
-No role changes. The API requires the `CanCheckIn` policy, which
-`Vms.Officer`, `Vms.Supervisor`, `Vms.Admin` and `Vms.SystemAdmin` already satisfy — so
-anyone who can check a visitor in on the web can do it on the tablet, and nobody else can.
+Should a tablet ever need a signed-in officer, the app's half of this registration — an
+`api://<client id>/Visits.Write` scope and an Android platform with the signing keystore's
+hash — is in the git history along with the MSAL code.
 
 ## 7. IIS must let the request through
 

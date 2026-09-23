@@ -25,45 +25,24 @@ android {
            the first read with an UnsatisfiedLinkError - which reads like a code fault. */
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
 
-        /* MSAL needs the redirect URI in the manifest as well as in the Entra app
-           registration, and the two must match exactly. Kept here so there is one place
-           to change it. */
-        manifestPlaceholders["msalRedirectScheme"] = "msauth"
-        manifestPlaceholders["msalRedirectHost"] = applicationId!!
-
-        /* The signing key's certificate hash, URL-encoded, which is the third part of the
-           redirect URI. It depends on the keystore rather than on the source, so it comes
-           from a Gradle property - see android/README.md for the one command that prints
-           it. Left unset it builds, installs and then fails the return leg of sign-in
-           with a redirect mismatch, so the default is a value that is obviously wrong
-           rather than an empty string that looks plausible. */
-        manifestPlaceholders["msalSignatureHash"] =
-            providers.gradleProperty("MSAL_SIGNATURE_HASH").getOrElse("MSAL_SIGNATURE_HASH_NOT_SET")
-
-        /* Where the server is. In gradle.properties so a test build can be pointed at a
-           different host without editing code, and with the trailing slash Retrofit
-           requires - without it Retrofit drops the last path segment of the base URL. */
-        val apiBaseUrl = providers.gradleProperty("VMS_API_BASE_URL").getOrElse("https://vms.dipark.com/")
+        /* The server the app is built pointing at. It is only the default now: the
+           address is a setting on the tablet, so a desk can be moved to another server
+           without a rebuild - see settings/Settings.kt. The trailing slash matters either
+           way, because without it Retrofit drops the last path segment of the base URL. */
+        val apiBaseUrl = providers.gradleProperty("VMS_API_BASE_URL")
+            .getOrElse("https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/")
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
 
-        /* Whether the app signs in with Entra ID. Off for now, matching the server's
-           Authentication:Enabled - the two have to agree, because a tablet sending no
-           token to a server that requires one gets a 401 on every screen, and a tablet
-           signing in against a server that ignores tokens is a prompt for nothing.
+        /* The API key the tablet identifies itself with, for the Azure-hosted API. Not
+           in gradle.properties in this repository and not to be put there: it is the only
+           thing in front of the visitor database. Pass it on the command line, or keep it
+           in %USERPROFILE%\.gradle\gradle.properties, which is outside the repository and
+           per machine.
 
-           Off, MSAL is never initialised and res/raw/auth_config.json is not needed, so
-           the app builds and runs from a clean clone. */
-        val authEnabled = providers.gradleProperty("VMS_AUTH_ENABLED").getOrElse("false")
-        buildConfigField("boolean", "AUTH_ENABLED", authEnabled)
-
-        /* The API key, for the Azure-hosted API while sign-in is off. Not in
-           gradle.properties in this repository and not to be put there: it is the only
-           thing in front of the visitor database until Entra is turned on. Pass it on the
-           command line, or keep it in %USERPROFILE%\.gradle\gradle.properties, which is
-           outside the repository and per machine.
-
-           Blank is correct for a build that talks to the on-premises host: that one is
-           reachable only from the office network and asks for no key. */
+           Like the address it is only the default - reception can type a rotated key into
+           the settings screen instead of waiting for a new build. Blank is correct for a
+           build aimed at the on-premises host: that one is reachable only from the office
+           network and asks for no key. */
         val apiKey = providers.gradleProperty("VMS_API_KEY").getOrElse("")
         buildConfigField("String", "API_KEY", "\"$apiKey\"")
     }
@@ -135,6 +114,4 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
-
-    implementation(libs.msal)
 }

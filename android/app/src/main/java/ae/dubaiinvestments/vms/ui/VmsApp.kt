@@ -1,10 +1,9 @@
 package ae.dubaiinvestments.vms.ui
 
-import ae.dubaiinvestments.vms.BuildConfig
-import ae.dubaiinvestments.vms.ui.parts.SectionCard
 import ae.dubaiinvestments.vms.ui.screens.InsertCardScreen
 import ae.dubaiinvestments.vms.ui.screens.ManualEntryDialog
 import ae.dubaiinvestments.vms.ui.screens.SavedScreen
+import ae.dubaiinvestments.vms.ui.screens.SettingsScreen
 import ae.dubaiinvestments.vms.ui.screens.VisitDetailsScreen
 import ae.dubaiinvestments.vms.ui.screens.VisitorInformationScreen
 import ae.dubaiinvestments.vms.ui.theme.BrandNavy
@@ -15,19 +14,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,17 +52,20 @@ import androidx.compose.ui.unit.dp
  * ends at Saved, and the back stack a navigation library would give us is one reception
  * does not want - a half-finished check-in should not be reachable behind the next
  * visitor's.
+ *
+ * No sign-in either. The tablet is the credential, so the desk is on the first step the
+ * moment the app opens; the only thing behind the gear is which server it talks to.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VmsApp(viewModel: VisitorViewModel, onSignIn: () -> Unit) {
+fun VmsApp(viewModel: VisitorViewModel) {
     val state by viewModel.state.collectAsState()
     var manualOpen by remember { mutableStateOf(false) }
 
     /* Runs only while the first screen is up, and is cancelled with it. A poll left
        running behind a finished check-in would keep the reader open and the tablet awake. */
-    LaunchedEffect(state.step) {
-        if (state.step == Step.InsertCard) viewModel.watchReader()
+    LaunchedEffect(state.step, state.settingsOpen) {
+        if (state.step == Step.InsertCard && !state.settingsOpen) viewModel.watchReader()
     }
 
     Scaffold(
@@ -73,27 +73,30 @@ fun VmsApp(viewModel: VisitorViewModel, onSignIn: () -> Unit) {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Visitor Management", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            if (state.settingsOpen) "Settings" else "Visitor Management",
+                            fontWeight = FontWeight.SemiBold,
+                        )
 
-                        /* The signed-in officer, or - while sign-in is off - the fact that
-                           it is off. The web app carries the same note in the same corner,
-                           for the same reason: this is temporary, and temporary states
-                           become permanent by being invisible. */
-                        val subtitle = if (BuildConfig.AUTH_ENABLED) state.signedInAs else "Sign-in is off"
-
-                        subtitle?.let {
-                            Text(
-                                it,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = OnBrandNavy.copy(alpha = 0.75f),
-                            )
-                        }
+                        /* Which server this tablet is talking to. It took the place of the
+                           sign-in note, and for the same reason that note existed: the one
+                           thing about a reception tablet that can quietly be wrong should
+                           not need an app to be opened to find out. */
+                        Text(
+                            state.server.host,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = OnBrandNavy.copy(alpha = 0.75f),
+                        )
                     }
                 },
                 actions = {
-                    if (state.signedInAs != null) {
-                        IconButton(onClick = viewModel::signOut) {
-                            Icon(Icons.Default.Logout, contentDescription = "Sign out", tint = OnBrandNavy)
+                    if (state.settingsOpen) {
+                        IconButton(onClick = viewModel::closeSettings) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back to the desk", tint = OnBrandNavy)
+                        }
+                    } else {
+                        IconButton(onClick = viewModel::openSettings) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = OnBrandNavy)
                         }
                     }
                 },
@@ -123,8 +126,14 @@ fun VmsApp(viewModel: VisitorViewModel, onSignIn: () -> Unit) {
                     .padding(PagePadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                if (state.signInRequired) {
-                    SignInPanel(state, onSignIn)
+                if (state.settingsOpen) {
+                    SettingsScreen(
+                        state = state,
+                        onTest = { url, key -> viewModel.testServer(url, key) },
+                        onSave = viewModel::saveServer,
+                        onResetToDefault = viewModel::resetServer,
+                        onClose = viewModel::closeSettings,
+                    )
                     return@Column
                 }
 
@@ -255,27 +264,5 @@ private fun ErrorBanner(message: String, onDismiss: () -> Unit) {
                 tint = MaterialTheme.colorScheme.onErrorContainer,
             )
         }
-    }
-}
-
-@Composable
-private fun SignInPanel(state: UiState, onSignIn: () -> Unit) {
-    SectionCard("Sign in") {
-        Text(
-            "Sign in with your Dubai Investments account to record visits. " +
-                "Your name goes on every entry you record.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        state.error?.let {
-            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-        }
-
-        Button(onClick = onSignIn, enabled = state.busy == null, modifier = Modifier.fillMaxWidth()) {
-            Text(state.busy ?: "Sign in")
-        }
-
-        Spacer(Modifier.size(2.dp))
     }
 }

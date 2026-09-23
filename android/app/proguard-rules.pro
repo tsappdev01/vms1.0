@@ -7,9 +7,7 @@
 -keep class org.spongycastle.** { *; }
 -dontwarn org.spongycastle.**
 
-# MSAL, and the OkHttp/Retrofit stack it and we both use.
--keep class com.microsoft.identity.** { *; }
--dontwarn com.microsoft.identity.**
+# The OkHttp/Retrofit stack.
 -dontwarn okhttp3.**
 -dontwarn okio.**
 

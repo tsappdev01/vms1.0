@@ -1,23 +1,20 @@
 package ae.dubaiinvestments.vms.ui
 
-import ae.dubaiinvestments.vms.BuildConfig
 import ae.dubaiinvestments.vms.VmsApplication
 import ae.dubaiinvestments.vms.api.ApiException
+import ae.dubaiinvestments.vms.api.ApiProvider
 import ae.dubaiinvestments.vms.api.EntityDto
 import ae.dubaiinvestments.vms.api.ManualIdentity
 import ae.dubaiinvestments.vms.api.PersonDto
 import ae.dubaiinvestments.vms.api.SaveVisitRequest
 import ae.dubaiinvestments.vms.api.SavedVisitDto
-import ae.dubaiinvestments.vms.api.VmsApi
 import ae.dubaiinvestments.vms.api.VmsClient
-import ae.dubaiinvestments.vms.auth.Auth
-import ae.dubaiinvestments.vms.auth.SignInCancelled
-import ae.dubaiinvestments.vms.auth.SignInRequired
 import ae.dubaiinvestments.vms.card.CardRead
 import ae.dubaiinvestments.vms.card.CardReadException
 import ae.dubaiinvestments.vms.card.EmiratesIdReader
 import ae.dubaiinvestments.vms.card.ReaderState
-import android.app.Activity
+import ae.dubaiinvestments.vms.settings.ServerSettings
+import ae.dubaiinvestments.vms.settings.Settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -54,9 +51,6 @@ data class ManualDraft(
 data class UiState(
     val step: Step = Step.InsertCard,
 
-    val signedInAs: String? = null,
-    val signInRequired: Boolean = false,
-
     val reader: ReaderState? = null,
 
     /** Non-null while something is happening, and it says what. */
@@ -83,6 +77,15 @@ data class UiState(
 
     val purpose: String? = null,
     val purposeOther: String = "",
+
+    /** Where this tablet sends its visits. Shown in the top bar and edited under the gear. */
+    val server: ServerSettings,
+    val serverIsDefault: Boolean = true,
+    val settingsOpen: Boolean = false,
+    val settingsBusy: String? = null,
+    /** The result of Test connection, good or bad, in the words to put on the screen. */
+    val settingsMessage: String? = null,
+    val settingsFailed: Boolean = false,
 
     val error: String? = null,
     val saved: SavedVisitDto? = null,
@@ -111,17 +114,20 @@ data class UiState(
         get() = host?.displayName ?: hostQuery.trim()
 }
 
+/**
+ * The check-in, and the one setting a desk can change.
+ *
+ * Nobody signs in. The tablet is the credential - it sits on a counter, it is handed to
+ * nobody, and it identifies itself to the server with an API key rather than a person.
+ * That is why a visit is recorded against the tablet and not against an officer, and it is
+ * the reason there is no sign-in screen to get past when a visitor is already standing
+ * there.
+ */
 class VisitorViewModel(
-    private val api: VmsApi,
-    private val auth: Auth,
+    private val apis: ApiProvider,
+    private val settings: Settings,
     private val reader: EmiratesIdReader,
 ) : ViewModel() {
-
-    /* Sign-in is a build-time switch, matching the server's Authentication:Enabled. Off,
-       MSAL is never touched: asking it for the current account would initialise a client
-       against a configuration file this build does not carry, and the failure would show
-       up as a sign-in gate nobody can get past. */
-    private val authEnabled = BuildConfig.AUTH_ENABLED
 
     private companion object {
         const val TAG = "VmsViewModel"
@@ -131,7 +137,9 @@ class VisitorViewModel(
         const val ReaderPollMillis = 1_200L
     }
 
-    private val _state = MutableStateFlow(UiState())
+    private val _state = MutableStateFlow(
+        UiState(server = settings.value, serverIsDefault = settings.isDefault),
+    )
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     /* Declared before init, and it matters. viewModelScope dispatches on
@@ -143,67 +151,117 @@ class VisitorViewModel(
     private val hostQueries = MutableStateFlow("")
 
     init {
-        refreshAccount()
         loadReference()
         watchHostQuery()
     }
 
-    // ---------------------------------------------------------------- sign-in
+    // ---------------------------------------------------------------- settings
 
-    private fun refreshAccount() = viewModelScope.launch {
-        if (!authEnabled) return@launch
-
-        val name = runCatching { auth.currentAccountName() }.getOrNull()
-        _state.value = _state.value.copy(signedInAs = name, signInRequired = name == null)
+    fun openSettings() {
+        _state.value = _state.value.copy(
+            settingsOpen = true,
+            settingsMessage = null,
+            settingsFailed = false,
+        )
     }
 
-    /** A 401 only means "sign in" if signing in is something this build can do. */
-    private fun needsSignIn(status: Int?) = authEnabled && status == 401
+    fun closeSettings() {
+        _state.value = _state.value.copy(settingsOpen = false, settingsBusy = null)
+    }
 
-    fun signIn(activity: Activity) = viewModelScope.launch {
-        _state.value = _state.value.copy(busy = "Signing in…", error = null)
+    /**
+     * Tries an address before it is saved.
+     *
+     * Worth its own button: a mistyped host otherwise shows up as a failure on the next
+     * check-in, in front of a visitor, with nothing connecting it to what was typed here.
+     */
+    fun testServer(baseUrl: String, apiKey: String) = viewModelScope.launch {
+        val normalised = Settings.normalise(baseUrl)
+        if (normalised == null) {
+            _state.value = _state.value.copy(
+                settingsMessage = "That is not an address the tablet can use.",
+                settingsFailed = true,
+            )
+            return@launch
+        }
+
+        _state.value = _state.value.copy(
+            settingsBusy = "Trying…",
+            settingsMessage = null,
+            settingsFailed = false,
+        )
+
+        /* A client of its own, against the typed address rather than the saved one, so
+           testing cannot leave the tablet pointed somewhere it was not meant to go. */
+        val candidate = VmsClient.create(ServerSettings(normalised, apiKey.trim()))
+
         try {
-            auth.token(activity)
-            val name = auth.currentAccountName()
-            _state.value = _state.value.copy(busy = null, signedInAs = name, signInRequired = name == null)
-            loadReference()
-        } catch (e: SignInCancelled) {
-            _state.value = _state.value.copy(busy = null)
-        } catch (e: Exception) {
-            Log.w(TAG, "Sign-in failed", e)
-            _state.value = _state.value.copy(busy = null, error = "Sign-in failed. ${e.message}")
+            val reference = VmsClient.call { candidate.reference() }
+            _state.value = _state.value.copy(
+                settingsBusy = null,
+                settingsMessage = "Reached the server. It offers ${reference.entities.size} " +
+                    "entities and ${reference.purposes.size} purposes.",
+                settingsFailed = false,
+            )
+        } catch (e: ApiException) {
+            _state.value = _state.value.copy(
+                settingsBusy = null,
+                settingsMessage = e.message,
+                settingsFailed = true,
+            )
         }
     }
 
-    fun signOut() = viewModelScope.launch {
-        if (!authEnabled) return@launch
+    fun saveServer(baseUrl: String, apiKey: String) {
+        val failure = settings.save(baseUrl, apiKey)
+        if (failure != null) {
+            _state.value = _state.value.copy(settingsMessage = failure, settingsFailed = true)
+            return
+        }
 
-        auth.signOut()
-        /* Everything on the screen belongs to the officer who is leaving, including a
-           visitor's photograph. */
-        _state.value = UiState(signInRequired = true)
+        applySettings()
+    }
+
+    fun resetServer() {
+        settings.resetToDefault()
+        applySettings()
+    }
+
+    /** A new address means the reference data on the screen belongs to the old one. */
+    private fun applySettings() {
+        _state.value = _state.value.copy(
+            server = settings.value,
+            serverIsDefault = settings.isDefault,
+            settingsOpen = false,
+            settingsBusy = null,
+            settingsMessage = null,
+            settingsFailed = false,
+            entities = emptyList(),
+            purposes = emptyList(),
+            entityId = null,
+            host = null,
+            hostResults = emptyList(),
+            referenceError = null,
+        )
+        loadReference()
     }
 
     // ---------------------------------------------------------------- reference data
 
     fun loadReference() = viewModelScope.launch {
         try {
-            val reference = VmsClient.call { api.reference() }
+            val reference = VmsClient.call { apis.current().reference() }
             _state.value = _state.value.copy(
                 entities = reference.entities,
                 purposes = reference.purposes,
                 otherPurpose = reference.otherPurpose,
                 referenceError = null,
-                signInRequired = false,
                 /* One entity is not a choice. Pre-selecting it saves a tap at every
                    check-in and cannot be wrong. */
                 entityId = _state.value.entityId ?: reference.entities.singleOrNull()?.id,
             )
         } catch (e: ApiException) {
-            _state.value = _state.value.copy(
-                referenceError = e.message,
-                signInRequired = needsSignIn(e.status),
-            )
+            _state.value = _state.value.copy(referenceError = e.message)
         }
     }
 
@@ -228,7 +286,7 @@ class VisitorViewModel(
         try {
             /* The server issues the request ID. It is what stops a response captured off
                one tablet being posted from another, so it cannot be chosen here. */
-            val ticket = VmsClient.call { api.beginRead() }
+            val ticket = VmsClient.call { apis.current().beginRead() }
 
             val card = reader.read(ticket.requestId) { phase ->
                 _state.value = _state.value.copy(busy = phase)
@@ -241,14 +299,8 @@ class VisitorViewModel(
                 manual = null,
                 step = Step.VisitorInformation,
             )
-        } catch (e: SignInRequired) {
-            _state.value = _state.value.copy(busy = null, signInRequired = authEnabled)
         } catch (e: ApiException) {
-            _state.value = _state.value.copy(
-                busy = null,
-                error = e.message,
-                signInRequired = needsSignIn(e.status),
-            )
+            _state.value = _state.value.copy(busy = null, error = e.message)
         } catch (e: CardReadException) {
             _state.value = _state.value.copy(busy = null, error = e.message)
         }
@@ -317,7 +369,7 @@ class VisitorViewModel(
                 try {
                     val current = _state.value
                     val people = VmsClient.call {
-                        api.people(term, current.entityId, current.searchAllEntities)
+                        apis.current().people(term, current.entityId, current.searchAllEntities)
                     }
                     _state.value = _state.value.copy(hostResults = people, hostSearching = false)
                 } catch (e: ApiException) {
@@ -364,7 +416,7 @@ class VisitorViewModel(
         )
 
         try {
-            val saved = VmsClient.call { api.saveVisit(request) }
+            val saved = VmsClient.call { apis.current().saveVisit(request) }
             _state.value = _state.value.copy(busy = null, saved = saved, step = Step.Saved)
         } catch (e: ApiException) {
             /* A rejected read is the one failure with a recovery: the request ID is spent
@@ -376,7 +428,6 @@ class VisitorViewModel(
             _state.value = _state.value.copy(
                 busy = null,
                 error = e.message,
-                signInRequired = needsSignIn(e.status),
                 step = if (readRejected) Step.InsertCard else _state.value.step,
                 card = if (readRejected) null else _state.value.card,
                 readRequestId = if (readRejected) null else _state.value.readRequestId,
@@ -389,13 +440,14 @@ class VisitorViewModel(
     fun startOver() {
         val current = _state.value
         _state.value = UiState(
-            signedInAs = current.signedInAs,
             entities = current.entities,
             purposes = current.purposes,
             otherPurpose = current.otherPurpose,
             entityId = current.entityId,
             searchAllEntities = current.searchAllEntities,
             reader = current.reader,
+            server = current.server,
+            serverIsDefault = current.serverIsDefault,
         )
         hostQueries.value = ""
     }
@@ -409,6 +461,6 @@ class VisitorViewModel(
     class Factory(private val application: VmsApplication) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            VisitorViewModel(application.api, application.auth, application.reader) as T
+            VisitorViewModel(application.apis, application.settings, application.reader) as T
     }
 }
