@@ -23,10 +23,14 @@ sign-in is switched off, and while it is:
 
 **The Android app does not sign in at all**, and this page does not apply to it. A
 reception tablet sits on a counter and is handed to nobody, so it is not a person's device;
-it identifies itself with an API key and its visits are recorded against
-`(not signed in)` permanently, not temporarily. See `android/README.md`. That means the
-endpoints the tablet uses — `Api/VisitsApi.cs` — have to stay reachable without a token
-whatever this switch does to the web app.
+it identifies itself with an API key and its visits are recorded against `(not signed in)`
+permanently, not temporarily. See `android/README.md`.
+
+The two coexist. With this switch on, `/api` accepts **either** an Entra bearer token
+**or** `X-Vms-Key`, and the same `CanCheckIn` policy then decides
+(`Services/ApiKey.cs`, `ApiKeyAuthenticationHandler`). So turning sign-in on for the web
+screens does not take the tablets down — but `Api__Key` must be set, or nothing on a tablet
+can reach the server.
 
 Turning it on for the web app, once the steps below are done:
 
@@ -156,8 +160,12 @@ administrators, and nobody else.
 
 The Android app authenticates with an API key rather than with Entra, so it needs no
 platform registration, no redirect URI and no API scope. `Api/VisitsApi.cs` accepts the key
-on `X-Vms-Key`; `android/README.md` explains why the tablet is a device credential and not
-a person's.
+on `X-Vms-Key` whether or not sign-in is on; `android/README.md` explains why the tablet is
+a device credential and not a person's.
+
+The key arrives as an identity with one role, `Vms.Officer`, so a tablet can check a
+visitor in and do nothing else — not the report, not an unmasked ID number. Those need a
+signed-in person.
 
 Should a tablet ever need a signed-in officer, the app's half of this registration — an
 `api://<client id>/Visits.Write` scope and an Android platform with the signing keystore's

@@ -25,22 +25,18 @@ namespace DI.Vms.Blazor.Api;
 /// </summary>
 public static class VisitsApi
 {
-    /// <summary>
-    /// Bearer tokens, not the cookie the browser uses. The two live side by side: this
-    /// group requires a token from Entra with the API's own scope, so a session cookie
-    /// stolen from a desk browser cannot be replayed against the API.
-    /// </summary>
-    private static readonly AuthorizeAttribute TabletPolicy = new()
-    {
-        AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
-        Policy = VmsRoles.CanCheckIn,
-    };
-
     /// <param name="requireBearerToken">
     /// True when Entra ID is on. False while sign-in is off, in which case the group still
     /// requires the same <see cref="VmsRoles.CanCheckIn"/> policy - it is just satisfied by
     /// the open-desk scheme, because naming the Bearer scheme when no Bearer handler is
     /// registered fails the request with a framework error rather than an answer.
+    /// </param>
+    /// <param name="acceptTabletKey">
+    /// True when <c>Api:Key</c> is set on a host with sign-in on, which is the deployment
+    /// this system actually runs: the desk browser signs in, and the tablet presents a key
+    /// because nobody signs in on a tablet that sits on a counter. Both schemes are named
+    /// on the group and the same policy decides afterwards, so the key is a way of arriving
+    /// rather than a way around the rules.
     /// </param>
     /// <param name="rateLimitPolicy">
     /// A rate-limiting policy to apply to the group, or null for none. Null on the
@@ -52,6 +48,7 @@ public static class VisitsApi
     public static void MapVisitsApi(
         this IEndpointRouteBuilder routes,
         bool requireBearerToken,
+        bool acceptTabletKey = false,
         string? rateLimitPolicy = null)
     {
         var api = routes.MapGroup("/api");
@@ -63,7 +60,18 @@ public static class VisitsApi
 
         if (requireBearerToken)
         {
-            api.RequireAuthorization(TabletPolicy);
+            /* Bearer, not the cookie the browser uses: a session cookie stolen from a desk
+               browser cannot be replayed against the API. And the tablet's key beside it
+               where one is configured - two ways in, one policy. */
+            var schemes = acceptTabletKey
+                ? $"{JwtBearerDefaults.AuthenticationScheme},{ApiKeyAuthenticationHandler.SchemeName}"
+                : JwtBearerDefaults.AuthenticationScheme;
+
+            api.RequireAuthorization(new AuthorizeAttribute
+            {
+                AuthenticationSchemes = schemes,
+                Policy = VmsRoles.CanCheckIn,
+            });
         }
         else
         {

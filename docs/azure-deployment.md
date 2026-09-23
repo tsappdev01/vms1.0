@@ -201,7 +201,7 @@ Azure maps `__` to `:`.
 | `Toolkit__Mode` | **`Agent`** — not optional. Unset, the app assumes the in-process reader and looks for a smartcard reader in a datacentre. |
 | `Toolkit__Agent__TlsEnabled` | `false` |
 | `Toolkit__Agent__RequireSignature` | `false`, while ICP's licence is the offline bundle |
-| `Authentication__Enabled` | `false` for now — **but read the warning below** |
+| `Authentication__Enabled` | `true` for the web screens. `Api__Key` must be set alongside it or no tablet can reach `/api` |
 | `Api__Key` | A long random string. Guards `/api`; see the security section. |
 
 `Toolkit__Agent__HostName` stays unset — blank means the literal `127.0.0.1`, which is what
@@ -356,7 +356,7 @@ configuration keys.
 |---|---|
 | `ConnectionStrings__Vms` | The database, per the decision above. Mark it a **Connection string** of type SQLAzure rather than an app setting if you prefer; either is read. |
 | `Api__Key` | A long random string — see below. `DI.Vms.Api` refuses to start without it while sign-in is off. `DI.Vms.Blazor` treats it as optional and enforces it when set, so that UATWEB01 — which has never had one — keeps working; set it on any public host. |
-| `Authentication__Enabled` | `false` for now. `true` once the Entra work in `docs/entra-id-setup.md` is finished. |
+| `Authentication__Enabled` | `true` once the Entra work in `docs/entra-id-setup.md` is finished. It governs the web screens; the tablet keeps using `Api__Key` either way. |
 | `Toolkit__Agent__RequireSignature` | `false`, while ICP's licence is the offline bundle and responses come back unsigned. |
 | `AzureAd__TenantId` / `AzureAd__ClientId` | Only when `Authentication__Enabled` is `true`. Values are in `docs/entra-id-setup.md`. |
 | `Directory__Source` | `EntraId` — the "person to visit" list reads the SSO directory. `Database` uses the exported `vms.Person` table instead. |
@@ -540,7 +540,9 @@ What the API does on its own, with no configuration:
 
 What is still yours to do in the portal, and each of these matters more than anything above:
 
-1. **Turn Entra sign-in on.** `Authentication__Enabled=true`. The API key is a shared secret
+1. **Turn Entra sign-in on.** `Authentication__Enabled=true`. This protects the web screens
+   and leaves the tablets working, because `/api` then takes a token *or* the key. The API
+   key is still a shared secret
    in an APK: it does not expire, it names a fleet rather than a person, and anyone who
    unpacks the app can read it. Every visit recorded with it says `(not signed in)`.
    Everything else on this page is mitigation for not having done this.

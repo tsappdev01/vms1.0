@@ -124,11 +124,16 @@ var apiKey = ApiKey.RequireForPublicHost(builder.Configuration, signIn.Enabled);
 
 if (signIn.Enabled)
 {
-    /* Bearer tokens only. There is no browser here and no cookie: the Blazor app owns
-       the interactive sign-in, this owns the tablet. */
-    builder.Services
-        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddMicrosoftIdentityWebApi(
+    /* Bearer tokens, and the tablet's key beside them. There is no browser here and no
+       cookie: the Blazor app owns the interactive sign-in, this owns the tablet - and the
+       tablet does not sign in. It sits on a counter and is handed to nobody, so it presents
+       a shared key and arrives as the desk. Both schemes are named on /api and the same
+       CanCheckIn policy decides afterwards. */
+    /* The AuthenticationBuilder is held rather than chained: AddMicrosoftIdentityWebApi
+       returns its own builder type, which has no AddScheme on it. */
+    var authentication = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+
+    authentication.AddMicrosoftIdentityWebApi(
             jwtOptions =>
             {
                 jwtOptions.TokenValidationParameters.RoleClaimType = "roles";
@@ -136,6 +141,13 @@ if (signIn.Enabled)
             },
             identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
             jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);
+
+    if (apiKey is not null)
+    {
+        authentication.AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
+            ApiKeyAuthenticationHandler.SchemeName,
+            options => options.ExpectedKey = apiKey);
+    }
 }
 else
 {
@@ -282,7 +294,10 @@ app.UseRateLimiter();
 
 app.UseAuthorization();
 
-app.MapVisitsApi(signIn.Enabled, TabletRateLimit);
+app.MapVisitsApi(
+    signIn.Enabled,
+    acceptTabletKey: signIn.Enabled && apiKey is not null,
+    rateLimitPolicy: TabletRateLimit);
 
 /* For App Service's health check, and for answering "is it the API or the network?"
    without a card or a tablet. Anonymous on purpose - a probe that needs a credential is a
@@ -311,7 +326,9 @@ app.MapGet("/api/health", async (IDbContextFactory<VmsDbContext> factory, Cancel
     {
         status = database ? "ok" : "degraded",
         database = database ? "ok" : "unreachable",
-        authentication = signIn.Enabled ? "entra" : "api-key",
+        authentication = signIn.Enabled
+            ? (apiKey is not null ? "entra+api-key" : "entra")
+            : "api-key",
         signatureRequired = capture.Agent.RequireSignature,
     });
 }).RequireAuthorization(VmsRoles.CanCheckIn).RequireRateLimiting(TabletRateLimit);

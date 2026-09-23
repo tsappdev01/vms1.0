@@ -123,9 +123,12 @@ tablet, has it.
 
 What follows from that:
 
-- The server's `Authentication:Enabled` must stay `false` for the endpoints the tablet
-  uses. A server that requires a token answers 401 to every screen here, and the app says
-  so in those words rather than offering a sign-in button that does not exist.
+- The server's `Authentication:Enabled` can be `true` — that is the intended deployment:
+  sign-in for the web screens, the key for the tablet. `/api` names both the bearer scheme
+  and the key scheme and then applies the same `CanCheckIn` policy, so the key is a way of
+  arriving, not a way around the rules. What the tablet must have is `Api:Key` set on the
+  server; with sign-in on and no key configured, nothing here can reach the API and the app
+  says so.
 - The API key is the whole of the tablet's access. Rotate it by changing it on the server
   and typing the new one into **Settings** on each tablet — no rebuild.
 - The top bar shows **which server** the tablet is talking to, in the place the officer's

@@ -91,6 +91,23 @@ if (signIn.Enabled)
         },
         identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
         jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);
+
+    /* And the tablet's key beside both.
+
+       The reception tablet does not sign in and is not going to: it sits on a counter, it
+       is handed to nobody, and a device in the room the visitors are in cannot hold a
+       person's credential. So it presents a shared key and arrives as the desk - one role,
+       CanCheckIn, and RecordedBy says "(not signed in)" because that is what happened.
+
+       Without this, turning sign-in on for the web app answers 401 to every screen on every
+       tablet, which is a working reception desk broken by a setting that was about the
+       browser. */
+    if (apiKey is not null)
+    {
+        authentication.AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
+            ApiKeyAuthenticationHandler.SchemeName,
+            options => options.ExpectedKey = apiKey);
+    }
 }
 else
 {
@@ -226,13 +243,16 @@ using (var scope = app.Services.CreateScope())
     capture.LogTo(logger);
     signIn.LogTo(logger);
 
-    if (!signIn.Enabled)
-    {
-        logger.Log(
-            apiKey is null ? LogLevel.Warning : LogLevel.Information,
-            "The /api endpoints are guarded by {Guard}.",
-            apiKey is null ? "nothing but the network this server is on" : "an API key");
-    }
+    logger.Log(
+        signIn.Enabled || apiKey is not null ? LogLevel.Information : LogLevel.Warning,
+        "The /api endpoints are guarded by {Guard}.",
+        (signIn.Enabled, apiKey is not null) switch
+        {
+            (true, true) => "an Entra ID token or the tablet's API key",
+            (true, false) => "an Entra ID token - no Api:Key is set, so no tablet can reach them",
+            (false, true) => "an API key",
+            (false, false) => "nothing but the network this server is on",
+        });
 
     BrandAssets.Locate(app.Environment.WebRootPath, logger);
 }
@@ -267,8 +287,9 @@ app.UseAntiforgery();
 
 app.MapControllers();
 
-// The Android reception app's endpoints. Bearer-only when sign-in is on; see Api/VisitsApi.cs.
-app.MapVisitsApi(signIn.Enabled);
+/* The Android reception app's endpoints. With sign-in on they take an Entra token or the
+   tablet's key; with it off, the open-desk scheme and the key middleware above. */
+app.MapVisitsApi(signIn.Enabled, acceptTabletKey: signIn.Enabled && apiKey is not null);
 
 /* The stored card for one visit.
 
