@@ -189,6 +189,48 @@ flow, which means the running build predates that line. Redeploy rather than tic
 box — the box works, but it turns on a flow that is deprecated and that puts the token
 somewhere it can be read out of a browser history.
 
+## 6c. Both hostnames need a redirect URI
+
+A Web App answers on its own `*.azurewebsites.net` name and on any custom domain bound to
+it, and the redirect URI the app sends is built from whichever one the browser used. Only
+one registered means sign-in works on one hostname and fails with `AADSTS50011` on the
+other — and reception will be using the custom domain while testing happens on the Azure
+one, or the reverse.
+
+Register both, as **Web** (not SPA, not public client):
+
+```
+https://vms.dubaiinvestments.com/signin-oidc
+https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/signin-oidc
+```
+
+## 6d. A sign-in that loops back to the password prompt
+
+Not Entra. App Service terminates TLS at its front end and forwards to the container over
+plain HTTP, so the app believes the request is `http` unless it is told otherwise.
+
+The OpenID Connect handler writes its correlation and nonce cookies as `SameSite=None` —
+the callback is a cross-site form POST from `login.microsoftonline.com` and nothing else
+survives that — and marks them `Secure` only when it thinks the request is HTTPS. Chrome
+rejects a `SameSite=None` cookie that is not `Secure`, so the cookie is never stored, the
+callback arrives without it, correlation fails, and the handler challenges again. At the
+desk that is a password prompt that will not go away.
+
+`Program.cs` calls `UseForwardedHeaders` first in the pipeline, with `KnownNetworks` and
+`KnownProxies` cleared. If the loop comes back, the log says so plainly — look for:
+
+```
+az webapp log tail -g DotNetSites -n VMS
+```
+
+```
+'.AspNetCore.Correlation.*' cookie not found.
+```
+
+That message means the cookie never made it back, and the scheme is the first thing to
+check. `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` on the Web App does the same job from
+the outside and is a reasonable belt-and-braces.
+
 ## 7. IIS must let the request through
 
 **Anonymous authentication ON, Windows authentication OFF.** With Windows authentication

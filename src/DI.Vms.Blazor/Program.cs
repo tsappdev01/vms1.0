@@ -5,6 +5,7 @@ using DI.Vms.Blazor.Api;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -40,6 +41,27 @@ if (builder.Environment.IsDevelopment())
 #if !VMS_AGENT_ONLY
 builder.Services.AddWindowsService(options => options.ServiceName = "DI VMS");
 #endif
+
+/* App Service terminates TLS at its front end and forwards the request to the container
+   over plain HTTP, so without this the app believes every request is http - and that is
+   what breaks sign-in.
+
+   The OpenID Connect handler writes its correlation and nonce cookies as SameSite=None,
+   because the callback is a cross-site form POST from login.microsoftonline.com and
+   nothing else survives that. It marks them Secure only when it thinks the request is
+   HTTPS. A SameSite=None cookie without Secure is rejected outright by Chrome, so the
+   correlation cookie is never stored, the callback arrives without it, the handler fails
+   correlation and challenges again - which at the desk looks like a password prompt that
+   will not go away.
+
+   KnownNetworks and KnownProxies are cleared because App Service's front-end addresses
+   are not fixed and not knowable here; this is the documented arrangement. */
+builder.Services.Configure<ForwardedHeadersOptions>(forwarded =>
+{
+    forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    forwarded.KnownNetworks.Clear();
+    forwarded.KnownProxies.Clear();
+});
 
 /* Sign-in: on with Entra ID, or off with the desk trusted as it was before any of this
    existed. One switch, resolved here, and everything downstream reads it from the
@@ -293,6 +315,11 @@ using (var scope = app.Services.CreateScope())
 
     BrandAssets.Locate(app.Environment.WebRootPath, logger);
 }
+
+/* First in the pipeline, so everything after it - the exception handler's links, the
+   HTTPS redirect, and above all the authentication cookies - sees the scheme the browser
+   actually used rather than the one the container was handed. */
+app.UseForwardedHeaders();
 
 if (!app.Environment.IsDevelopment())
 {
