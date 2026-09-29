@@ -171,6 +171,24 @@ Should a tablet ever need a signed-in officer, the app's half of this registrati
 `api://<client id>/Visits.Write` scope and an Android platform with the signing keystore's
 hash — is in the git history along with the MSAL code.
 
+## 6b. Nothing to tick under Implicit grant and hybrid flows
+
+Leave **ID tokens** and **Access tokens** unticked. The app uses the **authorization code
+flow** — `Program.cs` sets `options.ResponseType = Code` explicitly — so the token is
+redeemed at the token endpoint with `AzureAd:ClientSecret` and never travels in the
+browser's address bar.
+
+If a first sign-in fails with:
+
+```
+AADSTS700054: response_type 'id_token' is not enabled for the application.
+```
+
+the app is on ASP.NET Core's default (`id_token`, the implicit flow) rather than on code
+flow, which means the running build predates that line. Redeploy rather than ticking the
+box — the box works, but it turns on a flow that is deprecated and that puts the token
+somewhere it can be read out of a browser history.
+
 ## 7. IIS must let the request through
 
 **Anonymous authentication ON, Windows authentication OFF.** With Windows authentication

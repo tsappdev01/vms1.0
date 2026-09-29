@@ -5,6 +5,7 @@ using DI.Vms.Blazor.Api;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -66,11 +67,47 @@ if (signIn.Enabled)
        IIS must be serving this site with Anonymous authentication ON and Windows
        Authentication OFF, or IIS challenges the browser before the request ever reaches
        the OpenID Connect handler. install-iis.ps1 sets it that way. */
+    /* Code flow redeems the code at the token endpoint with the client secret, so a
+       half-filled AzureAd section is a sign-in that fails at the redirect rather than at
+       startup - with an error page in front of reception and nothing in it naming the
+       missing setting. Refuse here instead, where the message can say which one. */
+    foreach (var (name, value) in new[]
+             {
+                 ("AzureAd:TenantId", builder.Configuration["AzureAd:TenantId"]),
+                 ("AzureAd:ClientId", builder.Configuration["AzureAd:ClientId"]),
+                 ("AzureAd:ClientSecret", builder.Configuration["AzureAd:ClientSecret"]),
+             })
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException(
+                $"Authentication:Enabled is true but {name} is not set. Sign-in cannot work without " +
+                "it. Set it in the Web App's configuration (double underscores: " +
+                $"{name.Replace(":", "__")}) or in appsettings.Production.json, or set " +
+                "Authentication:Enabled to false. See docs/entra-id-setup.md.");
+        }
+    }
+
     var authentication = builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme);
 
     authentication.AddMicrosoftIdentityWebApp(options =>
     {
         builder.Configuration.GetSection("AzureAd").Bind(options);
+
+        /* Authorization code flow, stated rather than inherited.
+
+           ASP.NET Core's OpenIdConnectOptions defaults ResponseType to id_token - the
+           implicit flow - and Entra refuses that unless the registration has "ID tokens"
+           ticked under Implicit grant and hybrid flows. The symptom is
+           AADSTS700054 on the first sign-in, which names a response type nobody chose.
+
+           Ticking the box in the portal would also clear the error, and would be the wrong
+           fix: the implicit flow returns the token in the browser's URL fragment, it is
+           deprecated by the OAuth working group, and it exists for JavaScript apps that
+           cannot keep a secret. This one can - AzureAd:ClientSecret is what it uses to
+           redeem the code at the token endpoint - so it should use the flow that keeps the
+           token out of the address bar. PKCE is on by default and rides along with it. */
+        options.ResponseType = OpenIdConnectResponseType.Code;
 
         /* Entra sends app roles in "roles". Without this the framework looks for the long
            WS-Federation role claim, finds nothing, and every policy fails for everyone -
