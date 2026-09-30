@@ -1,5 +1,6 @@
 @page "/access-denied"
 @attribute [AllowAnonymous]
+@using System.Security.Claims
 
 @*
     Where a signed-in person with no VMS role lands.
@@ -27,6 +28,36 @@
                     Signed in as <strong>@context.User.Identity?.Name</strong>. Sign-in worked;
                     what is missing is the role that says what you may do here.
                 </p>
+
+                @*
+                    What the token actually carries.
+
+                    Without this the page can only assert that a role is missing, which is
+                    the same sentence whether nothing was assigned, the assignment went to
+                    a different account, or the sign-in happened before the assignment did.
+                    Those need different actions, and the claim list separates them.
+                *@
+                @{
+                    var roles = RolesIn(context.User);
+                }
+
+                @if (roles.Length == 0)
+                {
+                    <p>
+                        The sign-in token carries <strong>no roles at all</strong>. Either nothing
+                        is assigned to this account, or the assignment went to a different account
+                        &mdash; check that the assignment in Entra names
+                        <strong>@context.User.Identity?.Name</strong> and not a colleague.
+                    </p>
+                }
+                else
+                {
+                    <p>
+                        The token carries: <strong>@string.Join(", ", roles)</strong>. None of
+                        those is a role this application recognises, so the assignment exists but
+                        names something else.
+                    </p>
+                }
             </Authorized>
             <NotAuthorized>
                 <p>
@@ -54,7 +85,9 @@
         <h2>After the role is assigned</h2>
         <p>
             Sign out and in again. The role travels in the sign-in token, so a session that
-            started before the assignment will not have it however long you wait.
+            started before the assignment will not have it however long you wait &mdash; and
+            a refresh of this page is not enough, because the cookie still holds the token
+            issued before.
         </p>
 
         <p>
@@ -62,3 +95,21 @@
         </p>
     </div>
 </section>
+
+@code {
+    /// <summary>
+    /// The roles on the signed-in identity, whatever claim type they arrived under.
+    ///
+    /// Program.cs sets RoleClaimType to "roles", which is what Entra sends, so
+    /// FindAll(ClaimTypes.Role) - the long WS-Federation URI - finds nothing and would make
+    /// a correctly assigned account look like an unassigned one on this very page.
+    /// </summary>
+    private static string[] RolesIn(ClaimsPrincipal user)
+    {
+        var roleType = (user.Identity as ClaimsIdentity)?.RoleClaimType ?? ClaimTypes.Role;
+
+        var roles = user.FindAll(roleType).Select(c => c.Value).ToArray();
+
+        return roles.Length > 0 ? roles : user.FindAll("roles").Select(c => c.Value).ToArray();
+    }
+}
