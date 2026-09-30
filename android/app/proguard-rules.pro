@@ -19,3 +19,12 @@
 -keepclasseswithmembers class ae.dubaiinvestments.vms.api.** {
     public static ** INSTANCE;
 }
+
+# The ACS reader driver. The toolkit finds its plugins by name through its own loader, so
+# nothing in the app references these classes and R8 has no reason to believe they are used.
+-keep class com.acs.** { *; }
+-dontwarn com.acs.**
+
+# The XML signature library, used on the gateway response.
+-keep class org.apache.xml.security.** { *; }
+-dontwarn org.apache.xml.security.**

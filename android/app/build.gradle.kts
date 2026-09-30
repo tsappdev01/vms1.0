@@ -15,8 +15,17 @@ android {
 
     defaultConfig {
         applicationId = "ae.dubaiinvestments.vms"
-        minSdk = 26
+        /*  28, not 26, because that is ICP's floor for the toolkit (build instructions
+         *  v1.6, section 2.1). Below it the toolkit is untested rather than merely old, and
+         *  a tablet that installs and then fails at the reader is worse than one that
+         *  refuses the install. It costs Android 8.0 and 8.1. */
+        minSdk = 28
         targetSdk = 35
+
+        /*  The toolkit and its plugin set carry it past the 64K method limit on their own.
+         *  Required by ICP; without it the failure is a dex merge error naming nothing
+         *  useful. */
+        multiDexEnabled = true
         versionCode = 1
         versionName = "1.0.0"
 
@@ -73,12 +82,50 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true; buildConfig = true }
 
-    /* The toolkit, its plugins and Spongy Castle each ship their own copies of these,
-       and two files with one path fails the merge. Notices are dropped; anything that a
-       library actually reads back at runtime is kept, first one wins. */
+    /*  Packaging, and this block is not housekeeping.
+     *
+     *  Every setting under jniLibs is required by ICP's build instructions (v1.6, section
+     *  2.3.1) and every one of them fails at runtime rather than at build time - so a build
+     *  without them is green, installs, and then cannot read a card. They were missing here
+     *  until the document was read against the project.
+     */
     packaging {
-        resources.excludes += setOf("META-INF/DEPENDENCIES", "META-INF/LICENSE*", "META-INF/NOTICE*")
+        /* The toolkit, its plugins and Spongy Castle each ship their own copies of these,
+           and two files with one path fails the merge. Notices are dropped; anything that a
+           library actually reads back at runtime is kept, first one wins. */
+        /* AndroidManifest.xml is excluded as a packaged *resource*, which is what ICP's own
+           sample does: several plugin AARs carry one, and two files at one path fails the
+           merge. This is nothing to do with the manifest merger, which has already run. */
+        resources.excludes += setOf(
+            "AndroidManifest.xml",
+            "META-INF/DEPENDENCIES", "META-INF/LICENSE*", "META-INF/NOTICE*",
+        )
         resources.pickFirsts += setOf("META-INF/*.kotlin_module", "META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+
+        jniLibs {
+            /*  The one that decides whether a card can be read at all.
+             *
+             *  The toolkit loads its reader plugins with dlopen against a filesystem path.
+             *  From AGP 4.1 native libraries stay compressed inside the APK, where there is
+             *  no path to open, and the load comes back "library not found". This is also
+             *  what makes AGP write android:extractNativeLibs="true" into the merged
+             *  manifest, which is the other half of the same requirement - set here rather
+             *  than in the manifest, because with both set AGP takes this one and warns
+             *  about the other. */
+            useLegacyPackaging = true
+
+            // ICP's doNotStrip, for every native library. Gradle re-strips them as it
+            // packages, and a re-stripped plugin no longer matches the checksum the
+            // toolkit verifies it against.
+            keepDebugSymbols += "**/*.so"
+
+            /*  Two plugin AARs ship libc++_shared.so built against different NDK releases,
+             *  and duplicate paths fail the merge. First one wins, per ICP. */
+            pickFirsts += setOf(
+                "lib/arm64-v8a/libc++_shared.so",
+                "lib/armeabi-v7a/libc++_shared.so",
+            )
+        }
     }
 }
 

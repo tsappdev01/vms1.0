@@ -176,6 +176,37 @@ configuration data".
 It is in `.gitignore`. It is not a secret in the sense a password is, but it does not
 belong in a public repository either.
 
+## What ICP's build instructions require, and what was missing
+
+Checked line by line against *ID Card Toolkit Android Sample Build Instructions v1.6* section
+2.3, and against ICP's own `samples/ToolkitSample/app/build.gradle`, which is the working
+configuration rather than a description of one. Six requirements were absent, and **every one
+of them fails at runtime rather than at build time** — so the build was green, the APK
+installed, and a card read would have failed at a desk.
+
+| Required | Why it is not optional |
+|---|---|
+| `jniLibs { useLegacyPackaging = true }` | The toolkit loads its reader plugins with `dlopen` against a filesystem path. From AGP 4.1 native libraries stay compressed inside the APK, where there is no path to open, and the load returns "library not found". |
+| `doNotStrip` every `.so` (`keepDebugSymbols` in AGP 8) | Gradle re-strips native libraries as it packages them, and a re-stripped plugin no longer matches the checksum the toolkit verifies it against. |
+| `pickFirst` on both `libc++_shared.so` | Two plugin AARs ship it built against different NDK releases; duplicate paths fail the merge. |
+| `multiDexEnabled true` | The toolkit and its plugins pass the 64K method limit on their own. |
+| `minSdk 28` | ICP's floor. It was 26 here, which is not "older" but untested — and a tablet that installs and then fails at the reader is worse than one that refuses the install. Costs Android 8.0 and 8.1. |
+| `exclude 'AndroidManifest.xml'` from packaged resources | Several plugin AARs carry one. Nothing to do with the manifest merger, which has already run by then. |
+
+`android:extractNativeLibs="true"`, which the document also asks for, is set by AGP from
+`useLegacyPackaging` — with both set AGP takes the DSL and warns about the manifest, so it is
+set in one place only.
+
+`android:requestLegacyExternalStorage="true"` is deliberately **not** set. ICP's sample reads
+its configuration from external storage and needs it; this app extracts the bundle into its own
+private storage, which is what the same document recommends as the long-term approach and what
+`card/ToolkitConfig.kt` does.
+
+One place this project still differs from ICP on purpose: their sample does not minify at all,
+and this one does for release, with keeps for the toolkit, the ACS driver, Spongy Castle and
+xmlsec — all of which are reached reflectively and none of which R8 can see is used. CI builds
+debug, so that path is unexercised; treat the first release build as untested.
+
 ## Building without installing anything
 
 `.github/workflows/android.yml` builds the APK on a push that touches `android/`, and can be
