@@ -30,7 +30,7 @@ android {
            without a rebuild - see settings/Settings.kt. The trailing slash matters either
            way, because without it Retrofit drops the last path segment of the base URL. */
         val apiBaseUrl = providers.gradleProperty("VMS_API_BASE_URL")
-            .getOrElse("https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/")
+            .getOrElse("https://vms.dubaiinvestments.com/")
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
 
         /* The API key the tablet identifies itself with, for the Azure-hosted API. Not

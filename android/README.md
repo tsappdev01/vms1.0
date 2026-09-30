@@ -145,8 +145,7 @@ The gear in the top bar. Two fields, and both of them are addressed to whoever i
 tablet rather than to reception:
 
 - **Server address** — where visits are sent. It defaults to what the build was made with
-  (`VMS_API_BASE_URL`), currently
-  `https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/`. A bare host is accepted
+  (`VMS_API_BASE_URL`), currently `https://vms.dubaiinvestments.com/`. A bare host is accepted
   and `https://` is added; a missing trailing slash is added too, because without it
   Retrofit silently drops the last path segment of the base URL.
 - **API key** — what the tablet identifies itself with. Blank is right for the
@@ -176,6 +175,29 @@ configuration data".
 
 It is in `.gitignore`. It is not a secret in the sense a password is, but it does not
 belong in a public repository either.
+
+## Building without installing anything
+
+`.github/workflows/android.yml` builds the APK on a push that touches `android/`, and can be
+run on demand from the repository's **Actions** tab. The APK comes back attached to the run as
+**vms-reception-apk** — download it, copy it to the tablet, install it. Nobody needs Android
+Studio to get one.
+
+Two repository secrets decide what that APK can do, and neither belongs in git:
+
+| Secret | What it is for |
+|---|---|
+| `TOOLKIT_CONFIG_B64` | ICP's configuration bundle, base64 of a gzipped tar of the directory's *contents*. Without it the APK builds and installs, and the first card read says the configuration is missing — which is the right failure for a build made by someone who does not have the licence. |
+| `VMS_API_KEY` | Only a default; the key can also be typed into the settings screen on the tablet. |
+
+To make the first one from the bundle in this repository:
+
+```bash
+tar cz -C IDCARDOFFLINE_config_2026-04-14/IDCARDOFFLINE_ag_config_2026-04-14 . | base64 -w0
+```
+
+The workflow checks that `config_li` came out of the archive and fails naming it if not, so a
+bundle packed one directory too high is caught in CI rather than on a tablet at a desk.
 
 ## Building
 
@@ -365,7 +387,7 @@ between attempts when something is stuck.
   instead of copied into three. A wrong value fails the build naming the file it looked
   for.
 - `VMS_API_BASE_URL` — the server a build points at *by default*;
-  `https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/` unless overridden. The
+  `https://vms.dubaiinvestments.com/` unless overridden. The
   tablet can be moved elsewhere from the settings screen, so this only decides where a
   fresh install looks first. The trailing slash matters to Retrofit; without it Retrofit
   drops the last path segment.

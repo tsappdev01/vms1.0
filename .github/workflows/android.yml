@@ -1,0 +1,75 @@
+# Builds the reception APK.
+#
+# Here rather than on a desk because the people who need the APK - reception, and whoever is
+# setting a tablet up - do not have Android Studio and should not need it. A push produces an
+# installable file attached to the run.
+#
+# ICP's configuration bundle is not in this repository and must not be: it carries the licence
+# issued to Dubai Investments. Put it in the repository secret TOOLKIT_CONFIG_B64 (see below)
+# and the APK can read cards. Without it the APK still builds and installs, and says plainly
+# what is missing the first time a card is read - which is the right failure for a build made
+# by someone who does not have the bundle.
+#
+#   base64 -w0 <(cd IDCARDOFFLINE_config_2026-04-14/IDCARDOFFLINE_ag_config_2026-04-14 && tar cz .)
+#
+# on Windows PowerShell:
+#   tar -cz -C IDCARDOFFLINE_config_2026-04-14\IDCARDOFFLINE_ag_config_2026-04-14 . | \
+#     certutil -encode -f - con | Select-String -NotMatch "CERTIFICATE"
+name: Android
+
+on:
+  push:
+    paths:
+      - 'android/**'
+      - 'id-card-toolkit-android-sdk-v3.1.6/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+    inputs:
+      apiBaseUrl:
+        description: 'Server the build points at by default'
+        default: 'https://vms.dubaiinvestments.com/'
+        required: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # The Android SDK, which the runner does not carry by default.
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # The licence bundle, when the repository has been given one.
+      - name: Unpack the ICP toolkit configuration
+        env:
+          BUNDLE: ${{ secrets.TOOLKIT_CONFIG_B64 }}
+        run: |
+          if [ -z "$BUNDLE" ]; then
+            echo "::warning::No TOOLKIT_CONFIG_B64 secret. The APK will build and install, but a card read will report the missing configuration."
+            exit 0
+          fi
+          mkdir -p android/app/src/main/assets/toolkit-config
+          echo "$BUNDLE" | base64 -d | tar xz -C android/app/src/main/assets/toolkit-config
+          test -f android/app/src/main/assets/toolkit-config/config_li \
+            || { echo "::error::The bundle unpacked without config_li, so it is not the configuration the toolkit wants."; exit 1; }
+          echo "Unpacked $(ls android/app/src/main/assets/toolkit-config | wc -l) configuration files."
+
+      - name: Build
+        working-directory: android
+        run: |
+          ./gradlew --no-daemon assembleDebug \
+            -PVMS_API_BASE_URL='${{ inputs.apiBaseUrl || 'https://vms.dubaiinvestments.com/' }}' \
+            -PVMS_API_KEY='${{ secrets.VMS_API_KEY }}'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vms-reception-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
