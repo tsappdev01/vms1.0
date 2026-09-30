@@ -54,7 +54,13 @@ class Settings(context: Context) {
      *   screen into a connection failure with nothing pointing back at this field.
      */
     fun save(baseUrl: String, apiKey: String): String? {
-        val normalised = normalise(baseUrl) ?: return "That is not an address the tablet can use."
+        val normalised = normalise(baseUrl)
+            ?: return if (baseUrl.contains("@")) {
+                "That looks like an email address. The server address is a web address, " +
+                    "such as vms.dubaiinvestments.com."
+            } else {
+                "That is not an address the tablet can use."
+            }
 
         prefs.edit()
             .putString(KeyBaseUrl, normalised)
@@ -97,6 +103,19 @@ class Settings(context: Context) {
             val withScheme = if (text.contains("://")) text else "https://$text"
             val url = withScheme.toHttpUrlOrNull() ?: return null
             if (url.host.isBlank()) return null
+
+            /*  An address carrying a username is refused, because the one that gets typed
+             *  into this field by mistake is an email address, and an email address parses.
+             *
+             *  "VMSDI@dubaiinvestments.com" becomes "https://VMSDI@dubaiinvestments.com/",
+             *  whose host is dubaiinvestments.com and whose username is VMSDI - a perfectly
+             *  valid URL pointing at the corporate website. Accepted, the tablet would send
+             *  its visits to a server that knows nothing about them, and the only symptom
+             *  would be every screen failing for no stated reason.
+             *
+             *  Nothing legitimate needs it: credentials in a URL are not how this API
+             *  authenticates, and the API key has its own field. */
+            if (url.username.isNotEmpty() || url.password.isNotEmpty()) return null
 
             return withScheme.trimEnd('/') + "/"
         }
