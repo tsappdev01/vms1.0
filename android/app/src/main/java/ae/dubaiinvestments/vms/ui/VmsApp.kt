@@ -162,6 +162,7 @@ fun VmsApp(viewModel: VisitorViewModel) {
                         onHostQuery = viewModel::setHostQuery,
                         onSelectHost = viewModel::selectHost,
                         onSearchAllEntities = viewModel::setSearchAllEntities,
+                        onContactMobile = viewModel::setContactMobile,
                         onPurpose = viewModel::setPurpose,
                         onPurposeOther = viewModel::setPurposeOther,
                         onBack = viewModel::backToVisitorInformation,

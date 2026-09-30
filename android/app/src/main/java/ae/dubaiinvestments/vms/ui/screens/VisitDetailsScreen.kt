@@ -4,6 +4,7 @@ import ae.dubaiinvestments.vms.api.PersonDto
 import ae.dubaiinvestments.vms.ui.UiState
 import ae.dubaiinvestments.vms.ui.parts.SectionCard
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -39,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 /**
@@ -57,6 +59,7 @@ fun VisitDetailsScreen(
     onHostQuery: (String) -> Unit,
     onSelectHost: (PersonDto) -> Unit,
     onSearchAllEntities: (Boolean) -> Unit,
+    onContactMobile: (String) -> Unit,
     onPurpose: (String) -> Unit,
     onPurposeOther: (String) -> Unit,
     onBack: () -> Unit,
@@ -176,6 +179,21 @@ fun VisitDetailsScreen(
                     )
                 }
             }
+        }
+
+        SectionCard("Contact") {
+            /* Typed, not read. The card's own mobile is parsed out of the signed XML on
+               the server; on every card tested at DIP that field came back empty, so this
+               is the number that will actually reach the visitor today. */
+            OutlinedTextField(
+                value = state.contactMobile,
+                onValueChange = onContactMobile,
+                label = { Text("Mobile number") },
+                supportingText = { Text("How to reach the visitor. Optional.") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
         SectionCard("Purpose") {

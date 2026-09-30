@@ -78,6 +78,11 @@ data class UiState(
     val purpose: String? = null,
     val purposeOther: String = "",
 
+    /** The number the visitor gives at the desk. Typed, always: the card's own mobile is
+        parsed out of the signed XML on the server, so there is nothing here to prefill
+        from - and on every card tested at DIP that field came back empty anyway. */
+    val contactMobile: String = "",
+
     /** Where this tablet sends its visits. Shown in the top bar and edited under the gear. */
     val server: ServerSettings,
     val serverIsDefault: Boolean = true,
@@ -341,6 +346,10 @@ class VisitorViewModel(
         hostQueries.value = _state.value.hostQuery
     }
 
+    fun setContactMobile(mobile: String) {
+        _state.value = _state.value.copy(contactMobile = mobile)
+    }
+
     fun setPurpose(purpose: String) {
         _state.value = _state.value.copy(purpose = purpose)
     }
@@ -413,6 +422,7 @@ class VisitorViewModel(
             personToVisitDirectoryId = current.host?.directoryObjectId,
             purpose = current.purpose!!,
             purposeOther = current.purposeOther.trim().ifBlank { null },
+            contactMobile = current.contactMobile.trim().ifBlank { null },
         )
 
         try {

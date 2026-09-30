@@ -18,6 +18,18 @@
         @* The reason this page exists at all: eidatoolkit.js, left to itself, offers a Java
            download when no agent answers. An attendant mid-check-in should get an
            explanation and a person to call, not a JNLP file. *@
+        <h2>If you are reading this on the Android tablet</h2>
+        <p>
+            Then there is nothing to install, and nothing here will fix it. ICP's agent is a
+            <strong>Windows service</strong> — the installer below is an <code>.msi</code> — so
+            no browser on a tablet can reach a card reader, whatever is plugged into it.
+        </p>
+        <p>
+            Use the <strong>VMS app</strong> on the tablet instead. It talks to the reader
+            directly over USB and needs no agent. Everything else on these screens works in the
+            tablet's browser: entering the details by hand, and the visitor report.
+        </p>
+
         <h2>What needs installing</h2>
         <ol>
             <li><strong>ICAToolkitService.msi</strong> — ICP's ID Card Toolkit agent, from the toolkit v3.1.6 bundle.</li>

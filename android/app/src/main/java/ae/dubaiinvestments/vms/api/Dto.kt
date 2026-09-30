@@ -74,6 +74,9 @@ data class SaveVisitRequest(
     val personToVisitDirectoryId: String? = null,
     val purpose: String,
     val purposeOther: String? = null,
+    /** The number the visitor gives at the desk. Optional, and last, so a server built
+        before this ignores it rather than refusing the save. */
+    val contactMobile: String? = null,
 )
 
 /** ASP.NET's ProblemDetails, which is what the API answers a bad request with. */
