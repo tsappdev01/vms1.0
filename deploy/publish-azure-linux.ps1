@@ -91,6 +91,17 @@ if (Test-Path $leaked) {
     Write-Warning 'Removed appsettings.Production.json from the package - Azure settings come from the Web App configuration.'
 }
 
+<# appsettings.Development.json must NOT ship either. It is not a secret - it holds a
+   developer's local toolkit paths - but it is somebody's machine described in a package
+   that goes to a server, and DetailedErrors in it would turn on if ASPNETCORE_ENVIRONMENT
+   were ever Development on that host. It is published because dotnet publish copies every
+   appsettings.*.json it finds; nothing here wanted it. #>
+$dev = Join-Path $site 'appsettings.Development.json'
+if (Test-Path $dev) {
+    Remove-Item $dev -Force
+    Write-Host "Removed appsettings.Development.json from the package - it describes a developer's machine."
+}
+
 <# web.config is IIS's, and there is no IIS on a Linux Web App. Harmless, but leaving it
    invites the belief that it is doing something. #>
 Remove-Item (Join-Path $site 'web.config') -Force -ErrorAction SilentlyContinue
