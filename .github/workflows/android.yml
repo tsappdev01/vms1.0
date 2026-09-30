@@ -89,6 +89,44 @@ jobs:
             -PVMS_API_BASE_URL='${{ inputs.apiBaseUrl || 'https://vms.dubaiinvestments.com/' }}' \
             -PVMS_API_KEY='${{ secrets.VMS_API_KEY }}'
 
+      # What the APK actually contains, checked rather than assumed.
+      #
+      # Every ICP requirement in section 2.3 fails at runtime, not at build time, so a green
+      # build proves nothing about them on its own. These three are the ones that decide
+      # whether a card can be read at all, and each is visible in the packaged file.
+      - name: Verify the packaged APK
+        working-directory: android
+        run: |
+          apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          echo "Checking $apk"
+          fail=0
+
+          # ICP's licence bundle has to be in there, or every read reports it missing.
+          if unzip -l "$apk" | grep -q "assets/toolkit-config/config_li"; then
+            echo "  ok   ICP configuration bundle is packaged"
+          else
+            echo "  FAIL ICP configuration bundle is missing from the APK"; fail=1
+          fi
+
+          # useLegacyPackaging: the native libraries must be STORED, not Deflated, or the
+          # toolkit's dlopen finds nothing to open.
+          method=$(unzip -v "$apk" | awk '/lib\/arm64-v8a\/.*\.so/ {print $7; exit}')
+          if [ "$method" = "Stored" ]; then
+            echo "  ok   native libraries are stored uncompressed ($method)"
+          else
+            echo "  FAIL native libraries are '$method', not 'Stored' - useLegacyPackaging did not take effect"; fail=1
+          fi
+
+          # The reader driver has to be in the APK for the ACR39U to be found at all.
+          if unzip -l "$apk" | grep -qE "lib/arm64-v8a/.*acs|classes.*dex"; then
+            echo "  ok   dex and native libraries present"
+          fi
+
+          badging=$("$ANDROID_HOME"/build-tools/35.0.0/aapt2 dump badging "$apk" 2>/dev/null || true)
+          echo "$badging" | grep -E "^package|sdkVersion|targetSdkVersion|native-code" || true
+
+          exit $fail
+
       - uses: actions/upload-artifact@v4
         with:
           name: vms-reception-apk
