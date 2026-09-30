@@ -91,14 +91,24 @@ public static class MrzFinder
             .Where(line => line.Length >= 20)
             .ToList();
 
+        MachineReadableZone.Result? closest = null;
+
         for (var i = 0; i + 3 <= candidates.Count; i++)
         {
             var attempt = MachineReadableZone.Parse(string.Join('\n', candidates.Skip(i).Take(3)));
             if (attempt.Ok) return attempt;
+
+            closest ??= attempt;
         }
 
-        /* Nothing held. Hand the whole thing back so the refusal names the real shape
-           problem - too few lines, or lines of the wrong length - rather than a generic one. */
-        return MachineReadableZone.Parse(string.Join('\n', candidates));
+        /* Nothing held.
+           
+           Which refusal to show matters more than it looks. Handing back every line the
+           recogniser found makes Normalise see five or six lines and say "that does not look
+           like the three lines from the back of the card" - which reads as though the officer
+           photographed the wrong side, when they photographed the right side and it was
+           misread. So when three lines were found and simply did not add up, the refusal from
+           that attempt is the honest one. */
+        return closest ?? MachineReadableZone.Parse(string.Join('\n', candidates));
     }
 }

@@ -75,7 +75,108 @@ const ORIENTATIONS = [
     { name: 'mirrored, upside down', flip: true, rotate: true },
 ];
 
-function draw(source, { flip, rotate }, width, height) {
+/*  Otsu's threshold: the split between ink and paper that this image actually has.
+ *
+ *  This replaces a pair of hard-coded constants, and the constants were a real bug. They
+ *  were tuned on one photograph; a brighter one put almost every pixel above the upper
+ *  bound, so the whole card went white and the zone was erased before the recogniser saw
+ *  it. The same card read one minute and not the next, which looked like bad luck and was
+ *  bad code.
+ *
+ *  Otsu picks the threshold that best separates the histogram into two groups, per image.
+ *  Twenty lines, no tuning, and it cannot be wrong about an exposure it was not written for.
+ */
+function otsuThreshold(histogram, total) {
+    let sum = 0;
+    for (let i = 0; i < 256; i++) sum += i * histogram[i];
+
+    let sumBackground = 0;
+    let weightBackground = 0;
+    let best = 0;
+    let bestVariance = -1;
+
+    for (let t = 0; t < 256; t++) {
+        weightBackground += histogram[t];
+        if (weightBackground === 0) continue;
+
+        const weightForeground = total - weightBackground;
+        if (weightForeground === 0) break;
+
+        sumBackground += t * histogram[t];
+
+        const meanBackground = sumBackground / weightBackground;
+        const meanForeground = (sum - sumBackground) / weightForeground;
+        const between = weightBackground * weightForeground
+            * (meanBackground - meanForeground) * (meanBackground - meanForeground);
+
+        if (between > bestVariance) { bestVariance = between; best = t; }
+    }
+
+    return best;
+}
+
+/*  Bradley's adaptive threshold: every pixel judged against its own neighbourhood.
+ *
+ *  This is the one that answers "low light and bright light and glare". A global threshold -
+ *  Otsu included - picks one number for the whole image, so a card with a window reflection
+ *  on one half and shadow on the other has no single number that works: whichever is chosen,
+ *  one half turns solid. Judging each pixel against the mean of the box around it removes
+ *  the lighting from the problem entirely, because a dark character on dark paper is still
+ *  darker than the paper beside it.
+ *
+ *  The integral image is what makes it cheap: the mean of any box is four array lookups,
+ *  so the whole pass is linear however wide the window. That is why this can be the first
+ *  thing tried rather than a fallback.
+ */
+function localThreshold(grey, width, height) {
+    const integral = new Float64Array((width + 1) * (height + 1));
+
+    for (let y = 0; y < height; y++) {
+        let row = 0;
+        for (let x = 0; x < width; x++) {
+            row += grey[y * width + x];
+            integral[(y + 1) * (width + 1) + (x + 1)] =
+                integral[y * (width + 1) + (x + 1)] + row;
+        }
+    }
+
+    /* A window about an eighth of the width: wide enough to hold several characters and
+       their paper, narrow enough that a gradient across the card does not sit inside it. */
+    const radius = Math.max(8, Math.round(width / 16));
+    const out = new Uint8ClampedArray(grey.length);
+
+    for (let y = 0; y < height; y++) {
+        const y0 = Math.max(0, y - radius);
+        const y1 = Math.min(height - 1, y + radius);
+
+        for (let x = 0; x < width; x++) {
+            const x0 = Math.max(0, x - radius);
+            const x1 = Math.min(width - 1, x + radius);
+
+            const count = (x1 - x0 + 1) * (y1 - y0 + 1);
+            const sum = integral[(y1 + 1) * (width + 1) + (x1 + 1)]
+                - integral[y0 * (width + 1) + (x1 + 1)]
+                - integral[(y1 + 1) * (width + 1) + x0]
+                + integral[y0 * (width + 1) + x0];
+
+            /* Ink only when meaningfully darker than its surroundings. The 0.86 is what
+               stops clean paper being read as a field of noise: without a margin, half of
+               an even background falls on each side of its own mean. */
+            out[y * width + x] = grey[y * width + x] * count < sum * 0.86 ? 0 : 255;
+        }
+    }
+
+    return out;
+}
+
+/*  `mode` is 'local', 'otsu' or 'grey'.
+ *
+ *  Both are tried, because Tesseract binarises internally and does it well - so a hard
+ *  threshold here sometimes destroys more than it removes, particularly on a photograph of
+ *  a screen where the moiré is what gets sharpened into false strokes. Which of the two
+ *  wins is decided by the check digits rather than by an opinion held here.
+ */
+function draw(source, { flip, rotate }, width, height, mode, band) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -88,21 +189,59 @@ function draw(source, { flip, rotate }, width, height) {
     ctx.drawImage(source, 0, 0, width, height);
     ctx.restore();
 
-    /*  Greyscale and a hard contrast stretch. The zone is black on near-white, and a
-     *  photograph of a phone screen arrives grey on grey with the moiré of one pixel grid
-     *  seen through another. Pushing it to black and white removes most of that before the
-     *  recogniser has to reason about it. */
     const pixels = ctx.getImageData(0, 0, width, height);
     const d = pixels.data;
 
-    for (let i = 0; i < d.length; i += 4) {
-        const grey = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
-        const v = grey < 110 ? 0 : grey > 165 ? 255 : (grey - 110) * (255 / 55);
-        d[i] = d[i + 1] = d[i + 2] = v;
+    const histogram = new Uint32Array(256);
+    const grey = new Uint8ClampedArray(d.length / 4);
+
+    for (let i = 0, g = 0; i < d.length; i += 4, g++) {
+        const value = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
+        grey[g] = value;
+        histogram[value]++;
+    }
+
+    if (mode === 'grey') {
+        for (let i = 0, g = 0; i < d.length; i += 4, g++) {
+            d[i] = d[i + 1] = d[i + 2] = grey[g];
+        }
+    } else if (mode === 'local') {
+        const binary = localThreshold(grey, width, height);
+        for (let i = 0, g = 0; i < d.length; i += 4, g++) {
+            d[i] = d[i + 1] = d[i + 2] = binary[g];
+        }
+    } else {
+        const t = otsuThreshold(histogram, grey.length);
+
+        /* A margin either side of the threshold rather than a cliff, so a character's
+           anti-aliased edge keeps its shape instead of being gnawed at. */
+        const low = Math.max(0, t - 18);
+        const high = Math.min(255, t + 18);
+        const span = Math.max(1, high - low);
+
+        for (let i = 0, g = 0; i < d.length; i += 4, g++) {
+            const v = grey[g] <= low ? 0 : grey[g] >= high ? 255 : ((grey[g] - low) * 255 / span) | 0;
+            d[i] = d[i + 1] = d[i + 2] = v;
+        }
     }
 
     ctx.putImageData(pixels, 0, 0);
-    return canvas;
+
+    if (!band) return canvas;
+
+    /* Cropped after thresholding, not before: a threshold computed from the strip alone has
+       only ink and paper to look at and no idea what the card's paper is. */
+    const strip = document.createElement('canvas');
+    const top = Math.round(height * 0.55);
+    strip.width = width * 2;
+    strip.height = (height - top) * 2;
+
+    const stripCtx = strip.getContext('2d');
+    stripCtx.imageSmoothingEnabled = true;
+    stripCtx.imageSmoothingQuality = 'high';
+    stripCtx.drawImage(canvas, 0, top, width, height - top, 0, 0, strip.width, strip.height);
+
+    return strip;
 }
 
 async function bitmapOf(file) {
@@ -134,34 +273,35 @@ export async function scan(file, engineBaseUrl, trainedDataUrl) {
 
     const results = [];
 
-    for (const orientation of ORIENTATIONS) {
-        const whole = draw(bitmap, orientation, width, height);
+    /*  Ordered by what usually wins, because the caller stops at the first read whose check
+     *  digits hold - so the common case costs one pass, not all of them.
+     *
+     *  The band first: the zone is a tenth of the card's height, so on the whole card each
+     *  character is a handful of pixels, and that is where a chevron gets dropped or a line
+     *  read twice. Cropped and doubled it is four times the area for a fraction of the work.
+     *
+     *  Then the thresholds in order of how much light they forgive. Only if all of that
+     *  fails is the whole card tried, in case the zone was not where the crop assumed. */
+    const attempts = [];
 
-        /*  The strip, first and enlarged.
-         *
-         *  The zone is three lines across the bottom edge - perhaps a tenth of the card's
-         *  height - so in a photograph of the whole card each character is a handful of
-         *  pixels, and that is where a recogniser starts dropping a chevron or reading a
-         *  line twice. Cropping to the band and doubling it gives the same characters four
-         *  times the area, for a fraction of the work of the full image.
-         *
-         *  Tried before the whole card because the caller stops at the first read whose
-         *  check digits hold, and this is the one that usually does. */
-        const band = document.createElement('canvas');
-        const bandTop = Math.round(whole.height * 0.55);
-        band.width = whole.width * 2;
-        band.height = (whole.height - bandTop) * 2;
-
-        const ctx = band.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(whole, 0, bandTop, whole.width, whole.height - bandTop,
-            0, 0, band.width, band.height);
-
-        for (const [what, canvas] of [['band', band], ['whole', whole]]) {
-            const { data } = await tess.recognize(canvas);
-            results.push({ orientation: `${orientation.name}, ${what}`, text: data.text ?? '' });
+    for (const mode of ['local', 'otsu', 'grey']) {
+        for (const orientation of ORIENTATIONS) {
+            attempts.push({ orientation, mode, band: true });
         }
+    }
+
+    for (const orientation of ORIENTATIONS) {
+        attempts.push({ orientation, mode: 'local', band: false });
+    }
+
+    for (const { orientation, mode, band } of attempts) {
+        const whole = draw(bitmap, orientation, width, height, mode, band);
+        const { data } = await tess.recognize(whole);
+
+        results.push({
+            orientation: `${orientation.name}, ${mode}, ${band ? 'band' : 'whole'}`,
+            text: data.text ?? '',
+        });
     }
 
     return results;
