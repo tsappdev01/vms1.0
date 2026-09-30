@@ -575,7 +575,7 @@ else if (step == 1 && card is not null && IsTyped)
                 </div>
 
                 <div class="field">
-                    <label for="m-expiry">Card Expiry</label>
+                    <label for="m-expiry">Card Expiry <span class="req">required</span></label>
                     <input id="m-expiry" maxlength="@FieldLengths.CardField" @bind="manual.ExpiryDate" placeholder="25/08/2028" autocomplete="off" />
                 </div>
 
@@ -836,10 +836,10 @@ else if (step == 2 && card is not null)
             </div>
 
             <div class="field">
-                <label for="contact-mobile">Mobile number</label>
+                <label for="contact-mobile">Mobile number <span class="req">required</span></label>
                 <input id="contact-mobile" type="tel" inputmode="tel" autocomplete="off"
                        maxlength="@FieldLengths.ContactMobile" @bind="contactMobile" @bind:event="oninput"
-                       placeholder="How to reach the visitor" />
+                       placeholder="How to reach the visitor" required />
                 @if (!string.IsNullOrWhiteSpace(card?.AddressMobile))
                 {
                     <span class="hint">Read from the card. Correct it if the visitor gives another number.</span>
@@ -865,6 +865,18 @@ else if (step == 2 && card is not null)
                     <input id="purpose-other" maxlength="@FieldLengths.PurposeOther" @bind="purposeOther" @bind:event="oninput"
                            placeholder="What is the visit for?" autocomplete="off" />
                 </div>
+            }
+
+            @if (MissingRequired.Any())
+            {
+                <p class="warn" role="status">
+                    Still needed before this can be saved:
+                    <b>@string.Join(", ", MissingRequired)</b>.
+                    @if (MissingRequired.Any(f => f != "mobile number"))
+                    {
+                        <text>Go back to correct the card details.</text>
+                    }
+                </p>
             }
 
             <div class="actions">
@@ -1604,7 +1616,8 @@ else if (step == 3 && saved is not null)
         entityId != 0
         && !string.IsNullOrWhiteSpace(personToVisit)
         && !string.IsNullOrWhiteSpace(purpose)
-        && (purpose != OtherPurpose || !string.IsNullOrWhiteSpace(purposeOther));
+        && (purpose != OtherPurpose || !string.IsNullOrWhiteSpace(purposeOther))
+        && !MissingRequired.Any();
 
     /// <summary>Clears the detail when the purpose moves off Other, so a stale note cannot be saved.</summary>
     private void PurposeChanged()
@@ -1772,9 +1785,40 @@ else if (step == 3 && saved is not null)
     private string IdDigits =>
         new(manual.IdNumber.Where(char.IsAsciiDigit).ToArray());
 
-    /// <summary>The two fields a visitor entry cannot be written without.</summary>
+    /// <summary>
+    /// What an entry must carry, whatever produced it.
+    ///
+    /// Named rather than counted, so the screen can say which one is missing instead of
+    /// leaving a button greyed out with no explanation - and applied to the entry rather
+    /// than to the form, so a card read that came back short is held to the same standard
+    /// as something typed. The ID number is the one that matters most: it is what a repeat
+    /// visit is matched on.
+    /// </summary>
+    private IEnumerable<string> MissingRequired
+    {
+        get
+        {
+            var effective = IsTyped ? manual : card;
+
+            if ((IsTyped ? IdDigits : effective?.IdNumber ?? "").Trim().Length == 0)
+                yield return "ID number";
+
+            if (string.IsNullOrWhiteSpace(effective?.FullNameEnglish))
+                yield return "name";
+
+            if (string.IsNullOrWhiteSpace(effective?.ExpiryDate))
+                yield return "card expiry";
+
+            if (string.IsNullOrWhiteSpace(contactMobile))
+                yield return "mobile number";
+        }
+    }
+
+    /// <summary>The identity fields, which are the ones on the first screen.</summary>
     private bool ManualIsComplete =>
-        IdDigits.Length > 0 && !string.IsNullOrWhiteSpace(manual.FullNameEnglish);
+        IdDigits.Length > 0
+        && !string.IsNullOrWhiteSpace(manual.FullNameEnglish)
+        && !string.IsNullOrWhiteSpace(manual.ExpiryDate);
 
     /// <summary>
     /// Reads the card through the agent on the desk, and hands the response straight to

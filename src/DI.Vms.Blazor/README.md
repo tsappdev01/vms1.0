@@ -429,6 +429,53 @@ Called a front, that read would have had a "portrait" cut out of the middle of a
 text. The sides are separated by counting chevrons - the zone is padded with dozens and
 nothing printed on the front uses one.
 
+### Finding the zone, because assuming where it is does not work
+
+Everything above assumed the card fills the guide box. Measured - by rendering ID-1 cards at a
+known scale, placing them the way a hand actually holds one, and running the shipped code over
+them into a real Tesseract - that assumption failed **8 times in 10**. Reasoning about it had
+already produced two wrong diagnoses; the harness produced the right one in an afternoon.
+
+What the measurements said:
+
+- A card at 80% of the box puts its zone in roughly the right place at two thirds the size.
+- **Three degrees of tilt** - nothing, in a hand - was enough on its own.
+- The dark surround around a card is, after a local threshold, a rim of solid ink a window
+  wide. It is denser and wider than any text on the card, so a search for "the widest dense
+  thing" finds the desk every time. An ink *ceiling* is what separates them: real text never
+  fills two thirds of its own line; the rim always does.
+
+So the zone is found rather than assumed, in three cheap steps on a 640-wide scout image: the
+card as the large bright region, the zone as the bottom-most band of full-width dense rows
+inside it, and the angle by projection profile. `cardBounds`, `zoneBounds` and `skewScore` are
+pure functions over a greyscale array for exactly one reason - so they can be tested outside a
+browser, which is what settled every question above.
+
+Two things that measured the opposite of the obvious guess:
+
+- **A fifth of a row is enough to count as card, not a half.** At a half the card was found to
+  stop just above its own zone, because the machine-readable lines are so dense that barely
+  half of their row is paper.
+- **The card's angle is better measured from its printing than from its edges.** The edge
+  version chose forty degrees for a card that was square on: the guide box crops the card, so
+  turning it only trades card for border and the measure has nothing to sit on.
+
+And one bug that only a non-zero angle could expose: the zone is measured in a scout that has
+already been turned, so its position has to be turned back. Without that the crop slides
+sideways - invisibly at zero, and far enough at twenty degrees to cut the last character off
+every line, so the three lines look perfect on screen and read one short.
+
+Scored on the same rendered scenes, end to end into the parser:
+
+| | before | after |
+| --- | --- | --- |
+| Held up: 60–100% of the box, 0–6° tilt | 2/10 | **10/10** |
+| Laid on a desk, 0–40°, dark desk and light | — | 6/10 complete, 10/10 ID number |
+
+The desk cases that fall short are 30° and beyond, where the turned crop loses resolution and
+the card's corners leave the guide box. Up to 20° is complete. That is a real limit and the
+on-screen box is what keeps a card inside it.
+
 ### Two things that only failed on the second visit
 
 Both were invisible on a fresh page load and broke on the way back to the screen, which is the

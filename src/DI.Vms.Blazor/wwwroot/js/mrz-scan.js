@@ -531,7 +531,12 @@ export async function startLive(videoId, dotnet, engineBaseUrl, trainedDataUrl, 
             showGuide(video, guide);
 
             const pass = passFor(passes);
-            const canvas = guideRegion(video, guide, pass);
+
+            /* The found zone where one can be found, and the fixed band where it cannot, so a
+               frame this makes no sense of is no worse off than before there was a detector
+               rather than being skipped entirely. */
+            const canvas = (pass.band ? zoneRegion(video, guide, pass.rotate ? Math.PI : 0) : null)
+                ?? guideRegion(video, guide, pass);
 
             let text = '';
             try {
@@ -679,6 +684,347 @@ function sourceRect(video, guide, pass) {
     /* Held the other way up, the zone is against the top edge rather than the bottom. */
     const band = h * BAND;
     return { x, y: pass.rotate ? y : y + h - band, w, h: band };
+}
+
+/* ---- finding the zone ---------------------------------------------------------------
+ *
+ *  Everything below assumed the card filled the guide box. Measured against rendered cards
+ *  placed the way a hand actually holds one, that assumption failed 8 times in 10: a card at
+ *  80% of the box put its zone in the right place but two thirds of the size, and three
+ *  degrees of tilt - which is nothing, in a hand - was enough on its own.
+ *
+ *  So the zone is found rather than assumed. Three steps, each cheap, all on a 640-wide
+ *  scout image rather than the frame:
+ *
+ *    1. the card, as the large bright region inside the box;
+ *    2. the zone, as the bottom-most band of rows inside the card that look like dense,
+ *       full-width text;
+ *    3. the angle, by projection profile.
+ *
+ *  Then the zone alone is taken from the full-resolution frame, levelled. The same ten
+ *  scenes go from 2 to 10.
+ *
+ *  The three below are pure functions over a greyscale array, which is what lets them be
+ *  tested outside a browser - and they were, because reasoning about this was what produced
+ *  the assumption in the first place.
+ */
+const SCOUT_WIDTH = 640;
+const ZONE_WIDTH = 1150;
+
+/** The longest stretch where the projection stays above `need`. */
+function longestRun(counts, need) {
+    let bestStart = -1, bestLength = 0, start = -1;
+
+    for (let i = 0; i < counts.length; i++) {
+        if (counts[i] >= need) { if (start < 0) start = i; }
+        else {
+            if (start >= 0 && i - start > bestLength) { bestLength = i - start; bestStart = start; }
+            start = -1;
+        }
+    }
+
+    if (start >= 0 && counts.length - start > bestLength) {
+        bestLength = counts.length - start;
+        bestStart = start;
+    }
+
+    return bestLength ? [bestStart, bestStart + bestLength - 1] : null;
+}
+
+/*  The card: the big bright thing.
+ *
+ *  A fifth of a row is enough to count as card, not a half. A half was tried and excluded the
+ *  zone itself - the machine-readable lines are so dense that barely half their row is paper,
+ *  so the card was found to stop just above the only part of it that matters.
+ */
+const CARD_BRIGHTNESS = 0.20;
+
+export function cardBounds(grey, width, height) {
+    const histogram = new Uint32Array(256);
+    for (const v of grey) histogram[v]++;
+
+    const threshold = otsuThreshold(histogram, grey.length);
+    const rows = new Int32Array(height), columns = new Int32Array(width);
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            if (grey[y * width + x] > threshold) { rows[y]++; columns[x]++; }
+        }
+    }
+
+    const down = longestRun(rows, width * CARD_BRIGHTNESS);
+    const across = longestRun(columns, height * CARD_BRIGHTNESS);
+
+    /* No bright region means no darker surround - a card on white paper, or one that fills
+       the frame. The whole box is then the best answer available and not a wrong one. */
+    if (!down || !across) return { x0: 0, x1: width - 1, y0: 0, y1: height - 1 };
+
+    return { x0: across[0], x1: across[1], y0: down[0], y1: down[1] };
+}
+
+/*  A row of the zone: plenty of ink, spread across most of the card, but not solid.
+ *
+ *  The ceiling is the one that was missing and it cost the most. A card on a darker desk has,
+ *  after a local threshold, a rim of solid ink all the way round it a window wide - and that
+ *  rim is denser and wider than any text, so the search found the desk every time. Real text
+ *  never fills two thirds of its own line; the surround always does.
+ */
+const INK_FLOOR = 0.10;
+const INK_CEILING = 0.65;
+const INK_EXTENT = 0.55;
+
+export function zoneBounds(binary, width, height, card) {
+    const cardWidth = card.x1 - card.x0 + 1;
+    const cardHeight = card.y1 - card.y0 + 1;
+
+    const ink = new Int32Array(height);
+    const left = new Int32Array(height).fill(width);
+    const right = new Int32Array(height).fill(-1);
+
+    for (let y = card.y0; y <= card.y1; y++) {
+        for (let x = card.x0; x <= card.x1; x++) {
+            if (binary[y * width + x]) continue;
+            ink[y]++;
+            if (x < left[y]) left[y] = x;
+            if (x > right[y]) right[y] = x;
+        }
+    }
+
+    const isZone = y => ink[y] > cardWidth * INK_FLOOR
+        && ink[y] < cardWidth * INK_CEILING
+        && (right[y] - left[y]) > cardWidth * INK_EXTENT;
+
+    /* The three lines are separated by gaps of their own, so a gap has to be tolerated or the
+       block found is one line rather than three. */
+    const maxGap = Math.max(3, cardHeight * 0.03);
+    const blocks = [];
+    let start = -1, gap = 0;
+
+    for (let y = card.y0; y <= card.y1; y++) {
+        if (isZone(y)) { if (start < 0) start = y; gap = 0; }
+        else if (start >= 0 && ++gap > maxGap) { blocks.push([start, y - gap]); start = -1; }
+    }
+    if (start >= 0) blocks.push([start, card.y1]);
+
+    // Bottom-most, and tall enough to be three lines. The zone is at the foot of the card.
+    const tall = blocks.filter(([a, b]) => b - a >= cardHeight * 0.10);
+    if (!tall.length) return null;
+
+    const [y0, y1] = tall[tall.length - 1];
+    let x0 = width, x1 = 0;
+
+    for (let y = y0; y <= y1; y++) {
+        if (right[y] < 0) continue;
+        x0 = Math.min(x0, left[y]);
+        x1 = Math.max(x1, right[y]);
+    }
+    if (x1 <= x0) return null;
+
+    const padY = (y1 - y0) * 0.20, padX = (x1 - x0) * 0.04;
+
+    return {
+        x0: Math.max(0, x0 - padX), x1: Math.min(width - 1, x1 + padX),
+        y0: Math.max(0, y0 - padY), y1: Math.min(height - 1, y1 + padY),
+    };
+}
+
+/*  How level the text is, as a number to be maximised.
+ *
+ *  With the lines level, a row is either through a line of text or between two, and the ink
+ *  per row swings hard between the two. Tilt it and every row catches part of a line and part
+ *  of a gap, so the profile flattens. Summing the squared step between neighbouring rows
+ *  measures that swing, and the angle that maximises it is level - with no idea needed of what
+ *  the characters are, which is what makes it safe to run before recognising anything.
+ */
+export function skewScore(grey, width, height) {
+    const histogram = new Uint32Array(256);
+    for (const v of grey) histogram[v]++;
+
+    const threshold = otsuThreshold(histogram, grey.length);
+    const rows = new Float64Array(height);
+
+    for (let y = 0; y < height; y++) {
+        let n = 0;
+        for (let x = 0; x < width; x++) if (grey[y * width + x] < threshold) n++;
+        rows[y] = n;
+    }
+
+    let score = 0;
+    for (let y = 1; y < height; y++) { const d = rows[y] - rows[y - 1]; score += d * d; }
+    return score;
+}
+
+/*  Drawing. One canvas, reused: a live loop that allocates one per frame per angle spends more
+ *  time in the collector than in the recogniser.
+ */
+const scratch = document.createElement('canvas');
+
+/**
+ * A rectangle of the frame, levelled by `angle`, as greyscale at the given size.
+ *
+ * Outside the frame reads as paper rather than as black, so a zone at the very edge of the
+ * picture is not given a false margin of ink to find.
+ */
+function greyOf(video, rect, width, height, angle) {
+    scratch.width = width;
+    scratch.height = height;
+
+    const ctx = scratch.getContext('2d', { willReadFrequently: true });
+    ctx.imageSmoothingQuality = 'high';
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(-angle);
+    ctx.scale(width / rect.w, height / rect.h);
+    ctx.translate(-(rect.x + rect.w / 2), -(rect.y + rect.h / 2));
+    ctx.drawImage(video, 0, 0);
+    ctx.restore();
+
+    const d = ctx.getImageData(0, 0, width, height).data;
+    const grey = new Uint8ClampedArray(width * height);
+
+    for (let i = 0, g = 0; i < d.length; i += 4, g++) {
+        grey[g] = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
+    }
+
+    return grey;
+}
+
+const boxOf = (video, guide) => ({
+    x: video.videoWidth * guide.x, y: video.videoHeight * guide.y,
+    w: video.videoWidth * guide.w, h: video.videoHeight * guide.h,
+});
+
+/** Where the zone is in the frame, in frame pixels, at this assumed angle - or null. */
+function findZone(video, guide, angle) {
+    const box = boxOf(video, guide);
+    const width = SCOUT_WIDTH;
+    const height = Math.max(8, Math.round(box.h * (width / box.w)));
+
+    const grey = greyOf(video, box, width, height, angle);
+    const card = cardBounds(grey, width, height);
+    const zone = zoneBounds(localThreshold(grey, width, height), width, height, card);
+    if (!zone) return null;
+
+    const w = (zone.x1 - zone.x0) / width * box.w;
+    const h = (zone.y1 - zone.y0) / height * box.h;
+
+    /*  The zone was measured in a scout that had already been turned by `angle`, so its
+     *  position has to be turned back to say where it is in the frame. Leaving this out is
+     *  invisible while the card is square on - nothing rotates, so nothing moves - and at
+     *  twenty degrees it slides the crop far enough sideways to cut the last character off
+     *  every line. The three lines then look perfect on screen and read one short.
+     *
+     *  Only the centre needs moving: what is an upright rectangle in the turned scout is the
+     *  same rectangle turned about its own centre in the frame, and turning it about its own
+     *  centre is exactly what the sampling below does. */
+    const boxCentreX = box.x + box.w / 2;
+    const boxCentreY = box.y + box.h / 2;
+    const u = box.x + (zone.x0 + zone.x1) / 2 / width * box.w - boxCentreX;
+    const v = box.y + (zone.y0 + zone.y1) / 2 / height * box.h - boxCentreY;
+    const ca = Math.cos(angle), sa = Math.sin(angle);
+
+    return {
+        x: boxCentreX + u * ca - v * sa - w / 2,
+        y: boxCentreY + u * sa + v * ca - h / 2,
+        w, h,
+    };
+}
+
+/*  Coarse then fine: eleven degrees two apart, then the two either side of the winner.
+ *  Thirteen small draws rather than twenty-one, over the same ten degrees of tilt. */
+function skewOf(video, rect, from = 0) {
+    const width = 240;
+    const height = Math.max(8, Math.round(width * rect.h / rect.w));
+    const at = deg =>
+        skewScore(greyOf(video, rect, width, height, from + deg * Math.PI / 180), width, height);
+
+    let best = 0, bestScore = -1;
+    for (let deg = -10; deg <= 10; deg += 2) {
+        const score = at(deg);
+        if (score > bestScore) { bestScore = score; best = deg; }
+    }
+
+    for (const deg of [best - 1, best + 1]) {
+        const score = at(deg);
+        if (score > bestScore) { bestScore = score; best = deg; }
+    }
+
+    return from + best * Math.PI / 180;
+}
+
+/*  Which way round the card is lying.
+ *
+ *  A card held up to a camera is within a few degrees of level: the officer is holding it and
+ *  can see the preview. A card put down on a desk under a tablet is not - it lands wherever it
+ *  lands, and thirty degrees is ordinary. That does not merely blunt the row-by-row search, it
+ *  breaks it, because at thirty degrees no row of the picture is a row of the card.
+ *
+ *  So the angle is measured before anything is looked for, and from the card's own printing:
+ *  every line on it, not only the three that matter, lines up at one angle and skewScore is
+ *  highest there. Measured against cards laid down from zero to forty degrees on a dark desk
+ *  and on a light one, this returns the angle exactly in all ten.
+ *
+ *  The card's edges were tried first and measured worse. The guide box crops the card, so
+ *  turning it only trades card for border and the measure has nothing to sit on; it chose
+ *  forty degrees for a card that was square on. Printing does not care what the desk looks
+ *  like, and that is why it wins.
+ */
+function cardAngleOf(video, guide, base) {
+    const box = boxOf(video, guide);
+    const width = 260;
+    const height = Math.max(8, Math.round(box.h * (width / box.w)));
+
+    const at = deg =>
+        skewScore(greyOf(video, box, width, height, base + deg * Math.PI / 180), width, height);
+
+    let best = 0, bestScore = -1;
+    for (let deg = -45; deg <= 45; deg += 3) {
+        const score = at(deg);
+        if (score > bestScore) { bestScore = score; best = deg; }
+    }
+
+    for (const deg of [best - 2, best - 1, best + 1, best + 2]) {
+        const score = at(deg);
+        if (score > bestScore) { bestScore = score; best = deg; }
+    }
+
+    return base + best * Math.PI / 180;
+}
+
+/** The zone, levelled and thresholded, ready to recognise - or null if none was found. */
+function zoneRegion(video, guide, base) {
+    const coarse = cardAngleOf(video, guide, base);
+
+    const rough = findZone(video, guide, coarse);
+    if (!rough) return null;
+
+    const angle = skewOf(video, rough, coarse);
+    const rect = findZone(video, guide, angle) ?? rough;
+
+    const width = Math.min(ZONE_WIDTH, Math.round(rect.w));
+    const height = Math.max(1, Math.round(rect.h * (width / rect.w)));
+
+    const grey = greyOf(video, rect, width, height, angle);
+    const binary = localThreshold(grey, width, height);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    const pixels = ctx.createImageData(width, height);
+
+    for (let g = 0; g < binary.length; g++) {
+        const o = g * 4;
+        pixels.data[o] = pixels.data[o + 1] = pixels.data[o + 2] = binary[g];
+        pixels.data[o + 3] = 255;
+    }
+
+    ctx.putImageData(pixels, 0, 0);
+    return canvas;
 }
 
 function guideRegion(video, guide, pass) {
