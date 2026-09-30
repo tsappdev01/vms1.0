@@ -108,16 +108,34 @@ jobs:
             echo "  FAIL ICP configuration bundle is missing from the APK"; fail=1
           fi
 
-          # useLegacyPackaging: the native libraries must be STORED, not Deflated, or the
-          # toolkit's dlopen finds nothing to open.
-          # Column 2 is Method; column 7 is the CRC. Reading 7 made this fail every build
-          # with "native libraries are '9c6accee'" - a checksum being compared to a word.
-          method=$(unzip -v "$apk" | awk '/lib\/arm64-v8a\/.*\.so/ {print $2; exit}')
-          if [ "$method" = "Stored" ]; then
-            echo "  ok   native libraries are stored uncompressed ($method)"
+          #  useLegacyPackaging, read where it actually shows: the manifest.
+          #
+          #  This check asserted the opposite for several builds, on a mental model that was
+          #  backwards. Legacy packaging COMPRESSES the libraries and sets
+          #  extractNativeLibs="true", so Android unpacks them to the filesystem at install -
+          #  and a filesystem path is precisely what the toolkit's dlopen needs. Modern
+          #  packaging stores them uncompressed to be mapped straight out of the APK, where
+          #  there is no path to open. So "Deflated" is right here and "Stored" is the
+          #  failure, which is the reverse of the intuition.
+          #
+          #  Reading the manifest attribute rather than the compression method also checks the
+          #  thing ICP's document actually asks for, instead of a side effect of it.
+          manifest=$("$ANDROID_HOME"/build-tools/35.0.0/aapt2 dump xmltree --file AndroidManifest.xml "$apk" 2>/dev/null || true)
+
+          if echo "$manifest" | grep -q 'extractNativeLibs.*0xffffffff'; then
+            echo "  ok   extractNativeLibs=true - the toolkit will find its plugins on disk"
+          elif echo "$manifest" | grep -q 'extractNativeLibs'; then
+            echo "  FAIL extractNativeLibs is false - useLegacyPackaging did not take effect, and"
+            echo "       the toolkit's dlopen will report 'library not found' on the first read"
+            fail=1
           else
-            echo "  FAIL native libraries are '$method', not 'Stored' - useLegacyPackaging did not take effect"; fail=1
+            echo "  FAIL extractNativeLibs is absent from the manifest entirely"
+            fail=1
           fi
+
+          # Corroborating, not the test: legacy packaging compresses, so Deflated is expected.
+          method=$(unzip -v "$apk" | awk '/lib\/arm64-v8a\/.*\.so/ {print $2; exit}')
+          echo "  --   native libraries are packed as '$method' (Defl expected with legacy packaging)"
 
           # The reader driver has to be in the APK for the ACR39U to be found at all.
           if unzip -l "$apk" | grep -qE "lib/arm64-v8a/.*acs|classes.*dex"; then
