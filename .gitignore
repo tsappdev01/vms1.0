@@ -17,3 +17,6 @@ EIDAToolkit_*.log
 
 # Excel leaves these behind while a workbook is open.
 ~$*
+
+# Deployment packages - built, never committed
+*.zip
