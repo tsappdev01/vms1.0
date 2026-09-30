@@ -237,6 +237,91 @@ class VisitorViewModel(
         )
     }
 
+    /**
+     * Tries an address before it is saved.
+     *
+     * Worth its own button: a mistyped host otherwise shows up as a failure on the next
+     * check-in, in front of a visitor, with nothing connecting it to what was typed here.
+     */
+    fun testServer(baseUrl: String, apiKey: String) = viewModelScope.launch {
+        val normalised = Settings.normalise(baseUrl)
+        if (normalised == null) {
+            _state.value = _state.value.copy(
+                settingsMessage = "That is not an address the tablet can use.",
+                settingsFailed = true,
+            )
+            return@launch
+        }
+
+        _state.value = _state.value.copy(
+            settingsBusy = "Trying…",
+            settingsMessage = null,
+            settingsFailed = false,
+        )
+
+        /* A client of its own, against the typed address rather than the saved one, so
+           testing cannot leave the tablet pointed somewhere it was not meant to go. */
+        val candidate = VmsClient.create(ServerSettings(normalised, apiKey.trim()))
+
+        try {
+            val reference = VmsClient.call { candidate.reference() }
+            _state.value = _state.value.copy(
+                settingsBusy = null,
+                settingsMessage = "Reached the server. It offers ${reference.entities.size} " +
+                    "entities and ${reference.purposes.size} purposes.",
+                settingsFailed = false,
+            )
+        } catch (e: ApiException) {
+            _state.value = _state.value.copy(
+                settingsBusy = null,
+                settingsMessage = e.message,
+                settingsFailed = true,
+            )
+        }
+    }
+
+    fun saveServer(baseUrl: String, apiKey: String) {
+        val failure = settings.save(baseUrl, apiKey)
+        if (failure != null) {
+            _state.value = _state.value.copy(settingsMessage = failure, settingsFailed = true)
+            return
+        }
+
+        applySettings()
+    }
+
+    fun resetServer() {
+        settings.resetToDefault()
+        applySettings()
+    }
+
+    /** A new address means the reference data on the screen belongs to the old one. */
+    private fun applySettings() {
+        countdown?.cancel()
+        pinJob?.cancel()
+
+        _state.value = _state.value.copy(
+            server = settings.value,
+            serverIsDefault = settings.isDefault,
+            settingsOpen = false,
+            settingsBusy = null,
+            settingsMessage = null,
+            settingsFailed = false,
+            /* Saving closes the screen, and closing it re-locks - the same rule as the back
+               arrow, stated here so the two ways out cannot drift apart. */
+            pinUnlocked = false,
+            pinMessage = null,
+            pinFailed = false,
+            entities = emptyList(),
+            purposes = emptyList(),
+            entityId = null,
+            host = null,
+            hostResults = emptyList(),
+            referenceError = null,
+        )
+        loadReference()
+    }
+
     // ---------------------------------------------------------------- the PIN
 
     /** A field that refuses with no end in sight looks broken; one that says "try again in
