@@ -121,6 +121,7 @@ builder.Services.AddSingleton(signIn);
 /* Throws at startup when there is neither Entra nor a key. The one thing this host must
    never be is reachable and unguarded. */
 var apiKey = ApiKey.RequireForPublicHost(builder.Configuration, signIn.Enabled);
+var tabletKeys = ApiKey.AllConfigured(builder.Configuration);
 
 if (signIn.Enabled)
 {
@@ -147,11 +148,11 @@ if (signIn.Enabled)
             identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
             jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);
 
-    if (apiKey is not null)
+    if (tabletKeys.Count > 0)
     {
         authentication.AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
             ApiKeyAuthenticationHandler.SchemeName,
-            options => options.ExpectedKey = apiKey);
+            options => options.Keys = tabletKeys);
     }
 }
 else
@@ -293,7 +294,7 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 
 // Before authorisation: a request without the key is refused without reaching a policy.
-app.UseApiKey(signIn.Enabled ? null : apiKey);
+app.UseApiKey(signIn.Enabled ? [] : tabletKeys);
 
 app.UseRateLimiter();
 
@@ -301,7 +302,7 @@ app.UseAuthorization();
 
 app.MapVisitsApi(
     signIn.Enabled,
-    acceptTabletKey: signIn.Enabled && apiKey is not null,
+    acceptTabletKey: signIn.Enabled && tabletKeys.Count > 0,
     rateLimitPolicy: TabletRateLimit);
 
 /* For App Service's health check, and for answering "is it the API or the network?"

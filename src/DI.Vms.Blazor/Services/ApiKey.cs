@@ -130,11 +130,16 @@ public static class ApiKey
     {
         var key = Configured(configuration);
 
+        /* Named keys count. This asked only for the unnamed Api:Key, which was the whole
+           story until Api:Keys:<name> existed - after which a host configured entirely with
+           named keys looked, to this check, like a host with no key at all. */
+        var any = AllConfigured(configuration);
+
         /* With Entra on, the browser has a credential whatever this returns - so a host
            with no key still starts. It just has no way for a tablet to reach it. */
         if (signInEnabled) return key;
 
-        if (key is null)
+        if (any.Count == 0)
         {
             throw new InvalidOperationException(
                 "This host has neither Entra ID sign-in nor an API key, and it is reachable from the " +
@@ -155,11 +160,10 @@ public static class ApiKey
     /// <see cref="VmsRoles.CanCheckIn"/> policy decides either way and the key is a way of
     /// arriving rather than a way around the rules.
     /// </summary>
-    public static IApplicationBuilder UseApiKey(this IApplicationBuilder app, string? expected)
+    public static IApplicationBuilder UseApiKey(this IApplicationBuilder app, IReadOnlyList<TabletKey> expected)
     {
-        if (expected is null) return app;
+        if (expected.Count == 0) return app;
 
-        var expectedBytes = Encoding.UTF8.GetBytes(expected);
         var logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(ApiKey));
 
         return app.Use(async (context, next) =>
@@ -172,13 +176,25 @@ public static class ApiKey
 
             var presented = context.Request.Headers[HeaderName].ToString();
 
-            /* Fixed-time, and length-checked first because FixedTimeEquals requires equal
-               lengths. Comparing with == would leak the key a character at a time to
-               anyone patient enough to measure. */
+            /* Fixed-time per candidate, and length-checked first because FixedTimeEquals
+               requires equal lengths. Comparing with == would leak a key a character at a
+               time to anyone patient enough to measure. */
             var presentedBytes = Encoding.UTF8.GetBytes(presented);
+            var matched = false;
 
-            if (presentedBytes.Length != expectedBytes.Length ||
-                !CryptographicOperations.FixedTimeEquals(presentedBytes, expectedBytes))
+            foreach (var candidate in expected)
+            {
+                var expectedBytes = Encoding.UTF8.GetBytes(candidate.Value);
+
+                if (presentedBytes.Length == expectedBytes.Length &&
+                    CryptographicOperations.FixedTimeEquals(presentedBytes, expectedBytes))
+                {
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched)
             {
                 /* Logged with the caller's address, because on a public host this is the
                    signal that someone is trying keys. One line per attempt is what makes a

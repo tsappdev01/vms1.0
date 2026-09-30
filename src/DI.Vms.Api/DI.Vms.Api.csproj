@@ -58,6 +58,13 @@
     <Compile Include="..\DI.Vms.Blazor\Services\CardImageStore.cs"     LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardResponseParser.cs" LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\CardText.cs"           LinkBase="Shared\Services" />
+
+    <!-- Reading a photographed card. Linked because VisitsApi.cs serves /api/mrz and parses
+         the same text again when the visit is saved - the rules that decide whether a run of
+         characters is an Emirates ID belong to the server, so both hosts carry them. -->
+    <Compile Include="..\DI.Vms.Blazor\Services\MachineReadableZone.cs" LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\EmiratesIdNumber.cs"    LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\MrzReader.cs"           LinkBase="Shared\Services" />
     <!-- The host list from Entra ID, which /api/people serves. -->
     <Compile Include="..\DI.Vms.Blazor\Services\DirectoryOptions.cs"   LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\StaffDirectory.cs"     LinkBase="Shared\Services" />

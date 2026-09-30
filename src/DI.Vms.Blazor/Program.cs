@@ -432,7 +432,18 @@ app.UseStaticFiles();
 app.UseAuthentication();
 
 // Before authorisation, so a request without the key never reaches a policy.
-app.UseApiKey(signIn.Enabled ? null : apiKey);
+/*  Every configured key, not just the unnamed one.
+ *
+ *  This took the single Api:Key and nothing else, which was correct until named keys existed
+ *  and a hole the moment they did: a host with sign-in off and only Api:Keys:<name> set got
+ *  null here, installed no guard at all, and then authenticated every caller through the
+ *  open-desk scheme. The API would have been open to anyone who could reach it, with the
+ *  configuration looking entirely deliberate.
+ *
+ *  Not the deployment that found it - that one has sign-in on, where the key is an
+ *  authentication scheme and this middleware does not run. It is the on-premises host that
+ *  would have been exposed. */
+app.UseApiKey(signIn.Enabled ? [] : tabletKeys);
 
 app.UseAuthorization();
 app.UseAntiforgery();
