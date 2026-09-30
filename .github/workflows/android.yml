@@ -4,17 +4,13 @@
 # setting a tablet up - do not have Android Studio and should not need it. A push produces an
 # installable file attached to the run.
 #
-# ICP's configuration bundle is not in this repository and must not be: it carries the licence
-# issued to Dubai Investments. Put it in the repository secret TOOLKIT_CONFIG_B64 (see below)
-# and the APK can read cards. Without it the APK still builds and installs, and says plainly
-# what is missing the first time a card is read - which is the right failure for a build made
-# by someone who does not have the bundle.
+# ICP's configuration bundle is committed at the repository root, so this needs no secret and
+# no setup: it is copied into the APK's assets below. The TOOLKIT_CONFIG_B64 secret is only an
+# override, for a renewed bundle that is not to be committed - base64 of a gzipped tar of the
+# directory's *contents*:
 #
-#   base64 -w0 <(cd IDCARDOFFLINE_config_2026-04-14/IDCARDOFFLINE_ag_config_2026-04-14 && tar cz .)
+#   tar cz -C IDCARDOFFLINE_config_2026-04-14/IDCARDOFFLINE_ag_config_2026-04-14 . | base64 -w0
 #
-# on Windows PowerShell:
-#   tar -cz -C IDCARDOFFLINE_config_2026-04-14\IDCARDOFFLINE_ag_config_2026-04-14 . | \
-#     certutil -encode -f - con | Select-String -NotMatch "CERTIFICATE"
 name: Android
 
 on:
@@ -46,20 +42,33 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # The licence bundle, when the repository has been given one.
-      - name: Unpack the ICP toolkit configuration
+      # ICP's licence bundle, into the APK's assets. The committed one unless a secret
+      # overrides it, so an ordinary build needs nothing set up.
+      - name: Stage the ICP toolkit configuration
         env:
           BUNDLE: ${{ secrets.TOOLKIT_CONFIG_B64 }}
         run: |
-          if [ -z "$BUNDLE" ]; then
-            echo "::warning::No TOOLKIT_CONFIG_B64 secret. The APK will build and install, but a card read will report the missing configuration."
-            exit 0
+          target=android/app/src/main/assets/toolkit-config
+          mkdir -p "$target"
+
+          if [ -n "$BUNDLE" ]; then
+            echo "Using the TOOLKIT_CONFIG_B64 secret."
+            echo "$BUNDLE" | base64 -d | tar xz -C "$target"
+          else
+            source=$(ls -d IDCARDOFFLINE_*config_*/*/ 2>/dev/null | head -1)
+            if [ -z "$source" ]; then
+              echo "::error::No configuration bundle in the repository and no TOOLKIT_CONFIG_B64 secret. The APK would build and install, but every card read would report the missing configuration."
+              exit 1
+            fi
+            echo "Using the committed bundle: $source"
+            cp -r "$source". "$target"/
           fi
-          mkdir -p android/app/src/main/assets/toolkit-config
-          echo "$BUNDLE" | base64 -d | tar xz -C android/app/src/main/assets/toolkit-config
-          test -f android/app/src/main/assets/toolkit-config/config_li \
-            || { echo "::error::The bundle unpacked without config_li, so it is not the configuration the toolkit wants."; exit 1; }
-          echo "Unpacked $(ls android/app/src/main/assets/toolkit-config | wc -l) configuration files."
+
+          # config_li is the file ToolkitConfig.kt looks for, so a bundle packed one
+          # directory too high is caught here rather than on a tablet at a desk.
+          test -f "$target/config_li" \
+            || { echo "::error::The bundle has no config_li, so it is not the configuration the toolkit wants."; exit 1; }
+          echo "Staged $(ls "$target" | wc -l) configuration files."
 
       - name: Build
         working-directory: android

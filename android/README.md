@@ -214,21 +214,34 @@ run on demand from the repository's **Actions** tab. The APK comes back attached
 **vms-reception-apk** — download it, copy it to the tablet, install it. Nobody needs Android
 Studio to get one.
 
-Two repository secrets decide what that APK can do, and neither belongs in git:
+**Nothing has to be set up for this.** ICP's configuration bundle is committed at the
+repository root (`IDCARDOFFLINE_config_2026-04-14/`), and the workflow copies it into the APK's
+assets. The copy under `android/app/src/main/assets/toolkit-config/` is gitignored only so the
+same six files are not in git twice; the root copy is the one that matters.
+
+Two optional repository secrets:
 
 | Secret | What it is for |
 |---|---|
-| `TOOLKIT_CONFIG_B64` | ICP's configuration bundle, base64 of a gzipped tar of the directory's *contents*. Without it the APK builds and installs, and the first card read says the configuration is missing — which is the right failure for a build made by someone who does not have the licence. |
+| `TOOLKIT_CONFIG_B64` | A **renewed** bundle that is not to be committed — base64 of a gzipped tar of the directory's *contents*. Overrides the committed one when set. |
 | `VMS_API_KEY` | Only a default; the key can also be typed into the settings screen on the tablet. |
-
-To make the first one from the bundle in this repository:
 
 ```bash
 tar cz -C IDCARDOFFLINE_config_2026-04-14/IDCARDOFFLINE_ag_config_2026-04-14 . | base64 -w0
 ```
 
-The workflow checks that `config_li` came out of the archive and fails naming it if not, so a
-bundle packed one directory too high is caught in CI rather than on a tablet at a desk.
+Either way the workflow checks that `config_li` is there afterwards and fails naming it if not,
+so a bundle packed one directory too high is caught in CI rather than on a tablet at a desk.
+
+**The licence runs to 14 April 2027.** The `2026-04-14` in the bundle's name is when it was
+issued, not when it expires — `docs/icp-signed-response-request.md` records the expiry the
+toolkit itself reported. It is a **PRE-PRODUCTION, offline** bundle, which is why reads come
+back unsigned and are recorded as `CardReaderUnverified`.
+
+One thing worth a decision rather than a silent assumption: this bundle carries the licence
+issued to Dubai Investments and it is committed here. That is fine for a private repository and
+not fine for a public one, and it is already in the history, so making the repository public
+later would publish it retrospectively.
 
 ## Building
 
