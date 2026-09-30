@@ -82,6 +82,43 @@
             a role that exists but is assigned to nobody leaves every account on this page.
         </p>
 
+        @*
+            Everything the token carries, verbatim.
+
+            The roles line above reads one claim type. If Entra sent the role under a
+            different name, or sent nothing, or sent a claim-overage pointer instead, that
+            line says "no roles at all" either way - and those need different fixes. This
+            is the only view that tells them apart, and it is a person's own token shown
+            to that person, on a page only they reach.
+        *@
+        <AuthorizeView>
+            <Authorized>
+                <details>
+                    <summary><strong>What the sign-in token contains</strong> (for IT)</summary>
+                    <table style="margin-top: 12px;">
+                        <thead>
+                            <tr><th>Claim</th><th>Value</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in context.User.Claims.OrderBy(c => c.Type))
+                            {
+                                <tr>
+                                    <td><code>@claim.Type</code></td>
+                                    <td><code>@Shorten(claim.Value)</code></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <p>
+                        A <code>roles</code> row is what this application needs. No such row means
+                        Entra issued the token without one, whatever the portal shows &mdash; so the
+                        assignment is on a different application, a different account, or was made
+                        after this token was issued.
+                    </p>
+                </details>
+            </Authorized>
+        </AuthorizeView>
+
         <h2>After the role is assigned</h2>
         <p>
             Sign out and in again. The role travels in the sign-in token, so a session that
@@ -104,6 +141,11 @@
     /// FindAll(ClaimTypes.Role) - the long WS-Federation URI - finds nothing and would make
     /// a correctly assigned account look like an unassigned one on this very page.
     /// </summary>
+    /// <summary>Long claims are signatures and identifiers; a screenful of base64 helps
+    /// nobody read the list they came here for.</summary>
+    private static string Shorten(string value) =>
+        value.Length <= 80 ? value : value[..77] + "\u2026";
+
     private static string[] RolesIn(ClaimsPrincipal user)
     {
         var roleType = (user.Identity as ClaimsIdentity)?.RoleClaimType ?? ClaimTypes.Role;
