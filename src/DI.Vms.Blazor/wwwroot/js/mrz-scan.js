@@ -365,8 +365,18 @@ export async function openCamera(videoId) {
                    visitor's card in front of it, not the officer's face. Not "exact", so a
                    laptop with only a front camera still works. */
                 facingMode: 'environment',
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
+
+                /*  As many pixels as the device will give, because this is the binding
+                 *  constraint and not a preference. The zone is thirty characters across
+                 *  roughly a third of the frame's width when a card is held at a comfortable
+                 *  distance; at 1280 that is fifteen pixels a character, which no recogniser
+                 *  reads. At 2560 it is thirty, which is what Tesseract asks for.
+                 *
+                 *  `ideal` rather than `exact` throughout: a device that cannot manage this
+                 *  gives its best instead of refusing, and a laptop webcam that tops out at
+                 *  720p still works with the card brought closer. */
+                width: { ideal: 3840 },
+                height: { ideal: 2160 },
             },
             audio: false,
         });
@@ -374,7 +384,24 @@ export async function openCamera(videoId) {
         streams.set(videoId, stream);
         video.srcObject = stream;
         await video.play();
-        return { ok: true };
+
+        const [track] = stream.getVideoTracks();
+        const settings = track?.getSettings?.() ?? {};
+
+        /*  Zoom where the hardware has it - a tablet on a stand cannot move closer to the
+         *  card, so this is the only way it gets more pixels onto the zone. Not supported
+         *  everywhere and never required: the constraint is applied on its own so a device
+         *  that rejects it keeps the stream it already has. */
+        try {
+            const zoom = track?.getCapabilities?.().zoom;
+            if (zoom) {
+                await track.applyConstraints({
+                    advanced: [{ zoom: Math.min(zoom.max, Math.max(zoom.min, 1.6)) }],
+                });
+            }
+        } catch { /* no zoom, or refused - the picture is unaffected either way */ }
+
+        return { ok: true, width: settings.width ?? 0, height: settings.height ?? 0 };
     } catch (e) {
         const reason = e?.name === 'NotAllowedError'
             ? 'The browser blocked the camera. Allow it for this site and try again.'
@@ -535,8 +562,8 @@ export async function startLive(videoId, dotnet, engineBaseUrl, trainedDataUrl, 
             /* The found zone where one can be found, and the fixed band where it cannot, so a
                frame this makes no sense of is no worse off than before there was a detector
                rather than being skipped entirely. */
-            const canvas = (pass.band ? zoneRegion(video, guide, pass.rotate ? Math.PI : 0) : null)
-                ?? guideRegion(video, guide, pass);
+            const found = pass.band ? zoneRegion(video, guide, pass.rotate ? Math.PI : 0) : null;
+            const canvas = found?.canvas ?? guideRegion(video, guide, pass);
 
             let text = '';
             try {
@@ -550,7 +577,14 @@ export async function startLive(videoId, dotnet, engineBaseUrl, trainedDataUrl, 
 
             let good;
             try {
-                good = await dotnet.invokeMethodAsync('OnFrameText', text ?? '');
+                /*  The size goes with the text, because the commonest reason this fails is
+                 *  not the recognising - it is that the camera never resolved the characters.
+                 *  A card held at arm's length on a 720p webcam puts an MRZ character at
+                 *  about fifteen pixels, and nothing downstream can recover what was not
+                 *  captured. Sent up so the screen can say "bring the card closer", which is
+                 *  the one thing that actually fixes it. */
+                good = await dotnet.invokeMethodAsync('OnFrameText', text ?? '',
+                    Math.round(found?.pixelsPerCharacter ?? 0));
 
                 if (good) {
                     /* The frame that worked is the one kept, not a fresh grab: by the time a
@@ -688,27 +722,25 @@ function sourceRect(video, guide, pass) {
 
 /* ---- finding the zone ---------------------------------------------------------------
  *
- *  Everything below assumed the card filled the guide box. Measured against rendered cards
- *  placed the way a hand actually holds one, that assumption failed 8 times in 10: a card at
- *  80% of the box put its zone in the right place but two thirds of the size, and three
- *  degrees of tilt - which is nothing, in a hand - was enough on its own.
+ *  Measured against rendered cards held the way the desk actually holds one - small in the
+ *  frame, with a lit wall and a person behind them - and not against a card filling a clean
+ *  box. The clean version scored 10/10 and the realistic one 0/8, and the difference was
+ *  never the recogniser.
  *
- *  So the zone is found rather than assumed. Three steps, each cheap, all on a 640-wide
- *  scout image rather than the frame:
+ *  Two things settle where the zone is, and neither works alone:
  *
- *    1. the card, as the large bright region inside the box;
- *    2. the zone, as the bottom-most band of rows inside the card that look like dense,
- *       full-width text;
- *    3. the angle, by projection profile.
+ *    Texture. Print has local variance; a wall, a face and a shirt have none, however bright
+ *    they are. Brightness was tried first and fails exactly where the photograph from the
+ *    desk fails, because the lit wall behind the shoulder is brighter than the card.
  *
- *  Then the zone alone is taken from the full-resolution frame, levelled. The same ten
- *  scenes go from 2 to 10.
+ *    The row profile, inside what texture found. Texture alone takes the whole of the card's
+ *    printing with it; the profile alone drowns in the room. Bounded by texture it is looking
+ *    at print and nothing else, and the three lines are then the obvious thing in it.
  *
- *  The three below are pure functions over a greyscale array, which is what lets them be
- *  tested outside a browser - and they were, because reasoning about this was what produced
- *  the assumption in the first place.
+ *  The pure functions here take a greyscale array and no canvas, which is what let every
+ *  claim above be a measurement rather than an opinion.
  */
-const SCOUT_WIDTH = 640;
+const SCOUT_WIDTH = 480;
 const ZONE_WIDTH = 1150;
 
 /** The longest stretch where the projection stays above `need`. */
@@ -731,58 +763,71 @@ function longestRun(counts, need) {
     return bestLength ? [bestStart, bestStart + bestLength - 1] : null;
 }
 
-/*  The card: the big bright thing.
+/*  Where the printing is: bright, and locally varied.
  *
- *  A fifth of a row is enough to count as card, not a half. A half was tried and excluded the
- *  zone itself - the machine-readable lines are so dense that barely half their row is paper,
- *  so the card was found to stop just above the only part of it that matters.
+ *  Local standard deviation by integral image, so a window costs four lookups whatever its
+ *  size and the whole pass is linear. That is what keeps this in tens of milliseconds, which
+ *  is what it has to be when it runs on every frame.
  */
-const CARD_BRIGHTNESS = 0.20;
-
-export function cardBounds(grey, width, height) {
+export function printBounds(grey, width, height) {
     const histogram = new Uint32Array(256);
     for (const v of grey) histogram[v]++;
+    const bright = otsuThreshold(histogram, grey.length) * 0.9;
 
-    const threshold = otsuThreshold(histogram, grey.length);
-    const rows = new Int32Array(height), columns = new Int32Array(width);
+    const stride = width + 1;
+    const sums = new Float64Array(stride * (height + 1));
+    const squares = new Float64Array(stride * (height + 1));
 
     for (let y = 0; y < height; y++) {
+        let rowSum = 0, rowSquares = 0;
         for (let x = 0; x < width; x++) {
-            if (grey[y * width + x] > threshold) { rows[y]++; columns[x]++; }
+            const v = grey[y * width + x];
+            rowSum += v; rowSquares += v * v;
+            sums[(y + 1) * stride + x + 1] = sums[y * stride + x + 1] + rowSum;
+            squares[(y + 1) * stride + x + 1] = squares[y * stride + x + 1] + rowSquares;
         }
     }
 
-    const down = longestRun(rows, width * CARD_BRIGHTNESS);
-    const across = longestRun(columns, height * CARD_BRIGHTNESS);
+    const area = (a, x0, y0, x1, y1) =>
+        a[(y1 + 1) * stride + x1 + 1] - a[y0 * stride + x1 + 1]
+        - a[(y1 + 1) * stride + x0] + a[y0 * stride + x0];
 
-    /* No bright region means no darker surround - a card on white paper, or one that fills
-       the frame. The whole box is then the best answer available and not a wrong one. */
-    if (!down || !across) return { x0: 0, x1: width - 1, y0: 0, y1: height - 1 };
+    const radius = Math.max(2, Math.round(width / 120));
+    const rows = new Int32Array(height), columns = new Int32Array(width);
+
+    for (let y = 0; y < height; y++) {
+        const y0 = Math.max(0, y - radius), y1 = Math.min(height - 1, y + radius);
+        for (let x = 0; x < width; x++) {
+            const x0 = Math.max(0, x - radius), x1 = Math.min(width - 1, x + radius);
+            const count = (x1 - x0 + 1) * (y1 - y0 + 1);
+            const mean = area(sums, x0, y0, x1, y1) / count;
+            if (mean <= bright) continue;
+
+            const variance = Math.max(0, area(squares, x0, y0, x1, y1) / count - mean * mean);
+            if (Math.sqrt(variance) > 12) { rows[y]++; columns[x]++; }
+        }
+    }
+
+    let rowPeak = 0, columnPeak = 0;
+    for (const v of rows) if (v > rowPeak) rowPeak = v;
+    for (const v of columns) if (v > columnPeak) columnPeak = v;
+    if (!rowPeak || !columnPeak) return null;
+
+    const down = longestRun(rows, rowPeak * 0.15);
+    const across = longestRun(columns, columnPeak * 0.15);
+    if (!down || !across) return null;
 
     return { x0: across[0], x1: across[1], y0: down[0], y1: down[1] };
 }
 
-/*  A row of the zone: plenty of ink, spread across most of the card, but not solid.
- *
- *  The ceiling is the one that was missing and it cost the most. A card on a darker desk has,
- *  after a local threshold, a rim of solid ink all the way round it a window wide - and that
- *  rim is denser and wider than any text, so the search found the desk every time. Real text
- *  never fills two thirds of its own line; the surround always does.
- */
-const INK_FLOOR = 0.10;
-const INK_CEILING = 0.65;
-const INK_EXTENT = 0.55;
-
-export function zoneBounds(binary, width, height, card) {
-    const cardWidth = card.x1 - card.x0 + 1;
-    const cardHeight = card.y1 - card.y0 + 1;
-
+/** Rows of ink grouped into lines, with the measurements a triple is judged on. */
+export function linesIn(binary, width, height, within) {
     const ink = new Int32Array(height);
     const left = new Int32Array(height).fill(width);
     const right = new Int32Array(height).fill(-1);
 
-    for (let y = card.y0; y <= card.y1; y++) {
-        for (let x = card.x0; x <= card.x1; x++) {
+    for (let y = within.y0; y <= within.y1; y++) {
+        for (let x = within.x0; x <= within.x1; x++) {
             if (binary[y * width + x]) continue;
             ink[y]++;
             if (x < left[y]) left[y] = x;
@@ -790,51 +835,80 @@ export function zoneBounds(binary, width, height, card) {
         }
     }
 
-    const isZone = y => ink[y] > cardWidth * INK_FLOOR
-        && ink[y] < cardWidth * INK_CEILING
-        && (right[y] - left[y]) > cardWidth * INK_EXTENT;
+    const span = within.x1 - within.x0 + 1;
+    const lines = [];
+    let start = -1;
 
-    /* The three lines are separated by gaps of their own, so a gap has to be tolerated or the
-       block found is one line rather than three. */
-    const maxGap = Math.max(3, cardHeight * 0.03);
-    const blocks = [];
-    let start = -1, gap = 0;
-
-    for (let y = card.y0; y <= card.y1; y++) {
-        if (isZone(y)) { if (start < 0) start = y; gap = 0; }
-        else if (start >= 0 && ++gap > maxGap) { blocks.push([start, y - gap]); start = -1; }
-    }
-    if (start >= 0) blocks.push([start, card.y1]);
-
-    // Bottom-most, and tall enough to be three lines. The zone is at the foot of the card.
-    const tall = blocks.filter(([a, b]) => b - a >= cardHeight * 0.10);
-    if (!tall.length) return null;
-
-    const [y0, y1] = tall[tall.length - 1];
-    let x0 = width, x1 = 0;
-
-    for (let y = y0; y <= y1; y++) {
-        if (right[y] < 0) continue;
-        x0 = Math.min(x0, left[y]);
-        x1 = Math.max(x1, right[y]);
-    }
-    if (x1 <= x0) return null;
-
-    const padY = (y1 - y0) * 0.20, padX = (x1 - x0) * 0.04;
-
-    return {
-        x0: Math.max(0, x0 - padX), x1: Math.min(width - 1, x1 + padX),
-        y0: Math.max(0, y0 - padY), y1: Math.min(height - 1, y1 + padY),
+    const close = end => {
+        if (end - start < 1) return;
+        let x0 = width, x1 = 0, total = 0;
+        for (let y = start; y <= end; y++) {
+            if (right[y] < 0) continue;
+            x0 = Math.min(x0, left[y]); x1 = Math.max(x1, right[y]); total += ink[y];
+        }
+        const w = Math.max(1, x1 - x0 + 1);
+        lines.push({
+            y0: start, y1: end, h: end - start + 1, x0, x1, w,
+            density: total / ((end - start + 1) * w),
+        });
     };
+
+    for (let y = within.y0; y <= within.y1; y++) {
+        const inked = ink[y] > span * 0.02 && ink[y] < span * 0.70;
+        if (inked) { if (start < 0) start = y; }
+        else if (start >= 0) { close(y - 1); start = -1; }
+    }
+    if (start >= 0) close(within.y1);
+
+    return lines;
+}
+
+/*  The three lines, judged as a set.
+ *
+ *  No single line is unmistakable; the set is. Three of the same height, the same width, the
+ *  same distance apart, left edges aligned, and wider than anything else on the card. Nothing
+ *  else printed on either side of a card has that shape.
+ */
+export function bestTriple(lines, span) {
+    let best = null, bestScore = -1;
+
+    for (let i = 0; i + 2 < lines.length; i++) {
+        const t = [lines[i], lines[i + 1], lines[i + 2]];
+        if (t.some(l => l.density < 0.20 || l.density > 0.75)) continue;
+
+        const heights = t.map(l => l.h), widths = t.map(l => l.w);
+        const meanHeight = (heights[0] + heights[1] + heights[2]) / 3;
+        const meanWidth = (widths[0] + widths[1] + widths[2]) / 3;
+        if (meanWidth < span * 0.25) continue;
+
+        const gap1 = t[1].y0 - t[0].y1, gap2 = t[2].y0 - t[1].y1;
+        if (gap1 < 0 || gap2 < 0 || gap1 > meanHeight * 1.6 || gap2 > meanHeight * 1.6) continue;
+
+        const spread = a => Math.max(...a) / Math.max(1, Math.min(...a));
+        const even = 1 / (1 + Math.abs(gap1 - gap2) / Math.max(1, meanHeight));
+        const alike = 1 / spread(heights) * 1 / spread(widths);
+        const aligned = 1 / (1 + (Math.max(...t.map(l => l.x0)) - Math.min(...t.map(l => l.x0)))
+            / Math.max(1, meanWidth) * 4);
+
+        const score = even * alike * aligned * (meanWidth / span);
+        if (score > bestScore) { bestScore = score; best = t; }
+    }
+
+    if (!best) return null;
+
+    const x0 = Math.min(...best.map(l => l.x0)), x1 = Math.max(...best.map(l => l.x1));
+    const y0 = best[0].y0, y1 = best[2].y1;
+    const padY = (y1 - y0) * 0.18, padX = (x1 - x0) * 0.04;
+
+    return { x0: x0 - padX, x1: x1 + padX, y0: y0 - padY, y1: y1 + padY };
 }
 
 /*  How level the text is, as a number to be maximised.
  *
- *  With the lines level, a row is either through a line of text or between two, and the ink
- *  per row swings hard between the two. Tilt it and every row catches part of a line and part
- *  of a gap, so the profile flattens. Summing the squared step between neighbouring rows
- *  measures that swing, and the angle that maximises it is level - with no idea needed of what
- *  the characters are, which is what makes it safe to run before recognising anything.
+ *  With the lines level a row is either through a line or between two, and the ink per row
+ *  swings hard between them; tilted, every row catches part of both and the profile flattens.
+ *  Summing the squared step between neighbouring rows measures that swing, so the angle that
+ *  maximises it is level - with no idea needed of what the characters are.
  */
 export function skewScore(grey, width, height) {
     const histogram = new Uint32Array(256);
@@ -854,17 +928,11 @@ export function skewScore(grey, width, height) {
     return score;
 }
 
-/*  Drawing. One canvas, reused: a live loop that allocates one per frame per angle spends more
- *  time in the collector than in the recogniser.
- */
+/* One canvas, reused: a loop that allocates one per frame spends more time being collected
+   than recognising. */
 const scratch = document.createElement('canvas');
 
-/**
- * A rectangle of the frame, levelled by `angle`, as greyscale at the given size.
- *
- * Outside the frame reads as paper rather than as black, so a zone at the very edge of the
- * picture is not given a false margin of ink to find.
- */
+/** A rectangle of the frame, levelled, as greyscale. Outside the frame reads as paper. */
 function greyOf(video, rect, width, height, angle) {
     scratch.width = width;
     scratch.height = height;
@@ -897,33 +965,35 @@ const boxOf = (video, guide) => ({
     w: video.videoWidth * guide.w, h: video.videoHeight * guide.h,
 });
 
-/** Where the zone is in the frame, in frame pixels, at this assumed angle - or null. */
+/** Where the zone is in the frame, at this assumed angle - or null. */
 function findZone(video, guide, angle) {
     const box = boxOf(video, guide);
     const width = SCOUT_WIDTH;
     const height = Math.max(8, Math.round(box.h * (width / box.w)));
 
     const grey = greyOf(video, box, width, height, angle);
-    const card = cardBounds(grey, width, height);
-    const zone = zoneBounds(localThreshold(grey, width, height), width, height, card);
-    if (!zone) return null;
+    const print = printBounds(grey, width, height);
+    if (!print) return null;
 
-    const w = (zone.x1 - zone.x0) / width * box.w;
-    const h = (zone.y1 - zone.y0) / height * box.h;
+    const zone = bestTriple(
+        linesIn(localThreshold(grey, width, height), width, height, print),
+        print.x1 - print.x0 + 1);
 
-    /*  The zone was measured in a scout that had already been turned by `angle`, so its
-     *  position has to be turned back to say where it is in the frame. Leaving this out is
-     *  invisible while the card is square on - nothing rotates, so nothing moves - and at
-     *  twenty degrees it slides the crop far enough sideways to cut the last character off
-     *  every line. The three lines then look perfect on screen and read one short.
-     *
-     *  Only the centre needs moving: what is an upright rectangle in the turned scout is the
-     *  same rectangle turned about its own centre in the frame, and turning it about its own
-     *  centre is exactly what the sampling below does. */
-    const boxCentreX = box.x + box.w / 2;
-    const boxCentreY = box.y + box.h / 2;
-    const u = box.x + (zone.x0 + zone.x1) / 2 / width * box.w - boxCentreX;
-    const v = box.y + (zone.y0 + zone.y1) / 2 / height * box.h - boxCentreY;
+    const found = zone ?? print;
+    const x0 = Math.max(0, found.x0), x1 = Math.min(width - 1, found.x1);
+    const y0 = Math.max(0, found.y0), y1 = Math.min(height - 1, found.y1);
+    if (x1 <= x0 || y1 <= y0) return null;
+
+    const w = (x1 - x0) / width * box.w;
+    const h = (y1 - y0) / height * box.h;
+
+    /*  The zone was measured in a scout already turned by `angle`, so its position has to be
+     *  turned back. Left out, this is invisible at zero - nothing rotates, so nothing moves -
+     *  and at twenty degrees it slides the crop far enough sideways to cut the last character
+     *  off every line, so the three lines look perfect on screen and read one short. */
+    const boxCentreX = box.x + box.w / 2, boxCentreY = box.y + box.h / 2;
+    const u = box.x + (x0 + x1) / 2 / width * box.w - boxCentreX;
+    const v = box.y + (y0 + y1) / 2 / height * box.h - boxCentreY;
     const ca = Math.cos(angle), sa = Math.sin(angle);
 
     return {
@@ -933,78 +1003,41 @@ function findZone(video, guide, angle) {
     };
 }
 
-/*  Coarse then fine: eleven degrees two apart, then the two either side of the winner.
- *  Thirteen small draws rather than twenty-one, over the same ten degrees of tilt. */
+/*  Levelling, on the block alone.
+ *
+ *  A few hundred pixels rather than the whole box, and nine small draws rather than fifty. The
+ *  wide sweep this replaces was most of a detection budget that had grown to several hundred
+ *  milliseconds a frame; this is tens, and finds the same angle for anything a hand holds. A
+ *  card lying on a desk at thirty degrees is beyond it, and that is the trade.
+ */
 function skewOf(video, rect, from = 0) {
-    const width = 240;
+    const width = 200;
     const height = Math.max(8, Math.round(width * rect.h / rect.w));
-    const at = deg =>
-        skewScore(greyOf(video, rect, width, height, from + deg * Math.PI / 180), width, height);
 
     let best = 0, bestScore = -1;
-    for (let deg = -10; deg <= 10; deg += 2) {
-        const score = at(deg);
-        if (score > bestScore) { bestScore = score; best = deg; }
-    }
-
-    for (const deg of [best - 1, best + 1]) {
-        const score = at(deg);
+    for (let deg = -8; deg <= 8; deg += 2) {
+        const score = skewScore(
+            greyOf(video, rect, width, height, from + deg * Math.PI / 180), width, height);
         if (score > bestScore) { bestScore = score; best = deg; }
     }
 
     return from + best * Math.PI / 180;
 }
 
-/*  Which way round the card is lying.
- *
- *  A card held up to a camera is within a few degrees of level: the officer is holding it and
- *  can see the preview. A card put down on a desk under a tablet is not - it lands wherever it
- *  lands, and thirty degrees is ordinary. That does not merely blunt the row-by-row search, it
- *  breaks it, because at thirty degrees no row of the picture is a row of the card.
- *
- *  So the angle is measured before anything is looked for, and from the card's own printing:
- *  every line on it, not only the three that matter, lines up at one angle and skewScore is
- *  highest there. Measured against cards laid down from zero to forty degrees on a dark desk
- *  and on a light one, this returns the angle exactly in all ten.
- *
- *  The card's edges were tried first and measured worse. The guide box crops the card, so
- *  turning it only trades card for border and the measure has nothing to sit on; it chose
- *  forty degrees for a card that was square on. Printing does not care what the desk looks
- *  like, and that is why it wins.
- */
-function cardAngleOf(video, guide, base) {
-    const box = boxOf(video, guide);
-    const width = 260;
-    const height = Math.max(8, Math.round(box.h * (width / box.w)));
-
-    const at = deg =>
-        skewScore(greyOf(video, box, width, height, base + deg * Math.PI / 180), width, height);
-
-    let best = 0, bestScore = -1;
-    for (let deg = -45; deg <= 45; deg += 3) {
-        const score = at(deg);
-        if (score > bestScore) { bestScore = score; best = deg; }
-    }
-
-    for (const deg of [best - 2, best - 1, best + 1, best + 2]) {
-        const score = at(deg);
-        if (score > bestScore) { bestScore = score; best = deg; }
-    }
-
-    return base + best * Math.PI / 180;
-}
-
-/** The zone, levelled and thresholded, ready to recognise - or null if none was found. */
+/** The zone, levelled and thresholded, with how many pixels each character got. */
 function zoneRegion(video, guide, base) {
-    const coarse = cardAngleOf(video, guide, base);
-
-    const rough = findZone(video, guide, coarse);
+    const rough = findZone(video, guide, base);
     if (!rough) return null;
 
-    const angle = skewOf(video, rough, coarse);
+    const angle = skewOf(video, rough, base);
     const rect = findZone(video, guide, angle) ?? rough;
 
-    const width = Math.min(ZONE_WIDTH, Math.round(rect.w));
+    /*  Always rendered at the full width, upscaling a small zone rather than capping at what
+     *  the source had. Capping threw away the one thing the recogniser cares about: it wants
+     *  characters about thirty pixels tall, and does better with a soft big one than a sharp
+     *  small one. What it cannot do is invent detail the camera never captured, which is a
+     *  different problem and the one pixelsPerCharacter is reported for. */
+    const width = ZONE_WIDTH;
     const height = Math.max(1, Math.round(rect.h * (width / rect.w)));
 
     const grey = greyOf(video, rect, width, height, angle);
@@ -1024,7 +1057,9 @@ function zoneRegion(video, guide, base) {
     }
 
     ctx.putImageData(pixels, 0, 0);
-    return canvas;
+
+    // The zone is thirty characters across, so this is what the camera gave each one.
+    return { canvas, pixelsPerCharacter: rect.w / 30 };
 }
 
 function guideRegion(video, guide, pass) {

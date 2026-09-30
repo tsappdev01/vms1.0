@@ -1103,6 +1103,9 @@ else if (step == 3 && saved is not null)
     private DateTime numberSeenUtc;
     private int framesRead;
 
+    /// <summary>The width the camera gave one character of the zone, from the last frame.</summary>
+    private int lastCharacterPixels;
+
     /// <summary>
     /// How long an ID number read on its own is held before it is accepted, when the front of
     /// the card is what the camera is looking at.
@@ -1126,6 +1129,9 @@ else if (step == 3 && saved is not null)
     /// build fixes, and it should not be re-introduced by impatience.
     /// </summary>
     private static readonly TimeSpan HoldTheBack = TimeSpan.FromSeconds(7);
+
+    /// <summary>Whether the last frame simply had too few pixels on the zone to read it.</summary>
+    private bool TooSmall => lastCharacterPixels > 0 && lastCharacterPixels < CharacterPixelsNeeded;
 
     private async Task<IJSObjectReference> ScanModule() =>
         /* The cache tag is not decoration. Without it the browser keeps the copy of this
@@ -1175,6 +1181,8 @@ else if (step == 3 && saved is not null)
 
         scanRef ??= DotNetObjectReference.Create(this);
 
+        Logger.LogInformation("Scanner camera opened at {Width}x{Height}", outcome.Width, outcome.Height);
+
         var started = await module.InvokeAsync<CameraOutcome>("startLive",
             ScanVideoId, scanRef, Digital.EngineBaseUrl, Digital.TrainedDataUrl, Digital.Language);
 
@@ -1209,10 +1217,21 @@ else if (step == 3 && saved is not null)
     /// that rule should not live somewhere the page could be made to skip. The script's part
     /// is to keep offering frames until this says one held.
     /// </summary>
+    /// <summary>
+    /// How many pixels across the camera gave each character of the zone.
+    ///
+    /// Below about twenty-two, the three lines cannot be read by anything, because the detail
+    /// was never captured - a card held at arm's length in front of a 720p webcam puts a
+    /// character at fifteen. That is not a recognition problem and no amount of work here
+    /// fixes it, so the screen says the one thing that does: bring the card closer.
+    /// </summary>
+    private const int CharacterPixelsNeeded = 22;
+
     [JSInvokable]
-    public async Task<bool> OnFrameText(string text)
+    public async Task<bool> OnFrameText(string text, int pixelsPerCharacter)
     {
         framesRead++;
+        lastCharacterPixels = pixelsPerCharacter;
 
         var read = MrzFinder.ReadEitherSide(text);
 
@@ -1229,11 +1248,14 @@ else if (step == 3 && saved is not null)
                 numberOnly = read.IdNumber;
                 numberSeenUtc = DateTime.UtcNow;
 
-                scanPhase = read.FromBack
-                    ? $"Read {read.IdNumber} \u2014 now the three lines. Hold the card flat "
-                      + "and steady, and keep them inside the box."
-                    : $"Read {read.IdNumber} \u2014 hold still, or turn the card over for "
-                      + "the name and dates.";
+                scanPhase = TooSmall
+                    ? $"Read {read.IdNumber} \u2014 now bring the card closer, until it fills "
+                      + "the box, for the name and dates."
+                    : read.FromBack
+                        ? $"Read {read.IdNumber} \u2014 now the three lines. Hold the card flat "
+                          + "and steady, and keep them inside the box."
+                        : $"Read {read.IdNumber} \u2014 hold still, or turn the card over for "
+                          + "the name and dates.";
 
                 await InvokeAsync(StateHasChanged);
                 return false;
@@ -1250,11 +1272,13 @@ else if (step == 3 && saved is not null)
 
         /* Not every frame, because each one is a render. Enough that the screen is visibly
            working rather than apparently hung. */
-        if (framesRead % 4 == 0 && numberOnly is null)
+        if (framesRead % 3 == 0 && numberOnly is null)
         {
-            scanPhase = framesRead < 12
-                ? "Reading\u2026"
-                : "Still reading \u2014 fill the frame with the card and hold it steady.";
+            scanPhase = TooSmall
+                ? "The card is too far away to read \u2014 bring it closer, until it fills the box."
+                : framesRead < 12
+                    ? "Reading\u2026"
+                    : "Still reading \u2014 hold the card flat and steady, filling the box.";
 
             await InvokeAsync(StateHasChanged);
         }
@@ -1414,7 +1438,7 @@ else if (step == 3 && saved is not null)
         numberOnly = null;
     }
 
-    private sealed record CameraOutcome(bool Ok, string? Problem);
+    private sealed record CameraOutcome(bool Ok, string? Problem, int Width, int Height);
 
     private sealed record ScanOutcome(bool Ok, string? Problem, ScanResult[]? Results, string? Image);
 

@@ -447,6 +447,45 @@ must carry `BuildInfo.CacheTag`**, and a new one is one line, not an afterthough
 `/version` answers the same question without signing in - it prints the same stamp the sidebar
 carries, plus the cache tag. When a change appears not to have taken, read that first.
 
+### The binding constraint is pixels on the zone, not cleverness
+
+A photograph from the desk settled what a month of algorithm would not have. The card was held
+at arm's length and filled under half the guide box, with a lit wall behind one shoulder.
+Reproducing that scene - card small, room behind - took the same code from 10/10 to **0/8**,
+and the arithmetic says why:
+
+| camera | card fills | pixels per MRZ character |
+| --- | --- | --- |
+| 720p | 45% of the box | **14** |
+| 720p | 70% | 21 |
+| 1080p | 45% | 22 |
+| 1440p | 70% | **43** |
+
+Tesseract wants about thirty. At fourteen the detail was never captured, and nothing
+downstream recovers it. So three things changed, and only one of them is code:
+
+- **The camera is asked for 3840x2160**, `ideal`, and the device's zoom is applied where it has
+  one. This is the binding constraint, not a preference - a tablet on a stand cannot move
+  closer to the card, so zoom is the only way it gets more pixels onto the zone.
+- **The screen says "bring the card closer"** when the zone came out under 22 pixels a
+  character, instead of failing silently. `pixelsPerCharacter` crosses from the script for
+  exactly this.
+- **The zone is rendered at full width whatever the source gave**, upscaling rather than
+  capping. The recogniser does better with a soft large character than a sharp small one.
+
+Two further things the photograph disproved:
+
+- **Brightness cannot find the card.** The lit wall behind the shoulder is brighter than the
+  card is. Texture can: print has local variance, and a wall, a face and a shirt have none
+  however bright. Local standard deviation by integral image, so a window costs four lookups.
+- **The row profile cannot search the whole box** - the room drowns it; the entire frame merged
+  into one block. Bounded by what texture found, it is looking at print and nothing else, and
+  the three lines are then the obvious thing in it. Neither half works alone.
+
+Detection went from about 400ms a frame to 36-149ms in the same measurements, by dropping a
+45-degree sweep that cost most of it. The trade is a card lying on a desk at thirty degrees,
+which is now beyond the +/-8 the levelling covers.
+
 ### Finding the zone, because assuming where it is does not work
 
 Everything above assumed the card fills the guide box. Measured - by rendering ID-1 cards at a
