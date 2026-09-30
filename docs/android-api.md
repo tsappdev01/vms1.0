@@ -42,6 +42,69 @@ the case that looks like a broken app and is not.
 The on-premises host (`UATWEB01`) is reachable only from the office network and needs no key.
 The internet-facing one does, and also has rate limiting applied to the group.
 
+## Switching it on
+
+One setting, and nothing else. The key grants `Vms.Officer`, and the `CanCheckIn` policy the
+group requires accepts Officer, Supervisor, Admin and SystemAdmin — so the key on its own
+satisfies it. No role assignment, no app registration, no second switch.
+
+### 1. Generate the key where you will use it
+
+Not in a chat window, not in an email, and not twice. A key that has been pasted anywhere it can
+be read later is spent and has to be replaced. The command is in
+[azure-deployment.md](azure-deployment.md#3-configure) — `RandomNumberGenerator`, 48 bytes,
+64 base64 characters, and the application refuses anything under 32.
+
+### 2. Set it on the server
+
+Azure App Service → **Settings → Environment variables → App settings**:
+
+| Name | Value |
+|---|---|
+| `Api__Key` | the generated key |
+
+Two underscores, not a colon: that is how App Service spells `Api:Key`. Saving restarts the app.
+
+Or from the CLI:
+
+```bash
+az webapp config appsettings set -g <resource-group> -n <app-name> --settings Api__Key="$key"
+```
+
+On the on-premises host it goes in `appsettings.Production.json`, which is gitignored, or in the
+environment. UATWEB01 has never had one and does not need one — it is reachable only from the
+office network.
+
+### 3. Check the server before touching a tablet
+
+Two checks, and both are worth doing in this order, because they separate a server problem from
+a device problem.
+
+The application states which of four situations it is in, once, at startup:
+
+```
+The /api endpoints are guarded by an Entra ID token or the tablet's API key
+```
+
+That is the line you want. Then prove it from anywhere:
+
+```bash
+curl -i -H "X-Vms-Key: $key" https://<host>/api/reference
+```
+
+| Response | What it means |
+|---|---|
+| `200` with entities and purposes | Working. Go to the tablet. |
+| `401` | `Api__Key` is not set, or the key does not match. |
+| `401` **without** the header too | Correct — that is the endpoint being guarded, not a fault. |
+| `403` | Authenticated but refused by policy. Should not happen with the key; report it. |
+
+### 4. Put the same key on the tablet
+
+**Settings → API key**, then **Test connection** before **Save**. Testing first is the point of
+that button: a wrong key saved turns every later screen into a failure with nothing on it naming
+the cause.
+
 ## Authentication
 
 Two ways in, one rule. The group requires the `Vms.Officer` check-in policy whichever scheme
