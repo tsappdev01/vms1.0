@@ -404,12 +404,20 @@
 
                                 <div class="scan-sides">
                                     @foreach (var side in new[] { (Name: "Back", Image: backImage, Needed: true),
-                                                                  (Name: "Front", Image: frontImage, Needed: false) })
+                                                                  (Name: "Front", Image: frontImage, Needed: false),
+                                                                  (Name: "Face", Image: faceImage, Needed: false) })
                                     {
                                         <div class="scan-side @(side.Image is null ? "empty" : "have")">
                                             <span class="scan-side-name">
                                                 @side.Name@(side.Needed ? "" : " (optional)")
                                             </span>
+                                            @if (side.Name == "Face" && side.Image is not null)
+                                            {
+                                                @* Shown because the crop assumes the card filled
+                                                   the frame. If this is a picture of the desk,
+                                                   the front needs taking again. *@
+                                                <span class="scan-side-empty">cut from the front</span>
+                                            }
                                             @if (side.Image is not null)
                                             {
                                                 <img src="data:image/jpeg;base64,@side.Image" alt="@($"The {side.Name.ToLowerInvariant()} of the card")" />
@@ -1096,6 +1104,11 @@ else if (step == 3 && saved is not null)
     private string scanPhase = "Reading the card…";
     private string? backImage;
     private string? frontImage;
+
+    /// <summary>The visitor's face, cut from the front of the card. Kept separately from
+    /// the card picture because it goes to a different place: this one to the visit row,
+    /// beside the photograph a chip read puts there.</summary>
+    private string? faceImage;
     private IJSObjectReference? scanModule;
 
     /// <summary>The two sides as one picture, kept with the visit. Not on CardData: that is
@@ -1150,7 +1163,15 @@ else if (step == 3 && saved is not null)
                 return;
             }
 
-            if (back) backImage = image; else frontImage = image;
+            if (back)
+            {
+                backImage = image;
+            }
+            else
+            {
+                frontImage = image;
+                faceImage = await (await ScanModule()).InvokeAsync<string?>("faceFrom", image);
+            }
         }
         catch (JSException e)
         {
@@ -1178,7 +1199,16 @@ else if (step == 3 && saved is not null)
             return;
         }
 
-        if (back) backImage = chosen.Image; else frontImage = chosen.Image;
+        if (back)
+        {
+            backImage = chosen.Image;
+        }
+        else
+        {
+            frontImage = chosen.Image;
+            faceImage = await (await ScanModule()).InvokeAsync<string?>("faceFrom", chosen.Image);
+        }
+
         scanProblem = null;
 
         // Same as the camera: chosen, then read, with no second button in between.
@@ -1192,6 +1222,7 @@ else if (step == 3 && saved is not null)
         scanProblem = null;
         backImage = null;
         frontImage = null;
+        faceImage = null;
     }
 
     /// <summary>
@@ -1258,6 +1289,11 @@ else if (step == 3 && saved is not null)
                 Gender = found.Gender,
                 NationalityCode = found.NationalityCode,
                 NationalityEnglish = found.NationalityCode,
+
+                /* The same field a chip read fills, so the report, the confirm dialog and
+                   anything added later need one code path rather than two. What separates
+                   them is CaptureMethod, which is where provenance belongs. */
+                Photo = faceImage is null ? null : Convert.FromBase64String(faceImage),
             };
 
             card = manual;
@@ -2044,6 +2080,7 @@ else if (step == 3 && saved is not null)
         scannedImage = null;
         backImage = null;
         frontImage = null;
+        faceImage = null;
         scanOpen = false;
         scanProblem = null;
         scannedImage = null;

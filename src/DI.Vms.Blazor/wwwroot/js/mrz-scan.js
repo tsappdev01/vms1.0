@@ -347,6 +347,53 @@ async function thumbnail(file) {
     return canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 }
 
+/*  The portrait, cut out of the front of the card.
+ *
+ *  An Emirates ID puts the photograph in the same place on every card, so the crop is a
+ *  proportion of the card rather than anything found in the image. That is the whole of the
+ *  method, and it has one condition: the card has to fill the frame. Background around it
+ *  shifts the crop and the officer gets a picture of a desk.
+ *
+ *  Which is why the result is shown before it is kept. Detecting the card's edges would
+ *  remove the condition and needs an image-processing library this deployment has no way to
+ *  fetch; showing the officer what will be stored costs nothing and fails visibly.
+ *
+ *  320 pixels wide, because this is a face on a report and beside a visitor at a desk - not
+ *  an archive. That lands at about the size of the JPEG the chip returns, which is the
+ *  budget this has to live inside.
+ */
+const PORTRAIT = { x0: 0.075, x1: 0.265, y0: 0.255, y1: 0.735 };
+
+export async function faceFrom(frontBase64) {
+    if (!frontBase64) return null;
+
+    try {
+        const bitmap = await createImageBitmap(
+            await (await fetch(`data:image/jpeg;base64,${frontBase64}`)).blob());
+
+        const sx = bitmap.width * PORTRAIT.x0;
+        const sy = bitmap.height * PORTRAIT.y0;
+        const sw = bitmap.width * (PORTRAIT.x1 - PORTRAIT.x0);
+        const sh = bitmap.height * (PORTRAIT.y1 - PORTRAIT.y0);
+
+        const width = 320;
+        const height = Math.round(sh * (width / sw));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, width, height);
+
+        return canvas.toDataURL('image/jpeg', 0.72).split(',')[1];
+    } catch {
+        // A face is a nicety; a check-in is not. Never the reason a visit cannot be recorded.
+        return null;
+    }
+}
+
 /** Frees the worker when the desk leaves the screen; it holds several megabytes. */
 export async function release() {
     const w = worker;
