@@ -142,6 +142,15 @@ dependencies {
     implementation("com.madgag.spongycastle:prov:1.54.0.0")
     implementation("com.madgag.spongycastle:pkix:1.54.0.0")
 
+    /* The camera, and the recogniser that reads the card in front of it. Both on-device:
+       nothing about a visitor's Emirates ID leaves the tablet except the text of the zone,
+       which goes to this system's own server to be checked. */
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.text.recognition)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

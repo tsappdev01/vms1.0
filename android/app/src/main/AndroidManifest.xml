@@ -6,6 +6,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- The camera, for a visitor who carries the card on a phone and has no chip to
+         insert. Optional as a feature so the app still installs on a tablet without one:
+         the reader on the desk is the main path and works regardless. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
     <!-- The ACR39U is a USB device. Declared as not required so the app still installs
          on a tablet without OTG - it can then take manual entries, which is better than
          being uninstallable at a desk whose reader has been unplugged. -->

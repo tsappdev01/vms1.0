@@ -155,6 +155,28 @@ public static class VisitsApi
         api.MapPost("/reads", (AgentCardReader reader) =>
             Results.Ok(new ReadTicketDto(reader.BeginRead())));
 
+        /*  What a photographed card says, so the officer can see it before saving.
+         *
+         *  The tablet sends the text its recogniser produced and nothing else. Every rule
+         *  about whether that text is a card - the TD1 check digits, the Luhn digit on the
+         *  printed number, the positional repair of OCR-B confusions - lives here, where the
+         *  browser scanner's rules already live. Two copies of arithmetic that decides
+         *  whether a visitor record is real is one copy too many.
+         *
+         *  This is a preview and not a commitment. The save re-reads the same text and
+         *  decides the provenance itself, so nothing here is taken on trust later. */
+        api.MapPost("/mrz", (MrzRequest request) =>
+        {
+            var read = MrzFinder.ReadEitherSide(request.Text);
+
+            if (!read.Ok)
+            {
+                return Results.Ok(new MrzResultDto(false, read.Problem, false, null));
+            }
+
+            return Results.Ok(new MrzResultDto(true, null, read.Complete, Identity(read)));
+        });
+
         /* Finish it. The body carries the signed XML and the visit details - never the
            card fields, which are read out of the XML here. */
         api.MapPost("/visits", async (
@@ -181,7 +203,42 @@ public static class VisitsApi
             CardData card;
             string captureMethod;
 
-            if (request.Manual is { } manual)
+            if (request.MrzText is { Length: > 0 } mrz)
+            {
+                /*  A photographed card. Parsed here rather than trusted from the tablet: the
+                 *  body carries the text the camera read and not the fields it produced, for
+                 *  the same reason a card read carries signed XML and not a name.
+                 *
+                 *  Recorded as DigitalCard, which the report shows below an unverified chip
+                 *  read - because the zone is printed, not signed. The check digits prove the
+                 *  photograph was read correctly and nothing whatever about whether the card
+                 *  is genuine or belongs to the person holding it. */
+                if (request.ReadResponseXml is not null || request.Manual is not null)
+                {
+                    return Problem("Send a card read, a photographed card, or typed details - one of them.");
+                }
+
+                var read = MrzFinder.ReadEitherSide(mrz);
+                if (!read.Ok) return Problem(read.Problem ?? "That card could not be read.");
+                if (read.IdNumber is not { Length: > 0 }) return Problem("An ID number is required.");
+
+                var zone = read.Zone;
+                card = new CardData
+                {
+                    IdNumber = read.IdNumber,
+                    CardNumber = zone?.CardNumber,
+                    FullNameEnglish = CardResponseParser.CleanName(zone?.FullNameEnglish) ?? string.Empty,
+                    NationalityEnglish = zone?.NationalityCode,
+                    NationalityCode = zone?.NationalityCode,
+                    Gender = zone?.Gender,
+                    DateOfBirth = zone?.DateOfBirth,
+                    ExpiryDate = zone?.ExpiryDate,
+                    AddressMobile = request.ContactMobile,
+                };
+
+                captureMethod = "DigitalCard";
+            }
+            else if (request.Manual is { } manual)
             {
                 /* Typed in, because the chip would not read. Marked as such, and never
                    allowed to arrive alongside a card read - one entry, one provenance. */
@@ -361,6 +418,21 @@ public static class VisitsApi
     /// things about the request, and a tablet retrying a 500 forever would be reasonable
     /// behaviour on its part.
     /// </summary>
+    /// <summary>
+    /// A read, in the shape the tablet already draws. Nothing is invented for the fields the
+    /// zone does not carry: a front-of-card read fills the ID number and leaves the rest
+    /// null, so the officer sees what is missing rather than a form that looks complete.
+    /// </summary>
+    private static ManualIdentity Identity(MrzFinder.Read read) => new(
+        IdNumber: read.IdNumber,
+        CardNumber: read.Zone?.CardNumber,
+        FullNameEnglish: read.Zone?.FullNameEnglish,
+        FullNameArabic: null,
+        NationalityEnglish: read.Zone?.NationalityCode,
+        DateOfBirth: read.Zone?.DateOfBirth,
+        ExpiryDate: read.Zone?.ExpiryDate,
+        AddressMobile: null);
+
     private static IResult Problem(string detail) =>
         Results.Problem(detail, statusCode: StatusCodes.Status400BadRequest, title: "The visit was not saved");
 
@@ -443,4 +515,21 @@ public sealed record SaveVisitRequest(
     /// The number the visitor gave at the desk, optional. Nullable and last so a tablet
     /// built before this existed goes on working - it simply sends nothing.
     /// </summary>
-    string? ContactMobile = null);
+    string? ContactMobile = null,
+
+    /// <summary>
+    /// The text a camera read off the card, when the visitor had no chip to insert. Parsed
+    /// on the server, which is what makes the entry <c>DigitalCard</c> rather than something
+    /// the tablet asserted about itself.
+    /// </summary>
+    string? MrzText = null);
+
+/// <summary>Text from a tablet's recogniser, for <c>/api/mrz</c>.</summary>
+public sealed record MrzRequest(string? Text);
+
+/// <summary>
+/// What that text turned out to be. <paramref name="Complete"/> is false when only the
+/// printed ID number could be salvaged - the difference between a filled form and a filled
+/// ID field, and the thing the tablet needs in order to say "turn the card over".
+/// </summary>
+public sealed record MrzResultDto(bool Ok, string? Problem, bool Complete, ManualIdentity? Identity);

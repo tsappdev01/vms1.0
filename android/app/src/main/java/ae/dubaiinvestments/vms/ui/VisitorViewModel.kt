@@ -5,6 +5,7 @@ import ae.dubaiinvestments.vms.api.ApiException
 import ae.dubaiinvestments.vms.api.ApiProvider
 import ae.dubaiinvestments.vms.api.EntityDto
 import ae.dubaiinvestments.vms.api.ManualIdentity
+import ae.dubaiinvestments.vms.api.MrzRequest
 import ae.dubaiinvestments.vms.api.PersonDto
 import ae.dubaiinvestments.vms.api.SaveVisitRequest
 import ae.dubaiinvestments.vms.api.SavedVisitDto
@@ -30,7 +31,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /** Where reception is in the check-in. One screen each. */
-enum class Step { InsertCard, VisitorInformation, VisitDetails, Saved }
+enum class Step { InsertCard, MrzScan, VisitorInformation, VisitDetails, Saved }
 
 /** What reception typed when the chip would not read. */
 data class ManualDraft(
@@ -59,6 +60,14 @@ data class UiState(
     val card: CardRead? = null,
     val readRequestId: String? = null,
     val manual: ManualDraft? = null,
+
+    /** The text a camera read off a card, kept so the save can send it. The server parses it
+        again there and decides the provenance from what it parsed, which is why the fields
+        below are a preview and not the record. */
+    val mrzText: String? = null,
+    /** False when only the printed ID number could be salvaged - the officer then has the
+        number and has to type or scan the rest. */
+    val mrzComplete: Boolean = false,
 
     val entities: List<EntityDto> = emptyList(),
     val purposes: List<String> = emptyList(),
@@ -313,6 +322,74 @@ class VisitorViewModel(
 
     // ---------------------------------------------------------------- manual entry
 
+    // ---------------------------------------------------------------- the camera
+
+    fun openMrzScan() {
+        _state.value = _state.value.copy(
+            step = Step.MrzScan,
+            busy = "Hold the card in the frame\u2026",
+            error = null,
+            mrzText = null,
+            mrzComplete = false,
+        )
+    }
+
+    fun closeMrzScan() {
+        _state.value = _state.value.copy(step = Step.InsertCard, busy = null)
+    }
+
+    /**
+     * One frame's text, checked by the server.
+     *
+     * A complete read - the three lines, every check digit holding - fills the form and moves
+     * on. A partial one, where only the printed number survived, is kept but does not move on:
+     * the officer sees the number appear and is told to turn the card over, because the back
+     * carries everything and the front carries one field. Settling for the number while the
+     * rest is in front of the camera is the fault this whole path exists to avoid.
+     */
+    fun onMrzText(text: String) {
+        if (_state.value.step != Step.MrzScan) return
+
+        viewModelScope.launch {
+            val result = runCatching { VmsClient.call { api.current().readMrz(MrzRequest(text)) } }
+                .getOrElse { return@launch }
+
+            if (!result.ok || _state.value.step != Step.MrzScan) return@launch
+
+            val identity = result.identity ?: return@launch
+
+            if (!result.complete) {
+                /* Kept, so a second or two later the officer can stop and use it if the back
+                   will not read at all. Not advanced, so the back gets its chance first. */
+                _state.value = _state.value.copy(
+                    mrzText = text,
+                    mrzComplete = false,
+                    busy = "Read ${identity.idNumber} \u2014 now turn the card over for the " +
+                        "name and dates.",
+                )
+                return@launch
+            }
+
+            _state.value = _state.value.copy(
+                busy = null,
+                card = null,
+                readRequestId = null,
+                mrzText = text,
+                mrzComplete = true,
+                manual = ManualDraft(
+                    idNumber = identity.idNumber.orEmpty(),
+                    cardNumber = identity.cardNumber.orEmpty(),
+                    fullNameEnglish = identity.fullNameEnglish.orEmpty(),
+                    nationalityEnglish = identity.nationalityEnglish.orEmpty(),
+                    dateOfBirth = identity.dateOfBirth.orEmpty(),
+                    expiryDate = identity.expiryDate.orEmpty(),
+                ),
+                error = null,
+                step = Step.VisitorInformation,
+            )
+        }
+    }
+
     fun useManualEntry(draft: ManualDraft) {
         _state.value = _state.value.copy(
             card = null,
@@ -405,7 +482,15 @@ class VisitorViewModel(
         val request = SaveVisitRequest(
             requestId = current.readRequestId,
             readResponseXml = current.card?.responseXml,
-            manual = current.manual?.let {
+            /*  A photographed card sends the text, not the fields.
+             *
+             *  The server parses it again at save time and takes the provenance from what it
+             *  parsed - DigitalCard, below an unverified chip read, because the zone is
+             *  printed and not signed. Sending the fields instead would make that a claim by
+             *  the tablet, which is the thing this API is built not to accept. */
+            mrzText = current.mrzText?.takeIf { current.mrzComplete },
+
+            manual = current.manual?.takeIf { current.mrzText == null || !current.mrzComplete }?.let {
                 ManualIdentity(
                     idNumber = it.idNumber.trim(),
                     cardNumber = it.cardNumber.trim().ifBlank { null },

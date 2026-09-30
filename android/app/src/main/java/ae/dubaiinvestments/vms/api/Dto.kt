@@ -77,6 +77,27 @@ data class SaveVisitRequest(
     /** The number the visitor gives at the desk. Optional, and last, so a server built
         before this ignores it rather than refusing the save. */
     val contactMobile: String? = null,
+    /** The text the camera read off a card, when the visitor had no chip to insert. The
+        server parses it and decides the provenance from what it parsed, which is why the
+        fields are not sent alongside it. */
+    val mrzText: String? = null,
+)
+
+/** One frame's worth of text, for `/api/mrz`. */
+@Serializable
+data class MrzRequest(val text: String)
+
+/** What that text turned out to be.
+
+    [complete] is false when only the printed ID number could be salvaged, which is the
+    difference between a filled form and a filled ID field - and what lets the screen say
+    "turn the card over" instead of settling. */
+@Serializable
+data class MrzResultDto(
+    val ok: Boolean,
+    val problem: String? = null,
+    val complete: Boolean = false,
+    val identity: ManualIdentity? = null,
 )
 
 /** ASP.NET's ProblemDetails, which is what the API answers a bad request with. */

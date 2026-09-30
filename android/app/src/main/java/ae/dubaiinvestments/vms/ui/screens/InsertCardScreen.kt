@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,6 +42,7 @@ fun InsertCardScreen(
     state: UiState,
     onReadCard: () -> Unit,
     onManualEntry: () -> Unit,
+    onScanCard: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
@@ -81,6 +83,23 @@ fun InsertCardScreen(
                 } else {
                     Text("Read card", style = MaterialTheme.typography.labelLarge)
                 }
+            }
+
+            /* Second, not first. The chip is the better read - it is signed data rather than
+               a photograph of printing - so the camera is what a visitor carrying the card on
+               a phone uses, and not the path of least resistance for everybody. */
+            TextButton(
+                onClick = onScanCard,
+                enabled = state.busy == null,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    Icons.Default.PhotoCamera,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.size(7.dp))
+                Text("No chip? Scan the card with the camera")
             }
 
             TextButton(

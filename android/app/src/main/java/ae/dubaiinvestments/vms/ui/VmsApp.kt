@@ -3,6 +3,7 @@ package ae.dubaiinvestments.vms.ui
 import ae.dubaiinvestments.vms.ui.screens.InsertCardScreen
 import ae.dubaiinvestments.vms.ui.screens.ManualEntryDialog
 import ae.dubaiinvestments.vms.ui.screens.SavedScreen
+import ae.dubaiinvestments.vms.ui.screens.MrzScanScreen
 import ae.dubaiinvestments.vms.ui.screens.SettingsScreen
 import ae.dubaiinvestments.vms.ui.screens.VisitDetailsScreen
 import ae.dubaiinvestments.vms.ui.screens.VisitorInformationScreen
@@ -148,6 +149,13 @@ fun VmsApp(viewModel: VisitorViewModel) {
                         state = state,
                         onReadCard = { viewModel.readCard() },
                         onManualEntry = { manualOpen = true },
+                        onScanCard = { viewModel.openMrzScan() },
+                    )
+
+                    Step.MrzScan -> MrzScanScreen(
+                        state = state,
+                        onText = { viewModel.onMrzText(it) },
+                        onClose = { viewModel.closeMrzScan() },
                     )
 
                     Step.VisitorInformation -> VisitorInformationScreen(
@@ -231,6 +239,7 @@ private fun StepRail(current: Step) {
 private val Step.label: String
     get() = when (this) {
         Step.InsertCard -> "Card"
+        Step.MrzScan -> "Camera"
         Step.VisitorInformation -> "Visitor"
         Step.VisitDetails -> "Visit"
         Step.Saved -> "Done"

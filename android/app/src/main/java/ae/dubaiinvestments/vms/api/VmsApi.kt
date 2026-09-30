@@ -28,6 +28,11 @@ interface VmsApi {
     @POST("api/reads")
     suspend fun beginRead(): ReadTicketDto
 
+    /** What the camera read, checked by the server. Called once per frame while scanning,
+        so it carries one short string and nothing else. */
+    @POST("api/mrz")
+    suspend fun readMrz(@Body request: MrzRequest): MrzResultDto
+
     @POST("api/visits")
     suspend fun saveVisit(@Body request: SaveVisitRequest): SavedVisitDto
 }
