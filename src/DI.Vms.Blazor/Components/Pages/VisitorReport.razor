@@ -47,7 +47,7 @@
             <rect x="3" y="9" width="18" height="7" rx="2" />
             <path d="M7 16h10v4H7z" />
         </svg>
-        Print
+        Print / Save as PDF
     </button>
 </div>
 
@@ -64,6 +64,17 @@ else if (entries.Count == 0)
 }
 else
 {
+    @* On paper the toolbar is gone, so the page would not say what period it covers or
+       which entity was chosen - which makes a printed report worthless as a record. *@
+    <div class="print-only print-head">
+        <div>
+            <strong>Visitor Details by Entity</strong>
+            <span>@from.ToString("dd MMM yyyy") &ndash; @to.ToString("dd MMM yyyy")
+                  &middot; @(entityId == 0 ? "All entities" : entities.FirstOrDefault(e => e.Id == entityId)?.Name)</span>
+        </div>
+        <span>Printed @DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(4)).ToString("dd MMM yyyy HH:mm") GST</span>
+    </div>
+
     <p class="muted">@entries.Count @(entries.Count == 1 ? "entry" : "entries") across @grouped.Count @(grouped.Count == 1 ? "entity" : "entities").</p>
 
     @foreach (var group in grouped)
@@ -80,7 +91,7 @@ else
                             <th>Recorded (GST)</th><th>Person to Visit</th><th>Purpose</th><th>Visitor</th>
                             <th>ID Number</th><th>Card No.</th><th>Nationality</th>
                             <th>Gender</th><th>Date of Birth</th><th>ID Issue</th><th>ID Expiry</th>
-                            <th>Mobile</th><th>Contact no.</th><th>Email</th><th>Address</th><th>Source</th><th>Recorded by</th>
+                            <th>Mobile</th><th>Contact no.</th><th>Email</th><th>Address</th><th>Signed out</th><th>Stayed</th><th>Source</th><th>Recorded by</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,7 +112,8 @@ else
                                 <td class="mono">@Dash(v.AddressMobile)</td>
                                 <td class="mono">@Dash(v.ContactMobile)</td>
                                 <td>@Dash(v.AddressEmail)</td>
-                                <td class="wrap">@Dash(PostalAddress(v))</td>
+                                <td class="mono nowrap">@(v.SignedOutAtUtc is null ? "still in" : Gst(v.SignedOutAtUtc.Value))</td>
+                                <td class="mono nowrap">@Stayed(v)</td>
                                 @* The capture cell is the way to the stored card, rather
                                    than a column of its own - the header, body and CSV
                                    counts stay in step, and it is where somebody asking
@@ -229,7 +241,7 @@ else
                 "Full Name (Arabic)", "ID Number", "Card Number", "ID Type", "ID Issue",
                 "ID Expiry", "Gender", "Date of Birth", "Nationality", "Nationality Code",
                 "Place of Birth", "Emirate", "City", "Area", "Street", "Building", "PO Box",
-                "Phone", "Mobile", "Contact No", "Email", "Source", "Recorded By",
+                "Phone", "Mobile", "Contact No", "Email", "Signed Out (GST)", "Stayed", "Source", "Recorded By", "Signed Out By",
             }.Select(Escape)),
         };
 
@@ -241,7 +253,9 @@ else
             v.ExpiryDate, v.Gender, v.DateOfBirth, v.NationalityEnglish, v.NationalityCode,
             v.PlaceOfBirthEnglish, v.AddressEmirate, v.AddressCity, v.AddressArea,
             v.AddressStreet, v.AddressBuilding, v.AddressPoBox, v.AddressPhone,
-            v.AddressMobile, v.ContactMobile, v.AddressEmail, v.CaptureMethod, v.RecordedBy,
+            v.AddressMobile, v.ContactMobile, v.AddressEmail,
+            v.SignedOutAtUtc is null ? "still in" : Gst(v.SignedOutAtUtc.Value), Stayed(v),
+            v.CaptureMethod, v.RecordedBy, v.SignedOutBy,
         }.Select(Escape))));
 
         await Js.InvokeVoidAsync("vms.downloadCsv",
@@ -249,6 +263,25 @@ else
     }
 
     private async Task Print() => await Js.InvokeVoidAsync("window.print");
+
+    /// <summary>
+    /// How long the visit lasted, or how long it has run so far.
+    ///
+    /// An open visit is not blank: blank reads as missing data, and "still in" after a
+    /// duration is the thing somebody scanning the column is actually looking for.
+    /// </summary>
+    private static string Stayed(VisitorEntry v)
+    {
+        var span = (v.SignedOutAtUtc ?? DateTimeOffset.UtcNow) - v.RecordedAtUtc;
+
+        if (span < TimeSpan.Zero) return "—";
+
+        var text = span < TimeSpan.FromHours(1) ? $"{(int)span.TotalMinutes} min"
+            : span < TimeSpan.FromDays(1) ? $"{(int)span.TotalHours}h {span.Minutes:D2}m"
+            : $"{(int)span.TotalDays}d {span.Hours}h";
+
+        return v.SignedOutAtUtc is null ? $"{text} so far" : text;
+    }
 
     private static string Gst(DateTimeOffset instant) =>
         instant.ToOffset(TimeSpan.FromHours(4)).ToString("dd MMM yyyy HH:mm:ss");

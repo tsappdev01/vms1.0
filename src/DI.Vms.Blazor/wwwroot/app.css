@@ -1160,13 +1160,79 @@ button.link:hover { background: none; color: var(--accent-hover); }
   * { transition: none !important; animation: none !important; }
 }
 
+/* ---- On paper -----------------------------------------------------------------------
+   The report is seventeen columns wide inside a horizontal scroller. On screen that is
+   fine - the officer drags it. Printed, the scroller simply clips: every column past the
+   fold is cut off the page with nothing to say it was there, which is what made the
+   printout worthless.
+
+   So print does three things the screen does not. It unwraps the scroller, it drops the
+   columns a printed visitor log does not need, and it repeats the table head on every
+   page. What is left fits A4 landscape and reads as a document rather than a screenshot. */
 @media print {
-  .sidebar, .topbar, .toolbar, .actions, .steps { display: none !important; }
+  @page { size: A4 landscape; margin: 11mm 10mm; }
+
+  .sidebar, .topbar, .toolbar, .actions, .steps, .empty > span, #blazor-error-ui {
+    display: none !important;
+  }
+
   .app { display: block; }
   .content { padding: 0; max-width: none; }
-  .card { border: none; box-shadow: none; break-inside: avoid; }
-  body { background: #fff; }
+  body { background: #fff; font-size: 9pt; }
+
+  .card {
+    border: none;
+    box-shadow: none;
+    /* Not avoid: an entity with forty visitors is taller than a page, and forcing it whole
+       leaves most of a sheet blank and then overflows anyway. */
+    break-inside: auto;
+  }
+
+  .card-head { break-after: avoid; }
+  .card-head h2 { font-size: 12pt; }
+
+  /* The scroller, unwrapped. Everything else here is pointless without this. */
+  .table-wrap { overflow: visible !important; width: auto !important; }
+
+  table.data { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 8pt; }
+  table.data th, table.data td { padding: 3px 4px; word-break: break-word; }
+
+  /* Repeated on every sheet, because a column of ID numbers with no heading three pages
+     in is a column of digits. */
+  table.data thead { display: table-header-group; }
+  table.data tr { break-inside: avoid; }
+
+  /* Card No., Gender, Date of Birth, ID Issue, ID Expiry, card Mobile, Email, Address.
+     All are in the CSV; none of them is what a printed visitor log is read for, and
+     keeping them is what made every column too narrow to read. */
+  table.data th:nth-child(6),  table.data td:nth-child(6),
+  table.data th:nth-child(8),  table.data td:nth-child(8),
+  table.data th:nth-child(9),  table.data td:nth-child(9),
+  table.data th:nth-child(10), table.data td:nth-child(10),
+  table.data th:nth-child(11), table.data td:nth-child(11),
+  table.data th:nth-child(12), table.data td:nth-child(12),
+  table.data th:nth-child(14), table.data td:nth-child(14),
+  table.data th:nth-child(15), table.data td:nth-child(15) { display: none; }
+
+  /* A link prints as text; the underline and colour only suggest something to click. */
+  table.data a { color: inherit; text-decoration: none; }
+
+  .print-only { display: flex !important; }
 }
+
+/* Exists only on paper. On screen the toolbar already says all of this. */
+.print-only { display: none; }
+
+.print-head {
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  border-bottom: 1.5px solid #16232e;
+}
+.print-head strong { display: block; font-size: 13pt; }
+.print-head span { font-size: 9pt; }
 
 
 /* ---- Sign out a visitor -------------------------------------------------------------
