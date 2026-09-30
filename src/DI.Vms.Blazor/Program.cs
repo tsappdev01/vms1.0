@@ -277,6 +277,12 @@ builder.Services.AddDbContextFactory<VmsDbContext>(options =>
 builder.Services.AddSingleton(CardImageStorageOptions.FromConfiguration(builder.Configuration));
 builder.Services.AddSingleton<CardImageStore>();
 
+/* Reading the machine-readable zone off a photograph of a card, for a visitor who has the
+   card on a phone rather than in a wallet. The recognition runs in the browser and costs
+   nothing; the checking runs here. Off unless a deployment turns it on. */
+var digitalCard = DigitalCardOptions.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(digitalCard);
+
 /* Where the host list comes from: the Entra ID tenant people already sign in with, or the
    vms.Person table the AD export was loaded into. Resolved once, so the desk screen and
    the tablet's /api/people cannot disagree about it. */
@@ -333,6 +339,12 @@ using (var scope = app.Services.CreateScope())
 
     capture.LogTo(logger);
     signIn.LogTo(logger);
+
+    logger.LogInformation(
+        digitalCard.Enabled
+            ? "Digital card scanning is ON. The recogniser is served from {Engine}."
+            : "Digital card scanning is off. Set DigitalCard:Enabled to true to offer it.",
+        digitalCard.EngineBaseUrl);
 
     /* The sign-in flow, by name, at every startup.
 
