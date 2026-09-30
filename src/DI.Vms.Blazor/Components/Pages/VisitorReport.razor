@@ -186,6 +186,18 @@ else
 
     private async Task Load()
     {
+        /*  A range the wrong way round returns nothing, and "nothing" on this page reads as
+         *  "nobody visited" rather than as "your dates are backwards". Said before the query
+         *  rather than after it, because the empty table is the misleading part. */
+        if (to < from)
+        {
+            entries = [];
+            error = $"The From date ({from:dd MMM yyyy}) is after the To date " +
+                $"({to:dd MMM yyyy}). Swap them to see this period.";
+            loading = false;
+            return;
+        }
+
         loading = true;
         error = null;
         try

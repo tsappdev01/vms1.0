@@ -247,8 +247,20 @@ public static class VisitsApi
                     return Problem("Send either a card read or manual details, not both.");
                 }
 
-                var digits = new string(manual.IdNumber?.Where(char.IsAsciiDigit).ToArray() ?? []);
-                if (digits.Length == 0) return Problem("An ID number is required.");
+                /*  The number, judged rather than counted.
+                 *
+                 *  This used to ask only whether the field contained a digit, so "7" was an
+                 *  Emirates ID. It is the field a repeat visit is matched on, which makes a
+                 *  wrong one worse than a missing one: it does not produce a bad record, it
+                 *  produces a second person. The fifteenth digit is a Luhn checksum over the
+                 *  first fourteen, the officer is holding the card, and retyping costs
+                 *  seconds - so this is the one typed field that blocks. */
+                if (VisitorFields.TypedIdNumberProblem(manual.IdNumber) is { } idProblem)
+                {
+                    return Problem(idProblem);
+                }
+
+                var digits = VisitorFields.Digits(manual.IdNumber);
                 if (string.IsNullOrWhiteSpace(manual.FullNameEnglish)) return Problem("A name is required.");
 
                 card = new CardData
@@ -285,6 +297,54 @@ public static class VisitsApi
                 }
 
                 captureMethod = card.SignatureWarning is null ? "CardReader" : "CardReaderUnverified";
+            }
+
+            /*  Expiry and mobile, required here for all three ways of arriving.
+             *
+             *  Name and ID number are checked per path above, because what makes them
+             *  acceptable differs: a typed number has to satisfy its check digit, a signed one
+             *  is the card's own word and is not second-guessed. Expiry and mobile do not
+             *  differ, so they are asked for once - and asking here is what finally makes them
+             *  mandatory, which the desk browser has required for a while and the server never
+             *  did.
+             *
+             *  A tablet built before the mobile number existed is refused by this, with a
+             *  message that says which field. That is the intended trade: the alternative is a
+             *  visitor recorded with no way to reach them, found out months later in a
+             *  report. */
+            if (string.IsNullOrWhiteSpace(card.ExpiryDate))
+            {
+                return Problem("The card expiry date is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ContactMobile))
+            {
+                return Problem("A mobile number is required.");
+            }
+
+            /*  Said, never enforced.
+             *
+             *  A number in an unusual shape and a date in a format the report cannot read are
+             *  worth putting in front of whoever looks at the visit, and are never worth
+             *  refusing a visitor standing at the desk over. They ride back on the same
+             *  warning field an unverified signature uses. */
+            var concerns = new List<string>();
+
+            if (VisitorFields.MobileConcern(request.ContactMobile) is { } mobileConcern)
+            {
+                concerns.Add(mobileConcern);
+            }
+
+            if (VisitorFields.ExpiryConcern(card.ExpiryDate) is { } expiryConcern)
+            {
+                concerns.Add(expiryConcern);
+            }
+
+            if (concerns.Count > 0)
+            {
+                /* Without the ID number or the mobile: a log is the wrong place for either,
+                   and the count and the wording are what anyone reading this would want. */
+                log.LogInformation("A visit was recorded with concerns: {Concerns}", string.Join(" ", concerns));
             }
 
             /* Stored before the visit, because the row that goes on the visit carries the
@@ -400,7 +460,16 @@ public static class VisitsApi
                 "Visit {Id} recorded from the tablet by {User}, capture {Capture}.",
                 entry.Id, entry.RecordedBy ?? "(unknown)", entry.CaptureMethod);
 
-            return Results.Ok(new SavedVisitDto(entry.Id, entry.RecordedAtUtc, entry.CaptureMethod, card.SignatureWarning));
+            /* One field, because the tablet shows one line. The signature warning comes first:
+               it is about whether the card is genuine, which outranks the shape of a phone
+               number. */
+            var warning = string.Join(
+                " ",
+                concerns.Prepend(card.SignatureWarning).Where(w => !string.IsNullOrWhiteSpace(w)));
+
+            return Results.Ok(new SavedVisitDto(
+                entry.Id, entry.RecordedAtUtc, entry.CaptureMethod,
+                warning.Length == 0 ? null : warning));
         });
     }
 

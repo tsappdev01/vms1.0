@@ -30,9 +30,11 @@ android {
          *
          *  Both are read out on the settings screen, and that is the point: a tablet running
          *  an older APK than the one somebody thinks they installed looks exactly like a
-         *  broken feature. 1.1.0 is the first with the camera scanner and the settings PIN. */
-        versionCode = 2
-        versionName = "1.1.0"
+         *  broken feature. 1.1.0 is the first with the camera scanner and the settings PIN;
+         *  1.1.1 is the first that requires a mobile number, which the server now refuses a
+         *  visit without. */
+        versionCode = 3
+        versionName = "1.1.1"
 
         /* The toolkit's native libraries are built for these two only. Without the
            filter, an x86_64 emulator installs an APK with no usable library and fails at

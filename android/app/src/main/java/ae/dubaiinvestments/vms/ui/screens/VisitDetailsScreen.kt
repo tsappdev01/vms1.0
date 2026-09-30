@@ -1,6 +1,7 @@
 package ae.dubaiinvestments.vms.ui.screens
 
 import ae.dubaiinvestments.vms.api.PersonDto
+import ae.dubaiinvestments.vms.ui.FieldRules
 import ae.dubaiinvestments.vms.ui.UiState
 import ae.dubaiinvestments.vms.ui.parts.SectionCard
 import androidx.compose.foundation.clickable
@@ -197,11 +198,19 @@ fun VisitDetailsScreen(
             /* Typed, not read. The card's own mobile is parsed out of the signed XML on
                the server; on every card tested at DIP that field came back empty, so this
                is the number that will actually reach the visitor today. */
+            /* Required, and it says so. It was marked optional here while the desk browser
+               required it, which is the kind of disagreement that only shows up as a visitor
+               nobody can ring. */
+            val mobileConcern = FieldRules.mobileConcern(state.contactMobile)
+
             OutlinedTextField(
                 value = state.contactMobile,
                 onValueChange = onContactMobile,
                 label = { Text("Mobile number") },
-                supportingText = { Text("How to reach the visitor. Optional.") },
+                isError = mobileConcern != null,
+                supportingText = {
+                    Text(mobileConcern ?: "How to reach the visitor. Required.")
+                },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth(),
@@ -229,6 +238,29 @@ fun VisitDetailsScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+        }
+
+        /*  Named, not greyed.
+         *
+         *  A disabled button with nothing beside it is the single most common reason a desk
+         *  rings somebody. The desk browser has said this for a while; the tablet only
+         *  greyed the button out. */
+        if (state.missingRequired.isNotEmpty()) {
+            Text(
+                "Still needed: ${state.missingRequired.joinToString(", ")}.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        /* And what the save will go ahead with anyway. Refusing here would send reception
+           for a pen and paper; saying it lets them ask the visitor one more question. */
+        if (state.concerns.isNotEmpty()) {
+            Text(
+                "Worth checking: ${state.concerns.joinToString(" ")}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

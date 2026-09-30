@@ -69,6 +69,7 @@
     <Compile Include="..\DI.Vms.Blazor\Services\DirectoryOptions.cs"   LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\StaffDirectory.cs"     LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\SignInOptions.cs"      LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\VisitorFields.cs"     LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\VisitPurposes.cs"      LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\VmsRoles.cs"           LinkBase="Shared\Services" />
 

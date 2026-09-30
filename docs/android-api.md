@@ -242,8 +242,42 @@ beside it — a tablet claiming to have read a card is the same problem as a bro
 so it goes through the same `AgentCardReader` as the desk, with one set of rules and no second
 way in.
 
-`contactMobile` is nullable and last in the record on purpose: a tablet built before it existed
-keeps working and simply sends nothing.
+`contactMobile` is nullable **in the wire format** and last in the record, so an older tablet
+can still be deserialised — but the save is now refused without it. See below.
+
+### What the server refuses, and what it only mentions
+
+Four fields are required, whichever way the visit arrived: **name, ID number, card expiry and
+mobile number**. Until recently the server asked only for the first two, while the desk browser
+asked for all four and the tablet asked for two — three places, three answers. The rules now
+live in one file, `Services/VisitorFields.cs`, and the tablet keeps a copy of the cheap parts in
+`ui/FieldRules.kt` so a desk is told before a round trip rather than after one.
+
+**Refused (400):**
+
+| | |
+|---|---|
+| A typed ID number that is not a valid Emirates ID | 15 digits, beginning 784, Luhn check digit holding. It is the field a repeat visit is matched on, so a wrong one does not make a bad record — it makes a second person. |
+| A missing card expiry | |
+| A missing mobile number | |
+
+A **chip read** and a **photographed card** are not re-judged on the number: one carries a
+signed document, the other has already satisfied the same check digit. The card is the authority
+on what is printed on the card.
+
+**Mentioned, never refused** — returned in the `warning` field of the response, beside any
+signature warning:
+
+- a telephone number with letters in it, far too short or long, or a UAE mobile that is a digit
+  out
+- an expiry date in a format the report cannot read
+- **a card that has already expired** — which nothing said before
+
+The split is deliberate. Reception has somebody standing in front of them, and a desk that will
+not proceed is a desk that writes the visit on paper.
+
+> **Upgrading:** a tablet on 1.0.x that sends no mobile number will now be refused with
+> *"A mobile number is required."* Both tablets need 1.1.1 or later.
 
 ```json
 { "id": 10482, "recordedAtUtc": "2026-09-30T11:41:00Z",

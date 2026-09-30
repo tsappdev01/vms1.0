@@ -1,5 +1,6 @@
 package ae.dubaiinvestments.vms.ui.screens
 
+import ae.dubaiinvestments.vms.ui.FieldRules
 import ae.dubaiinvestments.vms.ui.ManualDraft
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,11 @@ import androidx.compose.ui.unit.dp
  *
  * Only the fields the server accepts by hand. There is no point offering to type a
  * photograph or a place of birth that the visit log does not use.
+ *
+ * Every box is capped at the width of the column behind it, and the rules that decide
+ * whether what was typed can be believed are [FieldRules] - the tablet's copy of the ones
+ * the server applies when the save arrives, so the two cannot disagree about what a valid
+ * Emirates ID number is.
  */
 @Composable
 fun ManualEntryDialog(
@@ -58,11 +64,28 @@ fun ManualEntryDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
+                /*  The one typed field that blocks.
+                 *
+                 *  It is what a repeat visit is matched on, so a wrong one does not make a
+                 *  bad record - it makes a second person. The fifteenth digit is a checksum
+                 *  over the first fourteen and the officer is holding the card, so this is
+                 *  worth the few seconds of retyping. */
+                val idProblem = FieldRules.typedIdNumberProblem(draft.idNumber)
+
                 OutlinedTextField(
                     value = draft.idNumber,
-                    onValueChange = { draft = draft.copy(idNumber = it) },
+                    onValueChange = { draft = draft.copy(idNumber = it.take(FieldRules.IdNumber)) },
                     label = { Text("Emirates ID number") },
-                    supportingText = { Text("784-…-…-…") },
+                    /* Said only once something has been typed: an empty required box is
+                       already marked required, and one that turns red before it is touched
+                       reads as a fault rather than as guidance. */
+                    isError = draft.idNumber.isNotBlank() && idProblem != null,
+                    supportingText = {
+                        Text(
+                            if (draft.idNumber.isNotBlank() && idProblem != null) idProblem
+                            else "784-…-…-…",
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -70,7 +93,7 @@ fun ManualEntryDialog(
 
                 OutlinedTextField(
                     value = draft.fullNameEnglish,
-                    onValueChange = { draft = draft.copy(fullNameEnglish = it) },
+                    onValueChange = { draft = draft.copy(fullNameEnglish = it.take(FieldRules.Name)) },
                     label = { Text("Full name") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -78,7 +101,7 @@ fun ManualEntryDialog(
 
                 OutlinedTextField(
                     value = draft.nationalityEnglish,
-                    onValueChange = { draft = draft.copy(nationalityEnglish = it) },
+                    onValueChange = { draft = draft.copy(nationalityEnglish = it.take(FieldRules.CardField)) },
                     label = { Text("Nationality") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -86,33 +109,43 @@ fun ManualEntryDialog(
 
                 OutlinedTextField(
                     value = draft.dateOfBirth,
-                    onValueChange = { draft = draft.copy(dateOfBirth = it) },
+                    onValueChange = { draft = draft.copy(dateOfBirth = it.take(FieldRules.CardField)) },
                     label = { Text("Date of birth") },
                     supportingText = { Text("As printed on the card") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
+                /* A note, never a refusal - an unrecognised format must not be able to stop
+                   a check-in, and an expired card is worth saying out loud but is still the
+                   card the visitor has. */
+                val expiryConcern = FieldRules.expiryConcern(draft.expiryDate)
+
                 OutlinedTextField(
                     value = draft.expiryDate,
-                    onValueChange = { draft = draft.copy(expiryDate = it) },
+                    onValueChange = { draft = draft.copy(expiryDate = it.take(FieldRules.CardField)) },
                     label = { Text("Expiry date") },
+                    supportingText = { Text(expiryConcern ?: "Required. As printed - 25/08/2028") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
                 OutlinedTextField(
                     value = draft.cardNumber,
-                    onValueChange = { draft = draft.copy(cardNumber = it) },
+                    onValueChange = { draft = draft.copy(cardNumber = it.take(FieldRules.CardNumber)) },
                     label = { Text("Card number (optional)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
+                /* The card's own mobile, which is optional and usually empty. The number the
+                   visit is contacted on is asked for on the visit screen and is required
+                   there - these are two different numbers and always were. */
                 OutlinedTextField(
                     value = draft.mobile,
-                    onValueChange = { draft = draft.copy(mobile = it) },
-                    label = { Text("Mobile (optional)") },
+                    onValueChange = { draft = draft.copy(mobile = it.take(FieldRules.CardField)) },
+                    label = { Text("Mobile on the card (optional)") },
+                    supportingText = { FieldRules.mobileConcern(draft.mobile)?.let { Text(it) } },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Phone,
                         imeAction = ImeAction.Done,

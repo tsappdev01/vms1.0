@@ -540,11 +540,12 @@ else if (step == 1 && card is not null && IsTyped)
                     <label for="m-id">ID Number <span class="req">required</span></label>
                     <input id="m-id" maxlength="@FieldLengths.IdNumber" @bind="manual.IdNumber" @bind:event="oninput"
                            placeholder="784-1979-4076928-0" inputmode="numeric" autocomplete="off" />
-                    @if (IdDigits.Length > 0 && IdDigits.Length != FieldLengths.EmiratesIdDigits)
+                    @* Shown only once something has been typed: an empty required field is
+                       already marked required, and a box that turns red before it is touched
+                       reads as a fault rather than as guidance. *@
+                    @if (IdDigits.Length > 0 && TypedIdProblem is { } idProblem)
                     {
-                        <span class="field-note warn">
-                            @IdDigits.Length of @FieldLengths.EmiratesIdDigits digits. An Emirates ID number has @FieldLengths.EmiratesIdDigits.
-                        </span>
+                        <span class="field-note warn">@idProblem</span>
                     }
                 </div>
 
@@ -576,12 +577,25 @@ else if (step == 1 && card is not null && IsTyped)
 
                 <div class="field">
                     <label for="m-expiry">Card Expiry <span class="req">required</span></label>
-                    <input id="m-expiry" maxlength="@FieldLengths.CardField" @bind="manual.ExpiryDate" placeholder="25/08/2028" autocomplete="off" />
+                    <input id="m-expiry" maxlength="@FieldLengths.CardField" @bind="manual.ExpiryDate" @bind:event="oninput"
+                           placeholder="25/08/2028" autocomplete="off" />
+                    @* A note, not a block. An unrecognised format is worth saying and never
+                       worth refusing a visitor over; an expired card is worth saying loudest,
+                       and nothing said it at all before. *@
+                    @if (VisitorFields.ExpiryConcern(manual.ExpiryDate) is { } expiryConcern)
+                    {
+                        <span class="field-note warn">@expiryConcern</span>
+                    }
                 </div>
 
                 <div class="field">
                     <label for="m-mobile">Mobile</label>
-                    <input id="m-mobile" maxlength="@FieldLengths.CardField" @bind="manual.AddressMobile" inputmode="tel" autocomplete="off" />
+                    <input id="m-mobile" maxlength="@FieldLengths.CardField" @bind="manual.AddressMobile" @bind:event="oninput"
+                           inputmode="tel" autocomplete="off" />
+                    @if (VisitorFields.MobileConcern(manual.AddressMobile) is { } cardMobileConcern)
+                    {
+                        <span class="field-note warn">@cardMobileConcern</span>
+                    }
                 </div>
             </div>
 
@@ -840,6 +854,10 @@ else if (step == 2 && card is not null)
                 <input id="contact-mobile" type="tel" inputmode="tel" autocomplete="off"
                        maxlength="@FieldLengths.ContactMobile" @bind="contactMobile" @bind:event="oninput"
                        placeholder="How to reach the visitor" required />
+                @if (VisitorFields.MobileConcern(contactMobile) is { } mobileConcern)
+                {
+                    <span class="field-note warn">@mobileConcern</span>
+                }
                 @if (!string.IsNullOrWhiteSpace(card?.AddressMobile))
                 {
                     <span class="hint">Read from the card. Correct it if the visitor gives another number.</span>
@@ -876,6 +894,25 @@ else if (step == 2 && card is not null)
                     {
                         <text>Go back to correct the card details.</text>
                     }
+                </p>
+            }
+
+            @if (IsTyped && TypedIdProblem is { } blocking)
+            {
+                <p class="warn" role="status">
+                    The ID number cannot be saved as typed: <b>@blocking</b>
+                    Go back to correct it.
+                </p>
+            }
+
+            @* Everything the save will go ahead with anyway, gathered where the officer is
+               deciding whether to press the button. Refusing here would send reception for a
+               pen and paper; saying it lets them ask the visitor one more question. *@
+            @if (Concerns.Any())
+            {
+                <p class="warn" role="status">
+                    Worth checking, but this can still be saved:
+                    <b>@string.Join(" ", Concerns)</b>
                 </p>
             }
 
@@ -1647,7 +1684,10 @@ else if (step == 3 && saved is not null)
         && !string.IsNullOrWhiteSpace(personToVisit)
         && !string.IsNullOrWhiteSpace(purpose)
         && (purpose != OtherPurpose || !string.IsNullOrWhiteSpace(purposeOther))
-        && !MissingRequired.Any();
+        && !MissingRequired.Any()
+        /* Typed only. A chip read is signed and a photographed one has already satisfied the
+           same check digit, so neither is asked to prove itself twice. */
+        && (!IsTyped || TypedIdProblem is null);
 
     /// <summary>Clears the detail when the purpose moves off Other, so a stale note cannot be saved.</summary>
     private void PurposeChanged()
@@ -1846,9 +1886,38 @@ else if (step == 3 && saved is not null)
 
     /// <summary>The identity fields, which are the ones on the first screen.</summary>
     private bool ManualIsComplete =>
-        IdDigits.Length > 0
+        TypedIdProblem is null
         && !string.IsNullOrWhiteSpace(manual.FullNameEnglish)
         && !string.IsNullOrWhiteSpace(manual.ExpiryDate);
+
+    /// <summary>
+    /// Why the typed ID number cannot be accepted, or null.
+    ///
+    /// The rule is <see cref="VisitorFields"/>, which the API applies to the same field when
+    /// the save arrives - so the screen and the server cannot disagree about what a valid
+    /// Emirates ID number is, which until now they did.
+    /// </summary>
+    private string? TypedIdProblem => VisitorFields.TypedIdNumberProblem(manual.IdNumber);
+
+    /// <summary>
+    /// What is worth saying about this entry without refusing it.
+    ///
+    /// Read off whichever source produced the fields, so a card that came back with an
+    /// expired date is flagged exactly as a typed one is.
+    /// </summary>
+    private IEnumerable<string> Concerns
+    {
+        get
+        {
+            var effective = IsTyped ? manual : card;
+
+            if (VisitorFields.ExpiryConcern(effective?.ExpiryDate) is { } expiry)
+                yield return expiry;
+
+            if (VisitorFields.MobileConcern(contactMobile) is { } mobile)
+                yield return mobile;
+        }
+    }
 
     /// <summary>
     /// Reads the card through the agent on the desk, and hands the response straight to

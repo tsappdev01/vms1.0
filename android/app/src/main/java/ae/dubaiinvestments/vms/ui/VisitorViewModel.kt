@@ -48,10 +48,18 @@ data class ManualDraft(
     val expiryDate: String = "",
     val mobile: String = "",
 ) {
-    /** The server checks this too. Checking it here as well means the desk is told
-        before a round trip, not after one. */
+    /**
+     * What the dialog needs before "Use these details" is worth pressing.
+     *
+     * The same three the server requires, checked here so the desk is told before a round
+     * trip rather than after one. The ID number used to be "contains a digit", which meant
+     * the tablet would happily send "7" and let the save come back refused - or, before the
+     * server checked either, record it.
+     */
     val isUsable: Boolean
-        get() = idNumber.any(Char::isDigit) && fullNameEnglish.isNotBlank()
+        get() = FieldRules.typedIdNumberProblem(idNumber) == null &&
+            fullNameEnglish.isNotBlank() &&
+            expiryDate.isNotBlank()
 }
 
 data class UiState(
@@ -135,12 +143,36 @@ data class UiState(
     /** Settings is open but showing the PIN pad rather than the key. */
     val settingsLocked: Boolean get() = settingsOpen && pinIsSet && !pinUnlocked
 
+    /**
+     * What the visit still needs, named rather than counted.
+     *
+     * One list, and [canSave] is derived from it, so the button and the sentence explaining
+     * the button cannot drift apart - which is how the mobile number came to be required on
+     * the desk browser and optional here.
+     */
+    val missingRequired: List<String>
+        get() = buildList {
+            if (entityId == null) add("entity")
+            if (personToVisit.isBlank()) add("person to visit")
+            if (purpose == null) add("purpose")
+            if (purpose == otherPurpose && purposeOther.isBlank()) add("details for Other")
+            if (contactMobile.isBlank()) add("mobile number")
+        }
+
     /** What the save button needs before it is worth pressing. */
-    val canSave: Boolean
-        get() = entityId != null &&
-            personToVisit.isNotBlank() &&
-            purpose != null &&
-            (purpose != otherPurpose || purposeOther.isNotBlank())
+    val canSave: Boolean get() = missingRequired.isEmpty()
+
+    /**
+     * What is worth saying about this visit without refusing it.
+     *
+     * Read off whichever source produced the fields, so a chip read that came back with an
+     * expired date is flagged exactly as a typed one is.
+     */
+    val concerns: List<String>
+        get() = listOfNotNull(
+            FieldRules.expiryConcern(manual?.expiryDate ?: card?.expiryDate),
+            FieldRules.mobileConcern(contactMobile),
+        )
 
     /** A picked host, or what was typed. The server records the text either way and the
         ID only when a directory entry was chosen. */
@@ -660,8 +692,11 @@ class VisitorViewModel(
     }
 
     fun setHostQuery(query: String) {
-        _state.value = _state.value.copy(hostQuery = query, host = null)
-        hostQueries.value = query
+        /* Capped at the column, like every other typed field. A name typed past 200
+           characters is not a name, and the server would cut it to fit in silence. */
+        val capped = query.take(FieldRules.PersonToVisit)
+        _state.value = _state.value.copy(hostQuery = capped, host = null)
+        hostQueries.value = capped
     }
 
     fun selectHost(person: PersonDto) {
@@ -674,7 +709,7 @@ class VisitorViewModel(
     }
 
     fun setContactMobile(mobile: String) {
-        _state.value = _state.value.copy(contactMobile = mobile)
+        _state.value = _state.value.copy(contactMobile = mobile.take(FieldRules.ContactMobile))
     }
 
     fun setPurpose(purpose: String) {
@@ -682,7 +717,7 @@ class VisitorViewModel(
     }
 
     fun setPurposeOther(text: String) {
-        _state.value = _state.value.copy(purposeOther = text)
+        _state.value = _state.value.copy(purposeOther = text.take(FieldRules.PurposeOther))
     }
 
     @OptIn(FlowPreview::class)

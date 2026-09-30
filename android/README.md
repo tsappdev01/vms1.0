@@ -199,6 +199,42 @@ reader plugged into it, not in front of Android Studio. `settings/Settings.kt` h
 device-to-device transfers. `api/ApiProvider.kt` rebuilds the Retrofit client when, and
 only when, the address changes.
 
+## What the tablet checks before it sends
+
+`ui/FieldRules.kt`, and it is a **copy**. The rules belong to the server, in
+`Services/VisitorFields.cs`, and that is where a save is actually judged — this exists because
+a tablet cannot call C# and because being told after a round trip is being told too late: the
+officer has moved on, the visitor is waiting, and the message arrives attached to a save rather
+than to a field.
+
+The two are allowed to differ in exactly one direction. The tablet may be **quieter** than the
+server, since the server has the final say either way; it must never refuse something the server
+would take, which would strand the desk with no way forward.
+
+**One field blocks: the Emirates ID number**, when it was typed. Fifteen digits, beginning 784,
+and the fifteenth is a Luhn checksum over the first fourteen — so a single wrong digit, and
+almost every swap of two adjacent ones, is caught at the desk rather than in a report months
+later. It is what a repeat visit is matched on, which is why it is the one worth stopping for: a
+wrong number does not make a bad record, it makes a second person. A chip read and a
+photographed card are not re-judged, because the card is the authority on what the card says.
+
+**Everything else is said, not enforced:** a telephone number with letters in it or a UAE mobile
+a digit out, a date the report will not be able to read, and a card that has already expired.
+All worth putting in front of the officer, none worth refusing a visitor over — refusing here
+sends reception for a pen and paper.
+
+Also here: **every box is capped** at the width of the column behind it, which the tablet did
+not do at all before. A long paste used to reach the server and be cut to fit in silence.
+
+Two things were made to agree with the desk browser rather than with themselves:
+
+- **The mobile number is required**, and the field says so. It was marked *optional* here while
+  the desk browser required it — the kind of disagreement that only shows up later as a visitor
+  nobody can ring.
+- **What is still missing is named**, above the button, instead of the button simply being grey.
+  A disabled button with nothing beside it is the single most common reason a desk rings
+  somebody.
+
 ## One thing is not in this repository
 
 ### `app/src/main/assets/toolkit-config/`
