@@ -10,6 +10,7 @@ Design documentation for the Dubai Investments Visitor Management System.
 | [entra-id-setup.md](entra-id-setup.md) | **Sign-in.** The app registration, the five app roles, who to assign, and what single sign-on actually requires — plus what authentication closes and what it leaves open. |
 | [security-test-checklist.md](security-test-checklist.md) | **XSS and SQL injection.** The source audit — what was checked, what was found, what was fixed — and the manual test to run at a desk, with a result table to fill in. |
 | [deployment.md](deployment.md) | **How to deploy it, and where it can run.** The reader is local, so the app is: the reception-PC runbook, and what a central server would cost. |
+| [android-api.md](android-api.md) | **The four endpoints the tablet uses**, how it authenticates, and the one setting that decides whether it can reach them at all. Read the startup log line named there before debugging anything on a tablet. |
 | [00-sdk-analysis.md](00-sdk-analysis.md) | Analysis of the ICP ID Card Toolkit v3.1.6. Still current — it is SDK fact, not architecture. |
 | [icp-signed-response-request.md](icp-signed-response-request.md) | **Open with ICP.** The offline bundle returns unsigned responses, which is what stops a desk read being provably genuine. Depends on the licence activation below. |
 | [icp-support-request.md](icp-support-request.md) | The licence escalation sent to ICP, and what came back. |
