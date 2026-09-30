@@ -544,10 +544,13 @@
 
 @* ------------------------------------------- 2. Visitor information from the chip *@
 
-else if (step == 1 && card is not null && IsManual)
+else if (step == 1 && card is not null && IsTyped)
 {
-    @* Typed, not read. No card facsimile: drawing a picture of an Emirates ID from
-       keystrokes would present typing as evidence. *@
+    @* Typed, or read off a photograph - either way, characters somebody may need to
+       correct rather than a chip's word nobody may. No card facsimile is drawn for a
+       manual entry: a picture of an Emirates ID made from keystrokes would present typing
+       as evidence. A scanned card keeps the actual photograph instead, which is evidence
+       of what the officer was shown. *@
     <section class="card narrow">
         <div class="card-head">
             <h2>Visitor Details</h2>
@@ -738,9 +741,11 @@ else if (step == 2 && card is not null)
     <section class="card narrow">
         <div class="card-head">
             <h2>Visit Details</h2>
-            @if (IsManual)
+            @if (IsTyped)
             {
-                <span class="badge-manual">Entered manually</span>
+                <span class="badge-manual">
+                    @(IsManual ? "Entered manually" : "Read from a photograph")
+                </span>
             }
         </div>
         <div class="card-body">
@@ -967,16 +972,18 @@ else if (step == 3 && saved is not null)
          @onkeydown="OnConfirmKeyDown" tabindex="-1">
         <div class="modal-head">
             <h2 id="confirm-title">Save this entry?</h2>
-            @if (IsManual)
+            @if (IsTyped)
             {
-                <span class="badge-manual">Entered manually</span>
+                <span class="badge-manual">
+                    @(IsManual ? "Entered manually" : "Read from a photograph")
+                </span>
             }
         </div>
 
         <div class="modal-body">
             <div class="readout compact">
                 <dt>Visitor</dt><dd>@card.FullNameEnglish</dd>
-                <dt>ID Number</dt><dd class="mono">@(IsManual ? IdDigits : card.IdNumber)</dd>
+                <dt>ID Number</dt><dd class="mono">@(IsTyped ? IdDigits : card.IdNumber)</dd>
                 <dt>Entity</dt><dd>@(entities.FirstOrDefault(e => e.Id == entityId)?.Name ?? "—")</dd>
                 <dt>Person to visit</dt>
                 <dd>
@@ -1282,6 +1289,20 @@ else if (step == 3 && saved is not null)
     private sealed record ScanResult(string Orientation, string Text);
 
     private bool IsManual => captureMethod == "Manual";
+
+    /// <summary>
+    /// The details are on screen as text somebody may need to correct, rather than as a
+    /// chip's word that nobody may.
+    ///
+    /// True for a manual entry, obviously, and also for a card read from a photograph -
+    /// which is the part that was wrong when the scan was first built. The zone's check
+    /// digits protect the ID number, the card number, the dates and the nationality; they
+    /// protect nothing on line three, which is the name, because line three has no check
+    /// digit. So a scanned name can be wrong and the officer has to be able to fix it.
+    /// Showing the read-only chip view for a photographed card presented an OCR guess with
+    /// the authority of a chip.
+    /// </summary>
+    private bool IsTyped => captureMethod is "Manual" or "DigitalCard";
 
     /// <summary>
     /// The manual form's model. Non-nullable so the field bindings need no null-forgiving
@@ -1920,7 +1941,7 @@ else if (step == 3 && saved is not null)
                 /* Digits only, so a typed record and a chip read of the same person land
                    on the same IdNumber - which is indexed, and is how a repeat visitor is
                    found. The chip returns it unpunctuated; a person types the dashes. */
-                IdNumber = Fit(IsManual ? IdDigits : card.IdNumber, FieldLengths.IdNumber, "ID number") ?? string.Empty,
+                IdNumber = Fit(IsTyped ? IdDigits : card.IdNumber, FieldLengths.IdNumber, "ID number") ?? string.Empty,
                 CardNumber = Fit(card.CardNumber, FieldLengths.CardNumber, "card number"),
                 Photo = card.Photo,
 
