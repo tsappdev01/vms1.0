@@ -76,6 +76,102 @@ public static class MachineReadableZone
         return lines.Length == LineCount ? lines : null;
     }
 
+    /// <summary>
+    /// Every position's type, because OCR-B confuses characters that the standard never
+    /// allows to be confused.
+    ///
+    /// <c>D</c> a digit, <c>A</c> a letter or filler, <c>*</c> either. A recogniser reading a
+    /// photograph will offer 1 for I and 0 for O all day; the zone says which of the two a
+    /// given position can possibly be, so the reading can be corrected rather than refused -
+    /// and the check digits still have the last word on whether the correction was right.
+    /// </summary>
+    /* Positions 16-30 are "optional data" in the standard and could be anything. On an
+       Emirates ID they are the fifteen-digit ID number, which is the field this whole
+       exercise exists to read - so they are digits here, and an O read for a 0 in the middle
+       of it is corrected rather than refused. */
+    private const string Line1Shape = "AAAAA*********DDDDDDDDDDDDDDDD";
+    private const string Line2Shape = "DDDDDDDADDDDDDDAAA***********D";
+    private const string Line3Shape = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+
+    /// <summary>The shapes a recogniser mistakes for a digit, and what it meant.</summary>
+    private static readonly Dictionary<char, char> AsDigit = new()
+    {
+        ['O'] = '0', ['Q'] = '0', ['D'] = '0', ['U'] = '0',
+        ['I'] = '1', ['L'] = '1',
+        ['Z'] = '2', ['A'] = '4', ['S'] = '5', ['G'] = '6', ['T'] = '7', ['B'] = '8',
+    };
+
+    private static readonly Dictionary<char, char> AsLetter = new()
+    {
+        ['0'] = 'O', ['1'] = 'I', ['2'] = 'Z', ['4'] = 'A',
+        ['5'] = 'S', ['6'] = 'G', ['7'] = 'T', ['8'] = 'B',
+    };
+
+    /// <summary>
+    /// Puts a line back to the shape the standard says it has.
+    ///
+    /// Only substitutions the recogniser is known to make, and only where the position
+    /// allows exactly one kind of character. A letter in a field that holds a name is left
+    /// alone, because there is nothing to correct it against - which is why line three, the
+    /// one with no check digit, is also the one this cannot rescue.
+    /// </summary>
+    private static string Reshape(string line, string shape)
+    {
+        var fixedUp = line.ToCharArray();
+
+        for (var i = 0; i < fixedUp.Length && i < shape.Length; i++)
+        {
+            var c = fixedUp[i];
+
+            if (shape[i] == 'D' && !char.IsDigit(c) && AsDigit.TryGetValue(c, out var digit))
+            {
+                fixedUp[i] = digit;
+            }
+            else if (shape[i] == 'A' && char.IsDigit(c) && AsLetter.TryGetValue(c, out var letter))
+            {
+                fixedUp[i] = letter;
+            }
+        }
+
+        return new string(fixedUp);
+    }
+
+    /// <summary>
+    /// Pads a line that is short only in its run of filler.
+    ///
+    /// A chevron is the easiest character in the zone to lose - it is thin, and a run of
+    /// eleven of them photographs as a dashed line. Losing one shortens the line without
+    /// touching a single field, and the composite check digit still proves whether putting
+    /// it back was right.
+    /// </summary>
+    private static string PadFiller(string line)
+    {
+        if (line.Length >= LineLength) return line;
+
+        var run = 0;
+        var at = -1;
+
+        for (var i = 0; i < line.Length; i++)
+        {
+            if (line[i] == '<')
+            {
+                if (run == 0) at = i;
+                run++;
+            }
+            else if (run > 0)
+            {
+                if (run >= 3) break;
+                run = 0;
+                at = -1;
+            }
+        }
+
+        // Only a run long enough to be filler rather than a name separator.
+        if (at < 0 || run < 3) return line;
+
+        return line.Insert(at, new string('<', LineLength - line.Length));
+    }
+
     public static Result Parse(string? raw)
     {
         var lines = Normalise(raw);
@@ -86,6 +182,16 @@ public static class MachineReadableZone
                 "That does not look like the three lines from the back of the card. " +
                 "Photograph the back, with all three lines of letters and chevrons in frame.");
         }
+
+        /* Repair before judging. Each step is reversible by the check digits: if a
+           substitution or a pad was wrong, the arithmetic fails and the read is refused,
+           exactly as it would have been without them. */
+        lines =
+        [
+            Reshape(PadFiller(lines[0]), Line1Shape),
+            Reshape(PadFiller(lines[1]), Line2Shape),
+            Reshape(PadFiller(lines[2]), Line3Shape),
+        ];
 
         if (lines.Any(line => line.Length != LineLength))
         {

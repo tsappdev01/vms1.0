@@ -291,3 +291,74 @@ every page.
 
 Check-out, an occupancy view, the third module, and ID-number masking. The previous build
 had all of those; they are in git history at `c98ce08` if wanted.
+
+## Reading a card from a photograph
+
+A visitor increasingly carries the Emirates ID on a phone. Neither the reader nor manual
+entry serves that, so there is a third path: photograph the card, read it, fill the form.
+
+**The QR code on the wallet card is useless for this.** Decoded, it holds only
+
+```
+https://beta.smartservices.icp.gov.ae/...?applicationRef=<token>&serviceType=APPLE_WALLET&login=true
+```
+
+No name, no ID number, and nothing at all without an ICP account. It is a verification link
+for ICP's own portal. Anyone who tries this will try the QR first; it does not work.
+
+**The machine-readable zone on the back does.** Three lines of thirty characters, ICAO 9303
+TD1, and the reason to prefer it over OCR of the front is that it carries check digits. A
+camera pointed at a phone screen misreads characters - glare, and the moiré of one pixel
+grid photographed through another - and arithmetic over the result turns a wrong ID number
+into a refusal instead of into a visitor record.
+
+Recognition is Tesseract compiled to WebAssembly, in the browser. Free per read and nothing
+to install on a host that runs App Service's built-in .NET image, where a native Tesseract
+cannot go. `Services/MachineReadableZone.cs` does the parsing and the checking; nothing
+about whether a read is acceptable lives in the script.
+
+### What the first real read at the desk taught
+
+The first photograph of a real card produced this:
+
+```
+truth  ILARE1400382963784198059198691
+read   1LARE1400382963784198059198691      I read as 1
+truth  8012137M2610106IND<<<<<<<<<<<9
+read   8012137M2610106IND<<<<<<<<<<9       a chevron lost
+truth  SAKTHIVEL<<SENTHIL<KUMAR<PONNU
+read   SAKTHIVEL<SAKTHIVEL<<SENTHIL<K      line three read twice
+```
+
+Three different faults, and each needed its own answer.
+
+- **Positional repair.** OCR-B confuses `I`/`1`, `O`/`0`, `S`/`5`, `B`/`8`. The standard says
+  which positions can hold a digit and which a letter, so a character in the wrong class is
+  corrected rather than refused - and the check digits still decide whether the correction
+  was right. This is what turns `1LARE` back into `ILARE`.
+- **Filler padding.** A chevron is the easiest character in the zone to lose: a run of eleven
+  photographs as a dashed line. A line short only in its filler run is padded, and the
+  composite check digit proves whether that was right.
+- **Cropping to the band.** The zone is about a tenth of the card's height, so in a
+  photograph of the whole card each character is a few pixels - which is where a recogniser
+  drops a chevron or reads a line twice. The bottom 45% is cropped and doubled, and tried
+  first, because it is the attempt that usually holds.
+
+With those, that exact misread now reads correctly. The name still comes out wrong, and
+always will when line three is garbled: **line three has no check digit**, so there is
+nothing to correct it against. The officer fixes the name on the form; the ID number, card
+number, date of birth, expiry and nationality are all protected.
+
+Mirroring is defeated rather than detected. A laptop preview is conventionally mirrored and
+whether the captured frame is too depends on browser, driver and application. All four
+orientations are recognised and the check digits pick the real one, so nothing has to know.
+
+### It is not the chip, and the record says so
+
+These are recorded as `DigitalCard` - *"Digital card (photographed)"* in the report -
+deliberately below `CardReaderUnverified`, because that at least came off a chip. The MRZ is
+printed, not signed. The check digits prove the photograph was read correctly and nothing
+whatever about whether the card is genuine or belongs to the person holding the phone.
+
+Off unless `DigitalCard:Enabled` is true. A deployment that has not decided whether a
+photographed card is acceptable evidence should not find the button there one morning.

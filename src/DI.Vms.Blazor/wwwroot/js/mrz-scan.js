@@ -129,18 +129,39 @@ export async function scan(file, engineBaseUrl, trainedDataUrl) {
     const tess = await engine(engineBaseUrl, trainedDataUrl);
     const bitmap = await bitmapOf(file);
 
-    /*  Scaled so the zone is around the size Tesseract was trained on. Bigger is not better
-     *  here: a 12-megapixel photograph is slower and no more accurate than the same card at
-     *  1600 pixels across. */
     const width = Math.min(1600, bitmap.width);
     const height = Math.round(bitmap.height * (width / bitmap.width));
 
     const results = [];
 
     for (const orientation of ORIENTATIONS) {
-        const canvas = draw(bitmap, orientation, width, height);
-        const { data } = await tess.recognize(canvas);
-        results.push({ orientation: orientation.name, text: data.text ?? '' });
+        const whole = draw(bitmap, orientation, width, height);
+
+        /*  The strip, first and enlarged.
+         *
+         *  The zone is three lines across the bottom edge - perhaps a tenth of the card's
+         *  height - so in a photograph of the whole card each character is a handful of
+         *  pixels, and that is where a recogniser starts dropping a chevron or reading a
+         *  line twice. Cropping to the band and doubling it gives the same characters four
+         *  times the area, for a fraction of the work of the full image.
+         *
+         *  Tried before the whole card because the caller stops at the first read whose
+         *  check digits hold, and this is the one that usually does. */
+        const band = document.createElement('canvas');
+        const bandTop = Math.round(whole.height * 0.55);
+        band.width = whole.width * 2;
+        band.height = (whole.height - bandTop) * 2;
+
+        const ctx = band.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(whole, 0, bandTop, whole.width, whole.height - bandTop,
+            0, 0, band.width, band.height);
+
+        for (const [what, canvas] of [['band', band], ['whole', whole]]) {
+            const { data } = await tess.recognize(canvas);
+            results.push({ orientation: `${orientation.name}, ${what}`, text: data.text ?? '' });
+        }
     }
 
     return results;
