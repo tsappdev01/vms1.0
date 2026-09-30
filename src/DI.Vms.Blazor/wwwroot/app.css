@@ -1291,45 +1291,57 @@ button.link:hover { background: none; color: var(--accent-hover); }
 }
 
 
-/* ---- Photographing a digital card ---------------------------------------------------
+/* ---- Scanning a digital card --------------------------------------------------------
    The viewfinder is deliberately NOT mirrored. A preview of a document that reads
    backwards is worse than useless, whatever a selfie camera conventionally does - and
-   nothing depends on it anyway, because the recogniser tries all four orientations. */
+   nothing depends on it anyway, because the card is read either way up. */
+.scan-stage {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 10px;
+  line-height: 0;
+}
+
+/*  height:auto, and no max-height, on purpose.
+ *
+ *  Constraining the height letterboxes the picture inside the element, and then a percentage
+ *  measured against the element is not the same place as the same percentage measured against
+ *  the frame. The guide below is drawn at the exact fractions the script reads, so the two
+ *  have to be the same box - which they are only when the element takes the stream's own
+ *  shape. A guide that points somewhere other than where the reading happens would be worse
+ *  than no guide at all. */
 .scan-view {
   width: 100%;
-  max-height: 46vh;
-  border-radius: 10px;
+  height: auto;
   background: #0b1a27;
-  object-fit: contain;
   display: block;
 }
 
-.scan-sides { display: flex; gap: 10px; flex-wrap: wrap; }
-
-.scan-side {
-  flex: 1 1 160px;
-  min-width: 140px;
-  border: 1px dashed var(--outline, #c3ced8);
-  border-radius: 10px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-  text-align: center;
+/*  The rectangle the script reads, and only what is inside it is recognised - which is what
+ *  makes a pass fast, and what turns "it is not reading" into "move the card into the box".
+ *
+ *  The real position is set from mrz-scan.js on the first frame, because the box has to be
+ *  the shape of an ID card and the frame may be 16:9 or 4:3. These values are only what is
+ *  drawn for the moment before the camera reports its size. */
+.scan-guide {
+  position: absolute;
+  left: 6%;
+  top: 12%;
+  width: 88%;
+  height: 76%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.38);
+  pointer-events: none;
 }
-
-.scan-side.have { border-style: solid; }
-.scan-side img { width: 100%; border-radius: 6px; display: block; }
-.scan-side-name { font-size: 0.82rem; font-weight: 600; }
-.scan-side-empty { font-size: 0.82rem; opacity: 0.65; padding: 14px 0; }
 
 .scan-files { display: grid; gap: 6px; }
 .scan-files label { font-size: 0.82rem; font-weight: 600; }
 
-/* On a tablet the viewfinder is the screen; the thumbnails sit under it rather than
-   competing with it for width. */
+/* On a tablet the viewfinder is the screen, so it gets the full width. */
 @media (max-width: 700px) {
-  .scan-view { max-height: 38vh; }
-  .scan-side { flex-basis: 100%; }
+  .scan-stage { max-width: 100%; }
 }

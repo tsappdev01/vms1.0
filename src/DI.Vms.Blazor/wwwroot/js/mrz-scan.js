@@ -19,7 +19,16 @@ let loading = null;
  *  that were nearly right. */
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<';
 
-async function engine(engineBaseUrl, trainedDataUrl) {
+/*  Which model the engine reads with.
+ *
+ *  'eng' is Tesseract's general English model: trained on proportional print, carrying a
+ *  dictionary and every Latin letter in both cases. None of that helps here and all of it
+ *  costs time, because the zone is one font with 37 characters in it.
+ *
+ *  A model trained on OCR-B alone is both smaller and better at exactly this, so the name is
+ *  configuration rather than a constant - see DigitalCard:Language. The model file has to be
+ *  reachable at TrainedDataUrl under that name for it to be worth setting. */
+async function engine(engineBaseUrl, trainedDataUrl, language) {
     if (worker) return worker;
 
     loading ??= (async () => {
@@ -35,7 +44,7 @@ async function engine(engineBaseUrl, trainedDataUrl) {
             });
         }
 
-        const created = await window.Tesseract.createWorker('eng', 1, {
+        const created = await window.Tesseract.createWorker(language || 'eng', 1, {
             workerPath: `${engineBaseUrl}/worker.min.js`,
             langPath: trainedDataUrl,
             /* The zone is one line of text per line of the zone, in a fixed block. Telling
@@ -264,8 +273,8 @@ async function bitmapOf(file) {
  * All of them, not the best of them: which one is right is decided on the server by
  * arithmetic, and a "best" chosen here by a score would sometimes be the mirrored one.
  */
-export async function scan(file, engineBaseUrl, trainedDataUrl) {
-    const tess = await engine(engineBaseUrl, trainedDataUrl);
+async function scan(file, engineBaseUrl, trainedDataUrl, language) {
+    const tess = await engine(engineBaseUrl, trainedDataUrl, language);
     const bitmap = await bitmapOf(file);
 
     const width = Math.min(1600, bitmap.width);
@@ -361,84 +370,6 @@ export function closeCamera(videoId) {
     if (video) video.srcObject = null;
 }
 
-/** One frame, full sensor resolution, as base64 JPEG. Not mirrored: a video frame never is. */
-export function grab(videoId) {
-    const video = document.getElementById(videoId);
-    if (!video || !video.videoWidth) return null;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-
-    return canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
-}
-
-/** A chosen file, as base64, so the camera and the picker feed the same code below. */
-export async function fileAsBase64(inputId, maximumBytes) {
-    const file = document.getElementById(inputId)?.files?.[0];
-    if (!file) return null;
-    if (file.size > maximumBytes) return { tooLarge: true };
-
-    const bitmap = await bitmapOf(file);
-    const width = Math.min(1920, bitmap.width);
-    const height = Math.round(bitmap.height * (width / bitmap.width));
-
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
-
-    return { image: canvas.toDataURL('image/jpeg', 0.92).split(',')[1] };
-}
-
-/** Recognises a base64 image in all four orientations. */
-export async function scanImage(base64, engineBaseUrl, trainedDataUrl) {
-    try {
-        const blob = await (await fetch(`data:image/jpeg;base64,${base64}`)).blob();
-        const results = await scan(blob, engineBaseUrl, trainedDataUrl);
-        return { ok: true, results };
-    } catch (e) {
-        return { ok: false, problem: e?.message ?? 'The photograph could not be read.' };
-    }
-}
-
-/**
- * The two sides as one picture, front above back.
- *
- * One image because the visit stores one, and because the pair is the evidence: the face
- * the officer was shown and the zone the details came from, in the same frame, neither able
- * to be separated from the other afterwards.
- */
-export async function compose(frontBase64, backBase64) {
-    const sides = [];
-    for (const b of [frontBase64, backBase64]) {
-        if (!b) continue;
-        sides.push(await createImageBitmap(await (await fetch(`data:image/jpeg;base64,${b}`)).blob()));
-    }
-    if (sides.length === 0) return null;
-
-    const width = Math.min(1100, Math.max(...sides.map(s => s.width)));
-    const heights = sides.map(s => Math.round(s.height * (width / s.width)));
-    const gap = sides.length > 1 ? 12 : 0;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = heights.reduce((a, b) => a + b, 0) + gap;
-
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    let y = 0;
-    sides.forEach((s, i) => {
-        ctx.drawImage(s, 0, y, width, heights[i]);
-        y += heights[i] + gap;
-    });
-
-    return canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
-}
-
 /**
  * The entry point the page calls: reads the chosen file straight out of the input.
  *
@@ -446,7 +377,7 @@ export async function compose(frontBase64, backBase64) {
  * across the circuit twice - once to be scanned, once to be stored - would put that on a
  * tablet's wifi for no gain. What crosses is the recognised text, and one small JPEG.
  */
-export async function scanFromInput(inputId, engineBaseUrl, trainedDataUrl, maximumBytes) {
+export async function scanFromInput(inputId, engineBaseUrl, trainedDataUrl, maximumBytes, language) {
     const input = document.getElementById(inputId);
     const file = input?.files?.[0];
 
@@ -461,7 +392,7 @@ export async function scanFromInput(inputId, engineBaseUrl, trainedDataUrl, maxi
     }
 
     try {
-        const results = await scan(file, engineBaseUrl, trainedDataUrl);
+        const results = await scan(file, engineBaseUrl, trainedDataUrl, language);
         return { ok: true, results, image: await thumbnail(file) };
     } catch (e) {
         return { ok: false, problem: e?.message ?? 'The photograph could not be read.' };
@@ -534,8 +465,213 @@ export async function faceFrom(frontBase64) {
     }
 }
 
+/* ---- reading from the live picture ------------------------------------------------
+ *
+ *  No shutter. The officer holds the card up and the frames are read as they arrive, which
+ *  is how every document scanner behaves and how this should have behaved from the start.
+ *
+ *  Speed is the whole design here, so almost everything the still-photograph path does is
+ *  dropped: one threshold rather than three, one orientation rather than four, and the guide
+ *  box rather than the frame - which is a few hundred pixels instead of a megapixel and is
+ *  where nearly all of the time went. The passes that were tried in turn are now replaced by
+ *  simply reading the next frame, which arrives anyway.
+ *
+ *  Nothing here decides whether a read is good. Each frame's text goes to the server, which
+ *  checks the digits and says whether to stop. That round trip is milliseconds against a
+ *  recognition measured in hundreds, and it keeps the rule that protects a visitor record
+ *  out of a script.
+ */
+let liveStop = null;
+
+export async function startLive(videoId, dotnet, engineBaseUrl, trainedDataUrl, language) {
+    const video = document.getElementById(videoId);
+    if (!video) return { ok: false, problem: 'The camera panel is not on screen.' };
+
+    let tess;
+    try {
+        tess = await engine(engineBaseUrl, trainedDataUrl, language);
+    } catch (e) {
+        return { ok: false, problem: e?.message ?? 'The text recogniser could not be loaded.' };
+    }
+
+    let stopped = false;
+    liveStop = () => { stopped = true; };
+
+    (async () => {
+        /* Upright first. Only after a few fruitless frames is upside-down tried, because a
+           card held the wrong way up is the rarer case and trying both halves the rate. */
+        let passes = 0;
+
+        while (!stopped) {
+            if (!video.videoWidth) { await wait(120); continue; }
+
+            const guide = guideFor(video);
+            showGuide(video, guide);
+
+            const rotate = passes > 3 && passes % 2 === 1;
+            const canvas = guideRegion(video, guide, rotate);
+
+            let text = '';
+            try {
+                ({ data: { text } } = await tess.recognize(canvas));
+            } catch {
+                await wait(200);
+                continue;
+            }
+
+            if (stopped) break;
+
+            let good;
+            try {
+                good = await dotnet.invokeMethodAsync('OnFrameText', text ?? '');
+
+                if (good) {
+                    /* The frame that worked is the one kept, not a fresh grab: by the time a
+                       second picture is taken the card has moved. */
+                    await dotnet.invokeMethodAsync('OnFrameImage', snapshot(video, guide, rotate));
+                    return;
+                }
+            } catch {
+                /* The circuit went. Nothing is listening, so stop reading and let go of the
+                   camera rather than leaving the light on over a page that is gone. */
+                closeCamera(videoId);
+                return;
+            }
+
+            passes++;
+            await wait(60);
+        }
+    })();
+
+    return { ok: true };
+}
+
+export function stopLive() {
+    if (liveStop) liveStop();
+    liveStop = null;
+}
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/*  The guide box, thresholded, at the size the recogniser wants.
+ *
+ *  Only what is inside the on-screen rectangle is read. That is what makes a pass fast, and
+ *  it is also what makes the result predictable: the officer can see exactly what is being
+ *  looked at, so "it is not reading" becomes "move the card into the box".
+ */
+/*  The guide box is the shape of the card, worked out from the frame rather than fixed.
+ *
+ *  A fixed rectangle in percentages was wrong and wrong in the worst way: at 16:9 it came out
+ *  half again wider than an ID card, so an officer who filled it width-wise pushed the bottom
+ *  of the card - which is where the zone is - outside the region being read. The box has to be
+ *  ID-1 shaped, and a frame may be 16:9 or 4:3, so it is computed.
+ *
+ *  The overlay on screen is positioned from this same rectangle, so the box the officer aims
+ *  at and the pixels the recogniser sees cannot drift apart.
+ */
+const CARD_RATIO = 85.6 / 54;   // ID-1, the shape of every Emirates ID
+const FILL = 0.88;              // a margin, so the card's edges stay visible inside the frame
+
+function guideFor(video) {
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+
+    let w = vw * FILL;
+    let h = w / CARD_RATIO;
+
+    if (h > vh * FILL) {
+        h = vh * FILL;
+        w = h * CARD_RATIO;
+    }
+
+    return { x: (vw - w) / 2 / vw, y: (vh - h) / 2 / vh, w: w / vw, h: h / vh };
+}
+
+function showGuide(video, guide) {
+    const box = video.parentElement?.querySelector('.scan-guide');
+    if (!box) return;
+
+    box.style.left = `${guide.x * 100}%`;
+    box.style.top = `${guide.y * 100}%`;
+    box.style.width = `${guide.w * 100}%`;
+    box.style.height = `${guide.h * 100}%`;
+}
+
+function guideRegion(video, guide, rotate) {
+    const sx = video.videoWidth * guide.x;
+    const sy = video.videoHeight * guide.y;
+    const sw = video.videoWidth * guide.w;
+    const sh = video.videoHeight * guide.h;
+
+    /* 900 across the card puts an OCR-B character at about 30 pixels, which is what the
+       recogniser wants, and keeps a pass at a few hundred milliseconds rather than a few
+       thousand. More resolution than that buys nothing and costs the frame rate. */
+    const width = Math.min(900, Math.round(sw));
+    const height = Math.round(sh * (width / sw));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.save();
+    if (rotate) { ctx.translate(width, height); ctx.rotate(Math.PI); }
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, width, height);
+    ctx.restore();
+
+    const pixels = ctx.getImageData(0, 0, width, height);
+    const d = pixels.data;
+    const grey = new Uint8ClampedArray(d.length / 4);
+
+    for (let i = 0, g = 0; i < d.length; i += 4, g++) {
+        grey[g] = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
+    }
+
+    /* The local threshold, and only that one. It is the one that copes with whatever light
+       the desk has, and trying the other two would triple the time for the frames where it
+       would have worked anyway - and another frame is along in a moment regardless. */
+    const binary = localThreshold(grey, width, height);
+
+    for (let i = 0, g = 0; i < d.length; i += 4, g++) {
+        d[i] = d[i + 1] = d[i + 2] = binary[g];
+    }
+
+    ctx.putImageData(pixels, 0, 0);
+    return canvas;
+}
+
+/*  The guide box in colour: the picture kept with the visit.
+ *
+ *  The same rectangle that was read, not the whole frame - so the card fills the stored
+ *  picture rather than sitting in the middle of a desk. That keeps it small, and it is also
+ *  what lets faceFrom find the portrait, which is placed as a fraction of the card.
+ */
+function snapshot(video, guide, rotate) {
+    const sx = video.videoWidth * guide.x;
+    const sy = video.videoHeight * guide.y;
+    const sw = video.videoWidth * guide.w;
+    const sh = video.videoHeight * guide.h;
+
+    const width = Math.min(1100, Math.round(sw));
+    const height = Math.round(sh * (width / sw));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    ctx.save();
+    if (rotate) { ctx.translate(width, height); ctx.rotate(Math.PI); }
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, width, height);
+    ctx.restore();
+
+    return canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+}
+
 /** Frees the worker when the desk leaves the screen; it holds several megabytes. */
 export async function release() {
+    stopLive();
+
     const w = worker;
     worker = null;
     loading = null;

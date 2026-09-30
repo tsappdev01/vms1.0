@@ -377,61 +377,45 @@
                         @if (Digital.Enabled && scanOpen)
                         {
                             <div class="fallback scan">
-                                <strong>Photograph the card</strong>
+                                <strong>Scan the card</strong>
                                 <p>
-                                    The <b>back</b> is what is read &mdash; the three lines of letters
-                                    and chevrons along its bottom edge. Fill the frame with them and
-                                    hold the card flat to cut glare; which way up does not matter.
-                                    The front is optional and is kept with the visit, so the report
-                                    shows the face the officer was shown.
+                                    Hold the card inside the frame. Either side, either way
+                                    up &mdash; it is read while you hold it and there is
+                                    nothing to press. Hold it flat to cut glare.
                                 </p>
 
                                 @if (cameraOn)
                                 {
-                                    @* Not mirrored. A preview of a document that reads backwards is
-                                       worse than useless, whatever a selfie camera conventionally does. *@
-                                    <video id="@ScanVideoId" class="scan-view" playsinline muted></video>
+                                    @* Not mirrored. A preview of a document that reads backwards
+                                       is worse than useless, whatever a selfie camera
+                                       conventionally does. *@
+                                    <div class="scan-stage">
+                                        <video id="@ScanVideoId" class="scan-view" playsinline muted></video>
+                                        @* The box is not decoration: only what is inside it is
+                                           read. Showing it is what turns "it is not working"
+                                           into "move the card into the frame". *@
+                                        <div class="scan-guide" aria-hidden="true"></div>
+                                    </div>
+
+                                    <p class="reading-phase">
+                                        <span class="spinner" aria-hidden="true"></span>
+                                        <span aria-live="polite">@scanPhase</span>
+                                    </p>
+
                                     <div class="actions">
-                                        <button @onclick="StopCamera" disabled="@scanning">Close camera</button>
-                                        <button class="primary" @onclick="() => Grab(back: true)" disabled="@scanning">
-                                            Capture the back and read it
-                                        </button>
-                                        <button @onclick="() => Grab(back: false)" disabled="@scanning">
-                                            Capture the front
-                                        </button>
+                                        <button @onclick="StopCamera">Close camera</button>
                                     </div>
                                 }
-
-                                <div class="scan-sides">
-                                    @foreach (var side in new[] { (Name: "Back", Image: backImage, Needed: true),
-                                                                  (Name: "Front", Image: frontImage, Needed: false),
-                                                                  (Name: "Face", Image: faceImage, Needed: false) })
-                                    {
-                                        <div class="scan-side @(side.Image is null ? "empty" : "have")">
-                                            <span class="scan-side-name">
-                                                @side.Name@(side.Needed ? "" : " (optional)")
-                                            </span>
-                                            @if (side.Name == "Face" && side.Image is not null)
-                                            {
-                                                @* Shown because the crop assumes the card filled
-                                                   the frame. If this is a picture of the desk,
-                                                   the front needs taking again. *@
-                                                <span class="scan-side-empty">cut from the front</span>
-                                            }
-                                            @if (side.Image is not null)
-                                            {
-                                                <img src="data:image/jpeg;base64,@side.Image" alt="@($"The {side.Name.ToLowerInvariant()} of the card")" />
-                                            }
-                                            else
-                                            {
-                                                <span class="scan-side-empty">not captured</span>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-
-                                @if (!cameraOn)
+                                else
                                 {
+                                    @if (scanning)
+                                    {
+                                        <p class="reading-phase">
+                                            <span class="spinner" aria-hidden="true"></span>
+                                            <span aria-live="polite">@scanPhase</span>
+                                        </p>
+                                    }
+
                                     <div class="actions">
                                         <button class="primary" @onclick="StartCamera" disabled="@scanning">
                                             Use the camera
@@ -439,22 +423,10 @@
                                     </div>
 
                                     <div class="scan-files">
-                                        <label for="@ScanBackInputId">Or choose a photograph &mdash; back</label>
-                                        <input type="file" id="@ScanBackInputId" accept="image/*" capture="environment"
-                                               @onchange="() => Chose(back: true)" disabled="@scanning" />
-
-                                        <label for="@ScanFrontInputId">Front (optional)</label>
-                                        <input type="file" id="@ScanFrontInputId" accept="image/*" capture="environment"
-                                               @onchange="() => Chose(back: false)" disabled="@scanning" />
+                                        <label for="@ScanCardInputId">Or choose a photograph of the card</label>
+                                        <input type="file" id="@ScanCardInputId" accept="image/*" capture="environment"
+                                               @onchange="Chose" disabled="@scanning" />
                                     </div>
-                                }
-
-                                @if (scanning)
-                                {
-                                    <p class="reading-phase">
-                                        <span class="spinner" aria-hidden="true"></span>
-                                        <span aria-live="polite">@scanPhase</span>
-                                    </p>
                                 }
 
                                 @if (scanProblem is not null)
@@ -464,13 +436,6 @@
 
                                 <div class="actions">
                                     <button @onclick="CloseScan" disabled="@scanning">Cancel</button>
-                                    @* The back is read the moment it is captured. This is here
-                                       for a photograph chosen from a file, and for a retry after
-                                       a read that did not hold. *@
-                                    <button class="primary" @onclick="() => ReadTheZone()"
-                                            disabled="@(scanning || backImage is null)">
-                                        @(backImage is null ? "Capture the back first" : "Read the card again")
-                                    </button>
                                 </div>
                             </div>
                         }
@@ -1094,26 +1059,45 @@ else if (step == 3 && saved is not null)
     // ---------------------------------------------------------------- digital card
 
     private const string ScanVideoId = "digital-card-camera";
-    private const string ScanBackInputId = "digital-card-back";
-    private const string ScanFrontInputId = "digital-card-front";
+    private const string ScanCardInputId = "digital-card-photo";
 
     private bool scanOpen;
     private bool cameraOn;
     private bool scanning;
     private string? scanProblem;
-    private string scanPhase = "Reading the card…";
-    private string? backImage;
-    private string? frontImage;
+    private string scanPhase = "Hold the card in the frame\u2026";
+
+    /// <summary>The card as the camera saw it, kept with the visit. Not on CardData: that is
+    /// what a chip said, and this is a photograph of a card.</summary>
+    private string? scannedImage;
 
     /// <summary>The visitor's face, cut from the front of the card. Kept separately from
     /// the card picture because it goes to a different place: this one to the visit row,
     /// beside the photograph a chip read puts there.</summary>
     private string? faceImage;
-    private IJSObjectReference? scanModule;
 
-    /// <summary>The two sides as one picture, kept with the visit. Not on CardData: that is
-    /// what a chip said, and this is a photograph of a card.</summary>
-    private string? scannedImage;
+    private IJSObjectReference? scanModule;
+    private DotNetObjectReference<NewVisitor>? scanRef;
+
+    /// <summary>The read the live loop settled on, waiting only for its picture.</summary>
+    private MrzFinder.Read? accepted;
+
+    /// <summary>An ID number read without its zone, held rather than taken at once.</summary>
+    private string? numberOnly;
+    private DateTime numberSeenUtc;
+    private int framesRead;
+
+    /// <summary>
+    /// How long an ID number read on its own is held before it is accepted.
+    ///
+    /// Both sides are readable, but they are not worth the same: the zone on the back carries
+    /// the name, the dates and the nationality, and the printed number is the number alone.
+    /// So a number-only read is not taken the moment it arrives - it is held for a moment in
+    /// case the officer is mid-turn, or in case the next frame of the same card catches the
+    /// zone. A complete read wins if one appears. If none does, a checked ID number is still
+    /// better than nothing and the officer types the rest.
+    /// </summary>
+    private static readonly TimeSpan HoldTheNumber = TimeSpan.FromSeconds(3);
 
     private async Task<IJSObjectReference> ScanModule() =>
         scanModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/mrz-scan.js");
@@ -1121,133 +1105,124 @@ else if (step == 3 && saved is not null)
     private async Task StartCamera()
     {
         scanProblem = null;
+        numberOnly = null;
+        framesRead = 0;
+        accepted = null;
+        scanPhase = "Hold the card in the frame\u2026";
         cameraOn = true;
         StateHasChanged();
 
         /* After the render, not before: getUserMedia needs the <video> to exist, and it does
            not until Blazor has drawn the branch that contains it. */
-        var outcome = await (await ScanModule()).InvokeAsync<CameraOutcome>("openCamera", ScanVideoId);
+        var module = await ScanModule();
+        var outcome = await module.InvokeAsync<CameraOutcome>("openCamera", ScanVideoId);
 
         if (!outcome.Ok)
         {
             cameraOn = false;
             scanProblem = outcome.Problem;
+            return;
+        }
+
+        scanRef ??= DotNetObjectReference.Create(this);
+
+        var started = await module.InvokeAsync<CameraOutcome>("startLive",
+            ScanVideoId, scanRef, Digital.EngineBaseUrl, Digital.TrainedDataUrl, Digital.Language);
+
+        if (!started.Ok)
+        {
+            await StopCamera();
+            scanProblem = started.Problem;
         }
     }
 
     private async Task StopCamera()
     {
-        if (scanModule is not null) await scanModule.InvokeVoidAsync("closeCamera", ScanVideoId);
+        if (scanModule is not null)
+        {
+            await scanModule.InvokeVoidAsync("stopLive");
+            await scanModule.InvokeVoidAsync("closeCamera", ScanVideoId);
+        }
+
         cameraOn = false;
     }
 
     /// <summary>
-    /// Takes one frame, and - for the back - reads it straight away.
+    /// One frame's worth of recognised text. Says whether the browser should stop.
     ///
-    /// Reading it at once is the difference between a scanner and a file upload. The officer
-    /// holds the card up, presses once, and either the form fills or the screen says what was
-    /// wrong with the photograph while the card is still in their hand. Making them press a
-    /// second button to find that out is how a two-second job becomes a conversation.
+    /// The decision is here rather than in the script deliberately: what makes a read good
+    /// enough to become a visitor record is check-digit arithmetic and a Luhn checksum, and
+    /// that rule should not live somewhere the page could be made to skip. The script's part
+    /// is to keep offering frames until this says one held.
     /// </summary>
-    private async Task Grab(bool back)
+    [JSInvokable]
+    public async Task<bool> OnFrameText(string text)
     {
-        scanProblem = null;
+        framesRead++;
 
-        try
+        var read = MrzFinder.ReadEitherSide(text);
+
+        if (read.Complete)
         {
-            var image = await (await ScanModule()).InvokeAsync<string?>("grab", ScanVideoId);
+            accepted = read;
+            return true;
+        }
 
-            if (image is null)
+        if (read.Ok)
+        {
+            if (numberOnly != read.IdNumber)
             {
-                scanProblem = "The camera had no picture yet. Give it a moment and try again.";
-                return;
+                numberOnly = read.IdNumber;
+                numberSeenUtc = DateTime.UtcNow;
+                scanPhase = $"Read {read.IdNumber} \u2014 hold still, or turn the card over "
+                          + "for the name and dates.";
+                await InvokeAsync(StateHasChanged);
+                return false;
             }
 
-            if (back)
-            {
-                backImage = image;
-            }
-            else
-            {
-                frontImage = image;
-                faceImage = await (await ScanModule()).InvokeAsync<string?>("faceFrom", image);
-            }
-        }
-        catch (JSException e)
-        {
-            scanProblem = e.Message;
-            return;
+            if (DateTime.UtcNow - numberSeenUtc < HoldTheNumber) return false;
+
+            accepted = read;
+            return true;
         }
 
-        /* The front is kept, not read - the zone is not on it - so capturing it never
-           interrupts what the officer is doing. */
-        if (back) await ReadTheZone(automatic: true);
+        /* Not every frame, because each one is a render. Enough that the screen is visibly
+           working rather than apparently hung. */
+        if (framesRead % 4 == 0 && numberOnly is null)
+        {
+            scanPhase = framesRead < 12
+                ? "Reading\u2026"
+                : "Still reading \u2014 fill the frame with the card and hold it steady.";
+
+            await InvokeAsync(StateHasChanged);
+        }
+
+        return false;
     }
 
-    private async Task Chose(bool back)
+    /// <summary>The frame that worked, in colour. Sent separately so the picture kept with
+    /// the visit is the one that read, not a fresh grab taken after the card has moved.</summary>
+    [JSInvokable]
+    public async Task OnFrameImage(string image)
     {
-        var chosen = await (await ScanModule())
-            .InvokeAsync<ChosenFile?>("fileAsBase64", back ? ScanBackInputId : ScanFrontInputId,
-                Digital.MaximumBytes);
+        if (accepted is null) return;
+        await Accept(accepted, image);
+    }
 
-        if (chosen is null) return;
-
-        if (chosen.TooLarge)
-        {
-            scanProblem = "That file is too large to be a photograph of a card. " +
-                          "Take a picture rather than choosing a video.";
-            return;
-        }
-
-        if (back)
-        {
-            backImage = chosen.Image;
-        }
-        else
-        {
-            frontImage = chosen.Image;
-            faceImage = await (await ScanModule()).InvokeAsync<string?>("faceFrom", chosen.Image);
-        }
-
+    private async Task Chose()
+    {
         scanProblem = null;
-
-        // Same as the camera: chosen, then read, with no second button in between.
-        if (back) await ReadTheZone(automatic: true);
-    }
-
-    private async Task CloseScan()
-    {
-        await StopCamera();
-        scanOpen = false;
-        scanProblem = null;
-        backImage = null;
-        frontImage = null;
-        faceImage = null;
-    }
-
-    /// <summary>
-    /// Photograph in, visitor details out - or a refusal that says what to do next.
-    ///
-    /// The browser recognises the back in four orientations and hands all four back. Which
-    /// was the right way up is decided here, by <see cref="MrzFinder"/>, on the check digits:
-    /// a mirrored or upside-down zone cannot pass them. That is why nothing on the client has
-    /// to know whether a webcam mirrored the picture.
-    /// </summary>
-    private async Task ReadTheZone(bool automatic = false)
-    {
-        if (backImage is null) return;
-
         scanning = true;
-        scanProblem = null;
-        scanPhase = "Reading the card…";
+        scanPhase = "Reading the photograph\u2026";
         StateHasChanged();
 
         try
         {
             var module = await ScanModule();
 
-            var outcome = await module.InvokeAsync<ScanOutcome>(
-                "scanImage", backImage, Digital.EngineBaseUrl, Digital.TrainedDataUrl);
+            var outcome = await module.InvokeAsync<ScanOutcome>("scanFromInput",
+                ScanCardInputId, Digital.EngineBaseUrl, Digital.TrainedDataUrl,
+                Digital.MaximumBytes, Digital.Language);
 
             if (!outcome.Ok)
             {
@@ -1255,56 +1230,24 @@ else if (step == 3 && saved is not null)
                 return;
             }
 
-            var found = MachineReadableZone.Parse(null);
+            /* A still photograph gets the four orientations, unlike the live loop: there is
+               no next frame to fall back on, and a picture chosen from a phone's gallery may
+               well have been taken any way up. */
+            var read = new MrzFinder.Read(false, false, null, null, null);
 
             foreach (var attempt in outcome.Results ?? [])
             {
-                found = MrzFinder.Find(attempt.Text);
-                if (found.Ok) break;
+                read = MrzFinder.ReadEitherSide(attempt.Text);
+                if (read.Ok) break;
             }
 
-            if (!found.Ok)
+            if (!read.Ok)
             {
-                /* After an automatic attempt the camera stays open and the picture stays in
-                   place, so "try again" is one press with the card still held up. The
-                   message is the same either way - it already says what to change. */
-                scanProblem = automatic
-                    ? found.Problem + " The camera is still on: line the three lines up and press again."
-                    : found.Problem;
+                scanProblem = read.Problem ?? "The photograph could not be read.";
                 return;
             }
 
-            scannedImage = await module.InvokeAsync<string?>("compose", frontImage, backImage);
-
-            /* Into the same shape the manual form fills, because from here on this is the
-               same journey: the officer sees the details, corrects anything wrong, and
-               continues. The difference is recorded in CaptureMethod, not in the flow. */
-            manual = new CardData
-            {
-                IdNumber = found.IdNumber ?? string.Empty,
-                CardNumber = found.CardNumber,
-                FullNameEnglish = found.FullNameEnglish ?? string.Empty,
-                DateOfBirth = found.DateOfBirth,
-                ExpiryDate = found.ExpiryDate,
-                Gender = found.Gender,
-                NationalityCode = found.NationalityCode,
-                NationalityEnglish = found.NationalityCode,
-
-                /* The same field a chip read fills, so the report, the confirm dialog and
-                   anything added later need one code path rather than two. What separates
-                   them is CaptureMethod, which is where provenance belongs. */
-                Photo = faceImage is null ? null : Convert.FromBase64String(faceImage),
-            };
-
-            card = manual;
-            captureMethod = "DigitalCard";
-
-            await StopCamera();
-            scanOpen = false;
-            backImage = null;
-            frontImage = null;
-            message = null;
-            step = 1;
+            await Accept(read, outcome.Image);
         }
         catch (JSException e)
         {
@@ -1316,11 +1259,81 @@ else if (step == 3 && saved is not null)
         }
     }
 
+    /// <summary>
+    /// A read that held, turned into the form the officer sees.
+    ///
+    /// Into the same shape the manual form fills, because from here on this is the same
+    /// journey: the officer sees the details, corrects anything wrong, and continues. The
+    /// difference is recorded in CaptureMethod, not in the flow.
+    /// </summary>
+    private async Task Accept(MrzFinder.Read read, string? image)
+    {
+        var zone = read.Zone;
+
+        /* The portrait is on the front. When the back was the side that read there is no face
+           to cut, and the visit keeps the card picture alone - which is what a chip read
+           without a photograph does too. */
+        faceImage = image is null || read.FromBack
+            ? null
+            : await (await ScanModule()).InvokeAsync<string?>("faceFrom", image);
+
+        scannedImage = image;
+
+        manual = new CardData
+        {
+            IdNumber = read.IdNumber ?? string.Empty,
+            CardNumber = zone?.CardNumber,
+            FullNameEnglish = zone?.FullNameEnglish ?? string.Empty,
+            DateOfBirth = zone?.DateOfBirth,
+            ExpiryDate = zone?.ExpiryDate,
+            Gender = zone?.Gender,
+            NationalityCode = zone?.NationalityCode,
+            NationalityEnglish = zone?.NationalityCode,
+
+            /* The same field a chip read fills, so the report, the confirm dialog and
+               anything added later need one code path rather than two. What separates them
+               is CaptureMethod, which is where provenance belongs. */
+            Photo = faceImage is null ? null : Convert.FromBase64String(faceImage),
+        };
+
+        card = manual;
+        captureMethod = "DigitalCard";
+        accepted = null;
+        numberOnly = null;
+
+        await StopCamera();
+        scanOpen = false;
+        scanProblem = null;
+        scanning = false;
+
+        if (read.Complete)
+        {
+            message = null;
+        }
+        else
+        {
+            message = "Only the ID number could be read, and it checks out. The name and dates "
+                    + "are in the three lines on the back of the card - scan that side to fill "
+                    + "them, or type them in.";
+            messageKind = "warn";
+        }
+
+        step = 1;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CloseScan()
+    {
+        await StopCamera();
+        scanOpen = false;
+        scanProblem = null;
+        accepted = null;
+        numberOnly = null;
+    }
+
     private sealed record CameraOutcome(bool Ok, string? Problem);
 
-    private sealed record ChosenFile(bool TooLarge, string? Image);
-
-    private sealed record ScanOutcome(bool Ok, string? Problem, ScanResult[]? Results);
+    private sealed record ScanOutcome(bool Ok, string? Problem, ScanResult[]? Results, string? Image);
 
     private sealed record ScanResult(string Orientation, string Text);
 
@@ -2078,12 +2091,9 @@ else if (step == 3 && saved is not null)
         cameraOn = false;
         scanProblem = null;
         scannedImage = null;
-        backImage = null;
-        frontImage = null;
         faceImage = null;
-        scanOpen = false;
-        scanProblem = null;
-        scannedImage = null;
+        accepted = null;
+        numberOnly = null;
         failedReads = 0;
 
         await CheckReader();
@@ -2111,6 +2121,24 @@ else if (step == 3 && saved is not null)
             catch (JSDisconnectedException) { }
             catch (Exception ex) { Logger.LogDebug(ex, "Disposing the card agent module failed"); }
         }
+
+        if (scanModule is not null)
+        {
+            /* The live loop and the camera outlive the page unless they are told not to, and
+               the recogniser holds several megabytes per circuit. Leaving them was survivable
+               while a read was one button press; with a loop running it is not. */
+            try
+            {
+                await scanModule.InvokeVoidAsync("stopLive");
+                await scanModule.InvokeVoidAsync("closeCamera", ScanVideoId);
+                await scanModule.InvokeVoidAsync("release");
+                await scanModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException) { }
+            catch (Exception ex) { Logger.LogDebug(ex, "Disposing the card scanner module failed"); }
+        }
+
+        scanRef?.Dispose();
     }
 
     private static string ToGst(DateTimeOffset instant) =>

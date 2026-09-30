@@ -295,7 +295,8 @@ had all of those; they are in git history at `c98ce08` if wanted.
 ## Reading a card from a photograph
 
 A visitor increasingly carries the Emirates ID on a phone. Neither the reader nor manual
-entry serves that, so there is a third path: photograph the card, read it, fill the form.
+entry serves that, so there is a third path: hold the card up to the camera and let the form
+fill itself.
 
 **The QR code on the wallet card is useless for this.** Decoded, it holds only
 
@@ -350,8 +351,81 @@ nothing to correct it against. The officer fixes the name on the form; the ID nu
 number, date of birth, expiry and nationality are all protected.
 
 Mirroring is defeated rather than detected. A laptop preview is conventionally mirrored and
-whether the captured frame is too depends on browser, driver and application. All four
-orientations are recognised and the check digits pick the real one, so nothing has to know.
+whether the captured frame is too depends on browser, driver and application. A still
+photograph is recognised in all four orientations and the check digits pick the real one, so
+nothing has to know. (The live loop below does less than this on purpose, and why is worth
+reading.)
+
+### The shutter was the problem
+
+The first version had the officer frame the card, press **Capture**, and wait. That is a
+file-upload dressed as a scanner, and it failed for a reason no amount of tuning would have
+fixed: the press *is* the misread. A hand moving to a button moves the card, and the one
+frame that gets kept is the blurred one.
+
+So there is no shutter. The camera is read continuously and the form fills when a read
+holds. What that changed:
+
+- **A frame is cheap, so it need not be good.** Every trick the still path used to squeeze a
+  result out of one photograph - three thresholds tried in turn, four orientations, the band
+  cropped and doubled - existed because there was only one picture. With a stream there is
+  always another frame in 300ms, so the live loop does one threshold and one orientation and
+  simply tries again. That is what brought a pass from seconds to a few hundred milliseconds.
+- **Only the guide box is read.** A few hundred pixels rather than a megapixel, which is
+  where nearly all of the remaining time went - and it makes the failure legible, because
+  "it is not reading" becomes "move the card into the box".
+
+  The box is ID-1 shaped and computed from the frame, not written down as percentages. The
+  first attempt did write it down, and at 16:9 that rectangle came out half again wider than
+  a card: an officer who filled it width-wise pushed the bottom of the card - which is where
+  the zone is - outside the region being read. `guideFor` in `mrz-scan.js` works it out and
+  positions the on-screen overlay from the same numbers, so the box aimed at and the pixels
+  recognised cannot drift apart. This is also why `.scan-view` has `height: auto` and no
+  `max-height`: constraining the height letterboxes the picture inside the element, and then
+  a percentage of the element is no longer a percentage of the frame.
+
+  The card is read at 900 pixels across, which puts an OCR-B character at about 30 pixels -
+  what the recogniser wants. More resolution buys nothing and costs the frame rate.
+- **Upside-down is tried late.** Only after a few fruitless frames, and then on alternate
+  frames. A card held the wrong way up is the rarer case, and trying both from the start
+  halves the rate for everyone.
+- **The kept picture is the frame that read**, not a fresh grab. By the time a second picture
+  is taken the card has moved.
+
+### Either side, because the front has a check of its own
+
+The officer should not have to know which side matters, so both are read.
+
+The back is preferred and carries everything. The front carries only the fifteen-digit ID
+number - but that number ends in a **Luhn check digit**, verified here against eleven real
+Emirates ID numbers: all eleven pass, and altering any single digit fails. So a front read is
+held to the same standard as a back read. It is not a guess about what the picture looked
+like; it is arithmetic, same as the MRZ.
+
+A number-only read is not taken the instant it arrives. It is held for three seconds first,
+because the officer may be mid-turn and the back is worth more; a complete read in that
+window wins. If none comes, the checked number fills the ID field, a banner says the name and
+dates still need the back or the keyboard, and the officer carries on.
+
+One trap this design walks into and out of: **the ID number is inside the MRZ as well as on
+the front**, so a back photographed too poorly for the zone to parse still yields the number.
+Called a front, that read would have had a "portrait" cut out of the middle of a block of
+text. The sides are separated by counting chevrons - the zone is padded with dozens and
+nothing printed on the front uses one.
+
+### The model is configurable, and the default is the wrong one
+
+Recognition runs on Tesseract's `eng` model because that is what the public trained-data host
+serves. It is the wrong shape for this job: trained on proportional print in two cases,
+carrying an English dictionary, where the zone is one monospaced font with 37 characters and
+no words.
+
+A model trained on OCR-B alone - [Shreeshrii/tessdata_ocrb](https://github.com/Shreeshrii/tessdata_ocrb)
+is the one everyone uses - is a fraction of the size and better at exactly the characters the
+check digits keep rejecting. There is no CDN serving it, so using it means three steps: put
+`ocrb_int.traineddata` under `wwwroot/lib/tesseract/`, point `DigitalCard:TrainedDataUrl` at
+`/lib/tesseract`, and set `DigitalCard:Language` to `ocrb`. That repository states no licence,
+so check that before shipping it.
 
 ### It is not the chip, and the record says so
 

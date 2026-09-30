@@ -44,6 +44,21 @@ public sealed class DigitalCardOptions
     public string TrainedDataUrl { get; init; } = "https://tessdata.projectnaptha.com/4.0.0";
 
     /// <summary>
+    /// Which Tesseract model to recognise with.
+    ///
+    /// "eng" is the general English model and is the default because it is the one the public
+    /// trained-data host serves. It is the wrong shape for this job: it is trained on
+    /// proportional print in two cases and carries a dictionary, where the zone is one
+    /// monospaced font with 37 characters in it and no words.
+    ///
+    /// A model trained on OCR-B alone is a fraction of the size and better at exactly these
+    /// characters, which are the ones the check digits keep rejecting. There is no public CDN
+    /// for one, so using it means putting the file under wwwroot/lib/tesseract, pointing
+    /// TrainedDataUrl there, and setting this to its name. See README.
+    /// </summary>
+    public string Language { get; init; } = "eng";
+
+    /// <summary>
     /// A photograph from a phone camera is several megabytes of which almost none is the
     /// zone. The browser scales it down before recognising; this is the ceiling on what it
     /// will accept at all, so a video file chosen by mistake fails quickly and clearly.
@@ -63,6 +78,7 @@ public sealed class DigitalCardOptions
             TrainedDataUrl = section["TrainedDataUrl"] is { Length: > 0 } data
                 ? data.TrimEnd('/')
                 : "https://tessdata.projectnaptha.com/4.0.0",
+            Language = section["Language"] is { Length: > 0 } language ? language : "eng",
             MaximumBytes = section.GetValue("MaximumBytes", 12 * 1024 * 1024),
         };
     }
@@ -79,6 +95,62 @@ public sealed class DigitalCardOptions
 /// </summary>
 public static class MrzFinder
 {
+    /// <summary>
+    /// What was found in a frame.
+    ///
+    /// <paramref name="Zone"/> is the whole machine-readable zone and is null when only the
+    /// printed ID number could be salvaged - the difference between a filled form and a
+    /// filled ID field. <paramref name="FromBack"/> is not the same question: it says which
+    /// side was in front of the camera, and exists only so that the portrait is not cut out
+    /// of a picture of the back.
+    /// </summary>
+    public sealed record Read(
+        bool Ok, bool FromBack, string? Problem, MachineReadableZone.Result? Zone, string? IdNumber)
+    {
+        /// <summary>Whether every field was read, rather than the ID number alone.</summary>
+        public bool Complete => Zone is not null;
+    }
+
+    /// <summary>
+    /// How many chevrons make a picture the back of the card.
+    ///
+    /// The zone is padded with them and nothing printed on the front uses one, so counting
+    /// them separates the two sides at no cost. It is needed because the ID number appears
+    /// in the zone as well as on the front: a back photographed too poorly for the zone to
+    /// parse can still yield the number, and without this that read would be called a front
+    /// and have a "portrait" cut out of the middle of a block of text.
+    ///
+    /// Six rather than one: a smudge on the front can be recognised as a chevron, and the
+    /// real zone has dozens.
+    /// </summary>
+    private const int ChevronsMeaningTheBack = 6;
+
+    /// <summary>
+    /// Reads whatever side of the card happens to be facing the camera.
+    ///
+    /// The back first, because its zone carries every field and a check digit on each. If
+    /// there is no zone, the fifteen-digit number: it has a Luhn check digit of its own, so
+    /// it can be trusted to the same standard even though nothing around it can.
+    ///
+    /// Either way the answer is arithmetic, never a guess about what the picture looked
+    /// like - which is what lets the officer hold up whichever side came to hand.
+    /// </summary>
+    public static Read ReadEitherSide(string? recognised)
+    {
+        var zone = Find(recognised);
+        if (zone.Ok) return new Read(true, FromBack: true, null, zone, zone.IdNumber);
+
+        var number = EmiratesIdNumber.FindIn(recognised);
+
+        if (number is not null)
+        {
+            var chevrons = recognised?.Count(c => c == '<') ?? 0;
+            return new Read(true, chevrons >= ChevronsMeaningTheBack, null, null, number);
+        }
+
+        return new Read(false, false, zone.Problem, null, null);
+    }
+
     public static MachineReadableZone.Result Find(string? recognised)
     {
         if (string.IsNullOrWhiteSpace(recognised)) return MachineReadableZone.Parse(null);
