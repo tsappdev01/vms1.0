@@ -1,6 +1,7 @@
 package ae.dubaiinvestments.vms.ui.screens
 
 import ae.dubaiinvestments.vms.BuildConfig
+import ae.dubaiinvestments.vms.settings.DeskPin
 import ae.dubaiinvestments.vms.settings.Settings
 import ae.dubaiinvestments.vms.ui.UiState
 import ae.dubaiinvestments.vms.ui.parts.FieldRow
@@ -46,9 +47,14 @@ import androidx.compose.ui.unit.dp
  * of Android Studio. Moving a tablet between the Azure host and the on-premises one, or on
  * to a test server, is now typing rather than a rebuild.
  *
- * Deliberately only two fields. Everything else this app does is decided by the server or
- * by the card, and a settings screen that grows options is a settings screen reception has
- * to be trained on.
+ * Deliberately small. Everything else this app does is decided by the server or by the
+ * card, and a settings screen that grows options is a settings screen reception has to be
+ * trained on.
+ *
+ * The exception is the PIN, which is here because the API key is here. That key reaches the
+ * server from anywhere on the internet, and the field above will show it to whoever asks -
+ * so on a tablet that sits on a counter, this screen is the one thing in the app worth
+ * locking. See [ae.dubaiinvestments.vms.settings.DeskPin] for what the lock is worth.
  */
 @Composable
 fun SettingsScreen(
@@ -56,6 +62,8 @@ fun SettingsScreen(
     onTest: (String, String) -> Unit,
     onSave: (String, String) -> Unit,
     onResetToDefault: () -> Unit,
+    onSetPin: (current: String, new: String, confirm: String) -> Unit,
+    onRemovePin: (current: String) -> Unit,
     onClose: () -> Unit,
 ) {
     var url by remember(state.server.baseUrl) { mutableStateOf(state.server.baseUrl) }
@@ -171,6 +179,8 @@ fun SettingsScreen(
             }
         }
 
+        PinCard(state = state, onSetPin = onSetPin, onRemovePin = onRemovePin)
+
         SectionCard("This tablet") {
             /* What to read out over the phone when a desk says it cannot reach the server.
                A version and a build type answer most of those calls before anyone drives
@@ -190,4 +200,137 @@ fun SettingsScreen(
             Text("Back to the desk")
         }
     }
+}
+
+/**
+ * Setting, changing and removing the PIN.
+ *
+ * The current PIN is asked for even though this screen is already open. The case it guards is
+ * not somebody who got past the gate - it is a settings screen left open on the counter while
+ * reception answers the phone, which is how a tablet is actually reached.
+ */
+@Composable
+private fun PinCard(
+    state: UiState,
+    onSetPin: (String, String, String) -> Unit,
+    onRemovePin: (String) -> Unit,
+) {
+    /* Emptied once the view model has something to say about what was typed - a PIN set, a
+       PIN changed, a current PIN refused. Three boxes still holding digits under a message
+       saying what became of them is an invitation to press the button a second time. */
+    val settled = state.pinMessage != null && !state.pinFailed
+
+    var current by remember(state.pinIsSet, settled) { mutableStateOf("") }
+    var fresh by remember(state.pinIsSet, settled) { mutableStateOf("") }
+    var confirm by remember(state.pinIsSet, settled) { mutableStateOf("") }
+
+    SectionCard(if (state.pinIsSet) "Settings PIN" else "No settings PIN") {
+        if (state.pinIsSet) {
+            Text(
+                "Settings ask for this PIN each time they are opened. It is not the tablet's " +
+                    "screen lock and it protects nothing else in the app - only this screen.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            /* Stated as the exposure rather than as a suggestion. "Set a PIN for extra
+               security" is advice nobody takes; what is true is that the key is readable. */
+            Text(
+                "Anyone who picks this tablet up can open this screen and read the API key, " +
+                    "which reaches the server from anywhere. Set a PIN to stop that.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        if (state.pinIsSet) {
+            PinField(
+                value = current,
+                onValueChange = { current = it },
+                label = "Current PIN",
+                imeAction = ImeAction.Next,
+            )
+        }
+
+        PinField(
+            value = fresh,
+            onValueChange = { fresh = it },
+            label = if (state.pinIsSet) "New PIN" else "PIN",
+            imeAction = ImeAction.Next,
+        )
+
+        PinField(
+            value = confirm,
+            onValueChange = { confirm = it },
+            label = "Enter it again",
+            imeAction = ImeAction.Done,
+        )
+
+        Text(
+            "${DeskPin.MinimumDigits} to ${DeskPin.MaximumDigits} digits. There is no way to " +
+                "recover it: a forgotten PIN is cleared by clearing the app's data in Android " +
+                "settings, which clears the server address and the key with it. Write it down " +
+                "somewhere that is not this tablet.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        state.pinMessage?.let { message ->
+            Text(
+                message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (state.pinFailed) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+        }
+
+        Button(
+            onClick = { onSetPin(current, fresh, confirm) },
+            enabled = fresh.length >= DeskPin.MinimumDigits &&
+                confirm.isNotEmpty() &&
+                (!state.pinIsSet || current.length >= DeskPin.MinimumDigits),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+        ) {
+            Text(if (state.pinIsSet) "Change the PIN" else "Set the PIN")
+        }
+
+        if (state.pinIsSet) {
+            TextButton(
+                onClick = { onRemovePin(current) },
+                enabled = current.length >= DeskPin.MinimumDigits,
+            ) {
+                Text("Remove the PIN (enter the current one above)")
+            }
+        }
+    }
+}
+
+/** One PIN box. Digits only, masked, and on the tablet's number pad - the three things
+    every field in this card wants and none of them worth repeating three times. */
+@Composable
+private fun PinField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    imeAction: ImeAction,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { entry ->
+            onValueChange(entry.filter(Char::isDigit).take(DeskPin.MaximumDigits))
+        },
+        label = { Text(label) },
+        singleLine = true,
+        visualTransformation = PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.NumberPassword,
+            imeAction = imeAction,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    )
 }

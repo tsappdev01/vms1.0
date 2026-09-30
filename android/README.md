@@ -131,6 +131,9 @@ What follows from that:
   says so.
 - The API key is the whole of the tablet's access. Rotate it by changing it on the server
   and typing the new one into **Settings** on each tablet — no rebuild.
+- **The settings screen is therefore worth locking**, and a PIN does it — see below. The key
+  works from anywhere on the internet, and `GET /api/people` behind it returns the staff
+  directory, so a key copied off a counter is an exposure that does not end at the door.
 - The top bar shows **which server** the tablet is talking to, in the place the officer's
   name used to be. It is the one thing about a reception tablet that can quietly be wrong.
 
@@ -141,8 +144,8 @@ the server side, which is unaffected.
 
 ## Settings, on the tablet
 
-The gear in the top bar. Two fields, and both of them are addressed to whoever installs a
-tablet rather than to reception:
+The gear in the top bar, behind a PIN once one is set. Two fields, and both of them are
+addressed to whoever installs a tablet rather than to reception:
 
 - **Server address** — where visits are sent. It defaults to what the build was made with
   (`VMS_API_BASE_URL`), currently `https://vmsdi.dubaiinvestments.com/`. A bare host is accepted
@@ -155,6 +158,39 @@ tablet rather than to reception:
 own, so a test cannot leave the tablet pointed somewhere it was not meant to go. Saving
 clears the entity and purpose lists and reloads them, because those belong to the server
 that was just replaced.
+
+### The PIN
+
+`settings/DeskPin.kt`, and the reason it exists is the field above it: the API key is stored
+on the tablet and the screen will show it on request. Everything else this app does is meant
+to be done by whoever is holding it. This is the one thing that is not.
+
+- **Set it under the gear**, 4 to 8 digits. Until one is set the card says so in red, because
+  "anyone can read the key" is a fact worth stating rather than a feature worth suggesting.
+- **It guards the settings screen only** — not the app, not a check-in. A visitor being
+  checked in never meets it.
+- **Asked for on every opening.** Closing the screen re-locks it, by the back arrow or by
+  saving; so does the app restarting. A PIN asked for once a day is not a PIN.
+- **Changing or removing it needs the current one**, although the screen is already open. The
+  case that guards is not somebody who got past the gate — it is a settings screen left open
+  on the counter while reception answers the phone.
+- **Wrong tries are slowed down, and the count is on disk.** Four are free; after that the
+  field closes for 30 seconds, doubling to a quarter of an hour. Force-stopping the app is
+  the obvious way to reset a counter and it does not work.
+- **A hash is stored, never the PIN** — PBKDF2-HMAC-SHA256 where the tablet's provider has
+  it, SHA-1 where it does not, fresh salt, 60,000 rounds, verified off the main thread. Worth
+  being plain about what that buys: anyone who can read the preferences file can read the API
+  key sitting in it, so the hash is there so the file does not spell the PIN out, not because
+  it has to survive cracking. What stops a PIN being guessed is the lockout.
+- **There is no recovery.** No master PIN, no reset code — either would be the thing worth
+  attacking. A forgotten PIN is cleared by clearing the app's data in Android settings, which
+  clears the server address and the key with it: the only way past the PIN destroys what the
+  PIN was protecting. Write it down somewhere that is not the tablet.
+
+A PIN is not the strongest control available here and is not meant to be the only one.
+**Azure App Service → Networking → Access restrictions**, allowing the office's egress
+addresses, makes a copied key worthless from outside the building and needs no code at all.
+The PIN stops the copying; the IP restriction stops it mattering.
 
 The address used to be compiled in, which meant moving a tablet to another server was a
 rebuild — and the person who needs to do that is standing in front of the tablet with a

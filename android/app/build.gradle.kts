@@ -26,8 +26,13 @@ android {
          *  Required by ICP; without it the failure is a dex merge error naming nothing
          *  useful. */
         multiDexEnabled = true
-        versionCode = 1
-        versionName = "1.0.0"
+        /*  Bumped with every build worth telling apart on a desk.
+         *
+         *  Both are read out on the settings screen, and that is the point: a tablet running
+         *  an older APK than the one somebody thinks they installed looks exactly like a
+         *  broken feature. 1.1.0 is the first with the camera scanner and the settings PIN. */
+        versionCode = 2
+        versionName = "1.1.0"
 
         /* The toolkit's native libraries are built for these two only. Without the
            filter, an x86_64 emulator installs an APK with no usable library and fails at

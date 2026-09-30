@@ -4,6 +4,7 @@ import ae.dubaiinvestments.vms.ui.screens.InsertCardScreen
 import ae.dubaiinvestments.vms.ui.screens.ManualEntryDialog
 import ae.dubaiinvestments.vms.ui.screens.SavedScreen
 import ae.dubaiinvestments.vms.ui.screens.MrzScanScreen
+import ae.dubaiinvestments.vms.ui.screens.PinGateScreen
 import ae.dubaiinvestments.vms.ui.screens.SettingsScreen
 import ae.dubaiinvestments.vms.ui.screens.VisitDetailsScreen
 import ae.dubaiinvestments.vms.ui.screens.VisitorInformationScreen
@@ -55,7 +56,8 @@ import androidx.compose.ui.unit.dp
  * visitor's.
  *
  * No sign-in either. The tablet is the credential, so the desk is on the first step the
- * moment the app opens; the only thing behind the gear is which server it talks to.
+ * moment the app opens; the only thing behind the gear is which server it talks to - and
+ * that, once a PIN has been set, is the one place in the app that asks for anything.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +77,11 @@ fun VmsApp(viewModel: VisitorViewModel) {
                 title = {
                     Column {
                         Text(
-                            if (state.settingsOpen) "Settings" else "Visitor Management",
+                            when {
+                                state.settingsLocked -> "Settings - locked"
+                                state.settingsOpen -> "Settings"
+                                else -> "Visitor Management"
+                            },
                             fontWeight = FontWeight.SemiBold,
                         )
 
@@ -127,12 +133,23 @@ fun VmsApp(viewModel: VisitorViewModel) {
                     .padding(PagePadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                if (state.settingsLocked) {
+                    PinGateScreen(
+                        state = state,
+                        onSubmit = viewModel::submitPin,
+                        onClose = viewModel::closeSettings,
+                    )
+                    return@Column
+                }
+
                 if (state.settingsOpen) {
                     SettingsScreen(
                         state = state,
                         onTest = { url, key -> viewModel.testServer(url, key) },
                         onSave = viewModel::saveServer,
                         onResetToDefault = viewModel::resetServer,
+                        onSetPin = viewModel::setPin,
+                        onRemovePin = viewModel::removePin,
                         onClose = viewModel::closeSettings,
                     )
                     return@Column

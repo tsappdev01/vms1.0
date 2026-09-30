@@ -139,6 +139,25 @@ curl -i -H "X-Vms-Key: $key" https://<host>/api/reference
 that button: a wrong key saved turns every later screen into a failure with nothing on it naming
 the cause.
 
+### 5. Set a PIN on that screen, and restrict the API by IP
+
+The key is now on a tablet that sits on a counter, and the screen you just typed it into will
+show it to whoever taps the eye. Two things close that, and they close different halves of it.
+
+**A PIN on the settings screen** — under the gear, 4 to 8 digits, set once per tablet. It is
+asked for every time settings are opened, wrong tries are slowed to a doubling delay after
+four, and there is no recovery: a forgotten PIN is cleared by clearing the app's data, which
+clears the key and the address with it. See [android/README.md](../android/README.md#the-pin).
+That stops the key being **copied**.
+
+**IP access restrictions** — Azure App Service → Networking → Access restrictions, allowing the
+office's egress addresses. That stops a copied key **mattering**, costs no code and no rebuild,
+and is the stronger of the two. Do it whether or not the PIN is set.
+
+The exposure being closed is not check-in: somebody holding the tablet can already check a
+visitor in by using the app. It is `GET /api/people`, which returns names, titles, email
+addresses and employers, and which a copied key reaches from anywhere on the internet.
+
 ## Authentication
 
 Two ways in, one rule. The group requires the `Vms.Officer` check-in policy whichever scheme
@@ -252,8 +271,13 @@ middle one, and `warning` says so in words fit for the screen.
 
 ## Checklist for a new tablet
 
-1. `Api__Key` set on the server, at least 32 characters.
+1. `Api__Key` — or one `Api__Keys__<desk>` per tablet — set on the server, at least 32
+   characters.
 2. The startup log line reads **"an Entra ID token or the tablet's API key"**.
 3. Settings on the tablet: server address, and the same key.
 4. **Test connection** on that screen — it tries the address before saving, so a wrong one is
    refused there rather than turning every later screen into a connection failure.
+5. **Set the PIN** on that same screen, and write it down somewhere that is not the tablet.
+6. Confirm the app version under **This tablet** is the one you meant to install. The camera
+   scanner and the PIN are 1.1.0; a tablet on 1.0.0 has neither, and a missing feature on an
+   older APK looks exactly like a broken one.

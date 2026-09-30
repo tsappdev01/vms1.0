@@ -14,13 +14,17 @@ import ae.dubaiinvestments.vms.card.CardRead
 import ae.dubaiinvestments.vms.card.CardReadException
 import ae.dubaiinvestments.vms.card.EmiratesIdReader
 import ae.dubaiinvestments.vms.card.ReaderState
+import ae.dubaiinvestments.vms.settings.DeskPin
+import ae.dubaiinvestments.vms.settings.PinVerdict
 import ae.dubaiinvestments.vms.settings.ServerSettings
 import ae.dubaiinvestments.vms.settings.Settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +33,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Where reception is in the check-in. One screen each. */
 enum class Step { InsertCard, MrzScan, VisitorInformation, VisitDetails, Saved }
@@ -103,6 +108,16 @@ data class UiState(
     val settingsMessage: String? = null,
     val settingsFailed: Boolean = false,
 
+    /** A PIN has been set on this tablet, so the settings screen asks for it. */
+    val pinIsSet: Boolean = false,
+    /** The right PIN has been typed, and stays typed only while settings is open. */
+    val pinUnlocked: Boolean = false,
+    /** What to say under the PIN field - wrong, locked out, or changed. */
+    val pinMessage: String? = null,
+    val pinFailed: Boolean = false,
+    /** Seconds left of a lockout, ticked down so the screen can count with it. */
+    val pinLockedSeconds: Int = 0,
+
     val error: String? = null,
     val saved: SavedVisitDto? = null,
 ) {
@@ -116,6 +131,9 @@ data class UiState(
         get() = card?.idNumber?.takeIf { it.isNotBlank() } ?: manual?.idNumber?.takeIf { it.isNotBlank() }
 
     val isManualEntry: Boolean get() = manual != null
+
+    /** Settings is open but showing the PIN pad rather than the key. */
+    val settingsLocked: Boolean get() = settingsOpen && pinIsSet && !pinUnlocked
 
     /** What the save button needs before it is worth pressing. */
     val canSave: Boolean
@@ -142,6 +160,7 @@ data class UiState(
 class VisitorViewModel(
     private val apis: ApiProvider,
     private val settings: Settings,
+    private val pin: DeskPin,
     private val reader: EmiratesIdReader,
 ) : ViewModel() {
 
@@ -169,6 +188,14 @@ class VisitorViewModel(
        val that cannot be null. */
     private val hostQueries = MutableStateFlow("")
 
+    /** Ticks a PIN lockout down on the screen. Declared here with the other long-lived
+        job, above init, for the reason stated about hostQueries. */
+    private var countdown: Job? = null
+
+    /** The PIN check in flight, so a second tap cannot spend a second attempt on the same
+        guess while the first is still hashing. */
+    private var pinJob: Job? = null
+
     init {
         loadReference()
         watchHostQuery()
@@ -177,92 +204,178 @@ class VisitorViewModel(
     // ---------------------------------------------------------------- settings
 
     fun openSettings() {
+        val locked = pin.isSet
         _state.value = _state.value.copy(
             settingsOpen = true,
             settingsMessage = null,
             settingsFailed = false,
+            pinIsSet = locked,
+            /* No PIN set means no gate. A tablet being set up for the first time cannot be
+               locked out of the screen where the PIN is set, and a deployment that has not
+               got round to it keeps working exactly as it did. */
+            pinUnlocked = !locked,
+            pinMessage = null,
+            pinFailed = false,
         )
+        watchLockout()
     }
 
     fun closeSettings() {
-        _state.value = _state.value.copy(settingsOpen = false, settingsBusy = null)
+        countdown?.cancel()
+        /* And the check in flight, or its result lands after the screen was re-locked and
+           unlocks the next opening without a PIN having been typed for it. */
+        pinJob?.cancel()
+        _state.value = _state.value.copy(
+            settingsOpen = false,
+            settingsBusy = null,
+            /* Re-locked on the way out, always. The screen reception leaves open behind them
+               is the one somebody else walks up to, and a PIN that is asked for once a day
+               is not a PIN. */
+            pinUnlocked = false,
+            pinMessage = null,
+            pinFailed = false,
+        )
+    }
+
+    // ---------------------------------------------------------------- the PIN
+
+    /** A field that refuses with no end in sight looks broken; one that says "try again in
+        24 seconds" is a tablet doing its job. */
+    private fun watchLockout() {
+        countdown?.cancel()
+        countdown = viewModelScope.launch {
+            while (true) {
+                val remaining = pin.lockedForMillis()
+                val seconds = ((remaining + 999) / 1000).toInt()
+                if (_state.value.pinLockedSeconds != seconds) {
+                    _state.value = _state.value.copy(pinLockedSeconds = seconds)
+                }
+                if (remaining <= 0) return@launch
+                delay(500)
+            }
+        }
     }
 
     /**
-     * Tries an address before it is saved.
+     * The typed PIN, checked.
      *
-     * Worth its own button: a mistyped host otherwise shows up as a failure on the next
-     * check-in, in front of a visitor, with nothing connecting it to what was typed here.
+     * Off the main thread, and one at a time. PBKDF2 is deliberately not instant, so running
+     * it where the frames are drawn is a stutter at best; and two taps on the button while
+     * the first is still hashing would spend two of the four attempts the lockout allows on
+     * one guess.
      */
-    fun testServer(baseUrl: String, apiKey: String) = viewModelScope.launch {
-        val normalised = Settings.normalise(baseUrl)
-        if (normalised == null) {
-            _state.value = _state.value.copy(
-                settingsMessage = "That is not an address the tablet can use.",
-                settingsFailed = true,
-            )
-            return@launch
+    fun submitPin(typed: String) {
+        if (pinJob?.isActive == true) return
+
+        pinJob = viewModelScope.launch {
+            when (val verdict = withContext(Dispatchers.Default) { pin.verify(typed) }) {
+                is PinVerdict.Correct ->
+                    _state.value = _state.value.copy(
+                        pinUnlocked = true,
+                        pinMessage = null,
+                        pinFailed = false,
+                        pinLockedSeconds = 0,
+                    )
+
+                is PinVerdict.Wrong ->
+                    refusePin(
+                        if (verdict.lockedForMillis > 0) {
+                            "That is not the PIN. Too many tries - wait " +
+                                "${DeskPin.waitInWords(verdict.lockedForMillis)}."
+                        } else {
+                            "That is not the PIN."
+                        },
+                    )
+
+                is PinVerdict.LockedOut ->
+                    refusePin(
+                        "Too many tries. Wait ${DeskPin.waitInWords(verdict.remainingMillis)}.",
+                    )
+            }
+            watchLockout()
         }
+    }
 
-        _state.value = _state.value.copy(
-            settingsBusy = "Trying…",
-            settingsMessage = null,
-            settingsFailed = false,
-        )
+    /**
+     * Sets a PIN, or replaces one.
+     *
+     * The current PIN is asked for even though the screen is already unlocked, because the
+     * case this guards is not somebody who got past the gate - it is a settings screen left
+     * open on the counter, which is the way a tablet is actually reached.
+     *
+     * The new PIN is checked before the current one on purpose. Verifying costs an attempt
+     * against the lockout, and mistyping the confirmation is a fumble rather than a guess -
+     * it should not walk anyone towards a fifteen-minute wait.
+     */
+    fun setPin(current: String, new: String, confirm: String) {
+        DeskPin.validate(new)?.let { return refusePin(it) }
+        if (new != confirm) return refusePin("The two new PINs are not the same.")
+        if (pinJob?.isActive == true) return
 
-        /* A client of its own, against the typed address rather than the saved one, so
-           testing cannot leave the tablet pointed somewhere it was not meant to go. */
-        val candidate = VmsClient.create(ServerSettings(normalised, apiKey.trim()))
+        pinJob = viewModelScope.launch {
+            if (pin.isSet) {
+                val problem = withContext(Dispatchers.Default) { checkCurrent(current) }
+                if (problem != null) {
+                    refusePin(problem)
+                    watchLockout()
+                    return@launch
+                }
+            }
 
-        try {
-            val reference = VmsClient.call { candidate.reference() }
+            val failure = withContext(Dispatchers.Default) { pin.set(new) }
             _state.value = _state.value.copy(
-                settingsBusy = null,
-                settingsMessage = "Reached the server. It offers ${reference.entities.size} " +
-                    "entities and ${reference.purposes.size} purposes.",
-                settingsFailed = false,
-            )
-        } catch (e: ApiException) {
-            _state.value = _state.value.copy(
-                settingsBusy = null,
-                settingsMessage = e.message,
-                settingsFailed = true,
+                pinIsSet = pin.isSet,
+                pinFailed = failure != null,
+                pinMessage = failure
+                    ?: "PIN set. Settings will ask for it from now on - write it down " +
+                    "somewhere that is not this tablet, because there is no way to recover it.",
+                pinLockedSeconds = 0,
             )
         }
     }
 
-    fun saveServer(baseUrl: String, apiKey: String) {
-        val failure = settings.save(baseUrl, apiKey)
-        if (failure != null) {
-            _state.value = _state.value.copy(settingsMessage = failure, settingsFailed = true)
-            return
+    /** Takes the PIN off, on the current one. */
+    fun removePin(current: String) {
+        if (pinJob?.isActive == true) return
+
+        pinJob = viewModelScope.launch {
+            val problem = withContext(Dispatchers.Default) { checkCurrent(current) }
+            if (problem != null) {
+                refusePin(problem)
+                watchLockout()
+                return@launch
+            }
+
+            pin.clear()
+            _state.value = _state.value.copy(
+                pinIsSet = false,
+                pinUnlocked = true,
+                /* Shown in the error colour although nothing failed. It is the one change on
+                   this screen that makes the tablet less safe than it was, and it should not
+                   slip past in grey as though it were a confirmation. */
+                pinFailed = true,
+                pinMessage = "PIN removed. Anyone holding this tablet can now read the API key.",
+                pinLockedSeconds = 0,
+            )
         }
-
-        applySettings()
     }
 
-    fun resetServer() {
-        settings.resetToDefault()
-        applySettings()
+    /** null when it was right, or what to put on the screen. Hashes - call it off the main
+        thread. */
+    private fun checkCurrent(current: String): String? = when (val verdict = pin.verify(current)) {
+        is PinVerdict.Correct -> null
+        is PinVerdict.LockedOut ->
+            "Too many tries. Wait ${DeskPin.waitInWords(verdict.remainingMillis)}."
+        is PinVerdict.Wrong -> if (verdict.lockedForMillis > 0) {
+            "The current PIN is wrong. Too many tries - wait " +
+                "${DeskPin.waitInWords(verdict.lockedForMillis)}."
+        } else {
+            "The current PIN is wrong."
+        }
     }
 
-    /** A new address means the reference data on the screen belongs to the old one. */
-    private fun applySettings() {
-        _state.value = _state.value.copy(
-            server = settings.value,
-            serverIsDefault = settings.isDefault,
-            settingsOpen = false,
-            settingsBusy = null,
-            settingsMessage = null,
-            settingsFailed = false,
-            entities = emptyList(),
-            purposes = emptyList(),
-            entityId = null,
-            host = null,
-            hostResults = emptyList(),
-            referenceError = null,
-        )
-        loadReference()
+    private fun refusePin(message: String) {
+        _state.value = _state.value.copy(pinFailed = true, pinMessage = message)
     }
 
     // ---------------------------------------------------------------- reference data
@@ -608,11 +721,16 @@ class VisitorViewModel(
         _state.value = _state.value.copy(error = null)
     }
 
-    /** Built by hand for the same reason the rest is: three dependencies, all of them
+    /** Built by hand for the same reason the rest is: four dependencies, all of them
         already living on the Application. */
     class Factory(private val application: VmsApplication) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            VisitorViewModel(application.apis, application.settings, application.reader) as T
+            VisitorViewModel(
+                application.apis,
+                application.settings,
+                application.pin,
+                application.reader,
+            ) as T
     }
 }
