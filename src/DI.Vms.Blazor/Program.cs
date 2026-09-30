@@ -133,11 +133,28 @@ if (signIn.Enabled)
            token out of the address bar. PKCE is on by default and rides along with it. */
         options.ResponseType = OpenIdConnectResponseType.Code;
 
-        /* Entra sends app roles in "roles". Without this the framework looks for the long
-           WS-Federation role claim, finds nothing, and every policy fails for everyone -
-           which reads like a directory problem and is not one. */
+        /* Claims keep the names Entra gave them.
+
+           This line is the whole of a bug that cost a day. The handler's inbound claim map
+           is on by default and renames "roles" to
+           http://schemas.microsoft.com/ws/2008/06/identity/claims/role - so setting
+           RoleClaimType to "roles" below made every role check look for a claim type that
+           the mapping had just removed. Entra sent Vms.SystemAdmin, the token carried it,
+           and IsInRole found nothing: every policy failed for everybody, and it read
+           exactly like an app-role assignment that had not been made.
+
+           Off, "roles", "preferred_username" and "oid" arrive under those names - the ones
+           Microsoft's own documentation uses - and the two lines below mean what they say.
+           VisitsApi and NewVisitor already read preferred_username directly, so this also
+           makes the audit column agree with the token rather than with a WS-Federation
+           alias of it. */
+        options.MapInboundClaims = false;
+
+        /* Entra sends app roles in "roles", and the name of the signed-in person in
+           "preferred_username" - Microsoft.Identity.Web overrides NameClaimType to that
+           anyway, so it is stated here rather than left to look like an accident. */
         options.TokenValidationParameters.RoleClaimType = "roles";
-        options.TokenValidationParameters.NameClaimType = "name";
+        options.TokenValidationParameters.NameClaimType = "preferred_username";
     });
 
     /* And bearer tokens beside the cookie, for the Android reception app. Two schemes on
@@ -147,8 +164,10 @@ if (signIn.Enabled)
     authentication.AddMicrosoftIdentityWebApi(
         jwtOptions =>
         {
+            // The same mapping, and the same trap. See the note on the web app above.
+            jwtOptions.MapInboundClaims = false;
             jwtOptions.TokenValidationParameters.RoleClaimType = "roles";
-            jwtOptions.TokenValidationParameters.NameClaimType = "name";
+            jwtOptions.TokenValidationParameters.NameClaimType = "preferred_username";
         },
         identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
         jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);

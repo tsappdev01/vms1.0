@@ -136,8 +136,13 @@ if (signIn.Enabled)
     authentication.AddMicrosoftIdentityWebApi(
             jwtOptions =>
             {
+                /* Claims keep the names Entra gave them. The inbound claim map is on by
+                   default and renames "roles" to the long WS-Federation URI, which would
+                   make RoleClaimType = "roles" look for a claim type the mapping had just
+                   removed - and every policy would fail for everybody. */
+                jwtOptions.MapInboundClaims = false;
                 jwtOptions.TokenValidationParameters.RoleClaimType = "roles";
-                jwtOptions.TokenValidationParameters.NameClaimType = "name";
+                jwtOptions.TokenValidationParameters.NameClaimType = "preferred_username";
             },
             identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
             jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);

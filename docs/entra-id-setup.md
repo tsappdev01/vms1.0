@@ -248,6 +248,26 @@ separate jobs, and a role assigned to nobody leaves every account on that page. 
 in again afterwards: the role travels in the sign-in token, so a session that started before
 the assignment will never see it.
 
+## 6f. Signed in, assigned a role, and still refused
+
+This one was ours, and it cost a day. The symptom is perfect: sign-in succeeds, the
+Enterprise application lists the user with `Vms.SystemAdmin` beside their name, and every
+page still says the account has no role.
+
+The handler's **inbound claim map** is on by default, and it renames `roles` to
+`http://schemas.microsoft.com/ws/2008/06/identity/claims/role`. `Program.cs` then set
+`RoleClaimType = "roles"` — a claim type the mapping had just removed. Entra sent the role,
+the token carried it, and `IsInRole` found nothing. Every policy failed for everybody, and
+it looked exactly like an assignment nobody had made.
+
+`options.MapInboundClaims = false` is the fix, on the web app and on the API. With it off,
+`roles`, `preferred_username` and `oid` arrive under the names Microsoft's own documentation
+uses, and `RoleClaimType = "roles"` means what it says.
+
+The lesson for the next one of these: the portal shows what Entra was *asked* for. The
+access-denied page lists what the token actually *carries*. When the two disagree, the
+token is the evidence.
+
 ## 7. IIS must let the request through
 
 **Anonymous authentication ON, Windows authentication OFF.** With Windows authentication
