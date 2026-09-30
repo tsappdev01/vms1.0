@@ -37,8 +37,20 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # The Android SDK, which the runner does not carry by default.
+      # The Android SDK.
+      #
+      # `packages: ''` is not tidiness. The action's default list still asks for the `tools`
+      # package, which Google withdrew from the SDK repository, so sdkmanager exits 1 with
+      # "Failed to find package 'tools'" and the run dies about twenty seconds in, long
+      # before anything of ours is compiled. The components are named explicitly below.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+
+      - name: Install the SDK components this build needs
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
 
