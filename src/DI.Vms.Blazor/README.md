@@ -429,6 +429,24 @@ Called a front, that read would have had a "portrait" cut out of the middle of a
 text. The sides are separated by counting chevrons - the zone is padded with dozens and
 nothing printed on the front uses one.
 
+### The scanner module had no cache tag, and that hid everything
+
+Worth reading before debugging anything about card reading, because it cost more rounds than
+every real bug here put together.
+
+`app.css` and `card-agent.js` are fetched with `?v=<BuildInfo.CacheTag>`. `mrz-scan.js` was
+not. So a browser that had once loaded it kept its copy, for as long as it liked, and every
+deployment after that served a file nobody read. Server-side changes landed - Razor is compiled
+into the assembly - and the scanner did not, which produces the one symptom that looks least
+like a caching fault: *"the mandatory fields changed, but it still only reads the ID number."*
+Half the application had moved and half had not.
+
+It has a tag now. The general rule: **anything under `wwwroot` that this application references
+must carry `BuildInfo.CacheTag`**, and a new one is one line, not an afterthought.
+
+`/version` answers the same question without signing in - it prints the same stamp the sidebar
+carries, plus the cache tag. When a change appears not to have taken, read that first.
+
 ### Finding the zone, because assuming where it is does not work
 
 Everything above assumed the card fills the guide box. Measured - by rendering ID-1 cards at a

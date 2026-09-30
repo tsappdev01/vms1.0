@@ -1128,7 +1128,13 @@ else if (step == 3 && saved is not null)
     private static readonly TimeSpan HoldTheBack = TimeSpan.FromSeconds(7);
 
     private async Task<IJSObjectReference> ScanModule() =>
-        scanModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/mrz-scan.js");
+        /* The cache tag is not decoration. Without it the browser keeps the copy of this
+           module it already has, for as long as it likes, and every change to how a card is
+           read lands on a server that then serves the old file - which looks exactly like a
+           change that was never made. The agent module next door has always had one; this
+           one did not, and that is why several rounds of work here appeared to do nothing. */
+        scanModule ??= await JS.InvokeAsync<IJSObjectReference>(
+            "import", $"./js/mrz-scan.js?v={BuildInfo.CacheTag}");
 
     /// <summary>
     /// Asks for the camera. The asking happens after the next render, not here.

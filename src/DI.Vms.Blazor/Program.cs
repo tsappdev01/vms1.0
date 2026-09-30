@@ -481,6 +481,16 @@ app.MapGet("/visits/{id:int}/card", async (
    way, with the verdict in the body. A 503 would have App Service take the instance out of
    rotation and restart it, which for a single-instance app with a briefly unreachable
    database turns a blip into a restart loop. */
+/*  Which build is actually answering.
+ *
+ *  The sidebar already carries the stamp, but it takes a sign-in to see and a screen to read.
+ *  This takes a browser address bar, says the same thing, and settles "nothing changed" in one
+ *  look - which has cost this project more rounds than any bug in it.
+ */
+app.MapGet("/version", () => Results.Text(
+    $"{BuildInfo.Stamp}\ncache tag {BuildInfo.CacheTag}\n", "text/plain"))
+   .AllowAnonymous();
+
 app.MapGet("/health", async (IDbContextFactory<VmsDbContext> factory, CancellationToken ct) =>
 {
     bool database;
