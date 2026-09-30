@@ -38,6 +38,13 @@ public static class FieldLengths
     /// </summary>
     public const int BlobName = 400;
 
+    /// <summary>
+    /// A phone number as somebody types it. A UAE mobile in international form is 13
+    /// characters; 40 leaves room for spaces, brackets and an extension without inviting
+    /// a sentence.
+    /// </summary>
+    public const int ContactMobile = 40;
+
     /// <summary>An Emirates ID number: 15 digits, the first three being 784.</summary>
     public const int EmiratesIdDigits = 15;
 

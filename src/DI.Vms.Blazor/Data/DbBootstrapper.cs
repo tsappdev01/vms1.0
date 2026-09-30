@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace DI.Vms.Blazor.Data;
 
@@ -17,10 +18,16 @@ namespace DI.Vms.Blazor.Data;
 /// The DDL is generated from the EF model rather than written out here, so there is only
 /// one definition of the schema and no second copy to drift.
 ///
-/// This is still a bootstrap, not a migration tool: it can create tables that are absent,
-/// never alter ones that are present. Once the database holds data that cannot be dropped,
-/// move to EF migrations - <c>dotnet ef migrations add</c> then <c>Database.Migrate()</c> -
-/// and delete this.
+/// It creates absent tables, and it adds absent <em>nullable</em> columns to tables that
+/// are already there. That second part is deliberately the only alteration it will make:
+/// adding a nullable column cannot lose data, cannot fail on a table with rows in it, and
+/// is what a new optional field on the model needs. Everything else - a required column, a
+/// widened type, a renamed or dropped column - still needs a script in db/, because those
+/// have a right answer only a person knows.
+///
+/// This is still a bootstrap, not a migration tool. Once the database holds data that
+/// cannot be dropped and the changes stop being additive, move to EF migrations -
+/// <c>dotnet ef migrations add</c> then <c>Database.Migrate()</c> - and delete this.
 /// </summary>
 public static class DbBootstrapper
 {
@@ -135,14 +142,18 @@ public static class DbBootstrapper
     }
 
     /// <summary>
-    /// Checks that every column the model expects exists on the tables that are already
-    /// there, and says which are missing if any are.
+    /// Brings the columns on existing tables up to what the model expects.
     ///
-    /// This bootstrapper creates absent tables but never alters present ones, so a
-    /// property added to the model reaches an existing database only through a script in
-    /// db/. Without this check the first query fails instead, with SQL Server's
-    /// "Invalid column name" and no indication of which script to run - the same
-    /// confusion that the missing tables caused.
+    /// A nullable column that the model has and the database lacks is added here, because
+    /// a new optional field is the ordinary change and making every one of them a manual
+    /// SQL step means a deployment that is two things instead of one - and the second gets
+    /// forgotten, at which point the first query fails with SQL Server's "Invalid column
+    /// name" and no indication of what to run.
+    ///
+    /// Anything it cannot add safely still stops the application, naming the columns. A
+    /// required column added to a table with rows in it needs a default that only a person
+    /// can choose, and guessing one is how a database quietly stops meaning what the
+    /// reports say it means.
     /// </summary>
     private static async Task VerifyColumnsAsync(VmsDbContext db, ILogger logger, CancellationToken ct)
     {
@@ -154,7 +165,11 @@ public static class DbBootstrapper
             .ToListAsync(ct);
 
         var found = new HashSet<string>(present, StringComparer.OrdinalIgnoreCase);
-        var missing = new List<string>();
+
+        var addable = new List<(string Schema, string Table, string Column, string Type)>();
+        var refused = new List<string>();
+
+        var sql = db.GetService<ISqlGenerationHelper>();
 
         foreach (var type in db.Model.GetEntityTypes())
         {
@@ -167,15 +182,45 @@ public static class DbBootstrapper
             {
                 var column = property.GetColumnName();
                 if (string.IsNullOrEmpty(column)) continue;
-                if (!found.Contains($"{schema}.{table}.{column}")) missing.Add($"{table}.{column}");
+                if (found.Contains($"{schema}.{table}.{column}")) continue;
+
+                if (property.IsNullable)
+                {
+                    addable.Add((schema, table, column, property.GetColumnType()));
+                }
+                else
+                {
+                    /* A required column on a table that already has rows needs a value for
+                       every one of them. What that value should be is a decision, not a
+                       default. */
+                    refused.Add($"{table}.{column}");
+                }
             }
         }
 
-        if (missing.Count == 0) return;
+        foreach (var (schema, table, column, columnType) in addable)
+        {
+            /* IF NOT EXISTS as well as the check above, because two instances of this app
+               start together on App Service and both would otherwise run the same ALTER. */
+            var statement =
+                $"IF COL_LENGTH('{schema}.{table}', '{column}') IS NULL " +
+                $"ALTER TABLE {sql.DelimitIdentifier(table, schema)} " +
+                $"ADD {sql.DelimitIdentifier(column)} {columnType} NULL;";
+
+            await db.Database.ExecuteSqlRawAsync(statement, ct);
+
+            logger.LogInformation(
+                "Added the column {Schema}.{Table}.{Column} ({Type}), which the model has and the database did not.",
+                schema, table, column, columnType);
+        }
+
+        if (refused.Count == 0) return;
 
         throw new InvalidOperationException(
-            $"The database is missing {missing.Count} column(s) the code expects: " +
-            $"{string.Join(", ", missing)}. Run the scripts in db/ against this database - " +
-            "the newest one adds them - and start again.");
+            $"The database is missing {refused.Count} required column(s) the code expects: " +
+            $"{string.Join(", ", refused)}. A required column cannot be added to a table " +
+            "with rows in it without deciding what the existing rows should say, so this " +
+            "one is not automatic. Run the scripts in db/ against this database - the " +
+            "newest one adds them - and start again.");
     }
 }

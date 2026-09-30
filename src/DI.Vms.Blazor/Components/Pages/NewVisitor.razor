@@ -758,6 +758,17 @@ else if (step == 2 && card is not null)
             </div>
 
             <div class="field">
+                <label for="contact-mobile">Mobile number</label>
+                <input id="contact-mobile" type="tel" inputmode="tel" autocomplete="off"
+                       maxlength="@FieldLengths.ContactMobile" @bind="contactMobile" @bind:event="oninput"
+                       placeholder="How to reach the visitor" />
+                @if (!string.IsNullOrWhiteSpace(card?.AddressMobile))
+                {
+                    <span class="hint">Read from the card. Correct it if the visitor gives another number.</span>
+                }
+            </div>
+
+            <div class="field">
                 <label for="purpose">Purpose of visit</label>
                 <select id="purpose" @bind="purpose" @bind:after="PurposeChanged">
                     <option value="">Select purpose of visit…</option>
@@ -999,6 +1010,14 @@ else if (step == 3 && saved is not null)
     private List<DiEntity> entities = [];
     private int entityId;
     private string personToVisit = string.Empty;
+    /// <summary>
+    /// The number the visitor gives at the desk. Prefilled from the card when the chip
+    /// carried one - most cards tested carried nothing here - and editable either way,
+    /// because the number on a card is often years old and the desk wants the one that
+    /// will actually reach them today.
+    /// </summary>
+    private string contactMobile = string.Empty;
+
     private string purpose = string.Empty;
     private string purposeOther = string.Empty;
 
@@ -1374,6 +1393,16 @@ else if (step == 3 && saved is not null)
     private async Task ToVisitDetails()
     {
         await LoadEntities();
+
+        /* Prefilled here rather than when the card is read, so it picks up a number typed
+           into the manual form as well as one off the chip - and only when the officer has
+           not already put something in the box, so going Back and forward again does not
+           overwrite what they typed. */
+        if (string.IsNullOrWhiteSpace(contactMobile) && !string.IsNullOrWhiteSpace(card?.AddressMobile))
+        {
+            contactMobile = card.AddressMobile.Trim();
+        }
+
         step = 2;
     }
 
@@ -1613,6 +1642,7 @@ else if (step == 3 && saved is not null)
                 AddressPhone = Fit(card.AddressPhone, FieldLengths.CardField, "phone"),
                 AddressMobile = Fit(card.AddressMobile, FieldLengths.CardField, "mobile"),
                 AddressEmail = Fit(card.AddressEmail, FieldLengths.Email, "email"),
+                ContactMobile = Fit(contactMobile.Trim(), FieldLengths.ContactMobile, "mobile number"),
                 DiEntityId = entityId,
                 PersonToVisit = Fit(personToVisit.Trim(), FieldLengths.PersonToVisit, "person to visit") ?? string.Empty,
                 /* The navigation, not the ID: a host row created a moment ago has no ID
@@ -1667,6 +1697,7 @@ else if (step == 3 && saved is not null)
         saved = null;
         entityId = 0;
         personToVisit = string.Empty;
+        contactMobile = string.Empty;
         purpose = string.Empty;
         purposeOther = string.Empty;
         host = null;

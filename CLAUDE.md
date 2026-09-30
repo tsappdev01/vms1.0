@@ -33,7 +33,13 @@ Table *schema* is different: `Data/DbBootstrapper.cs` creates tables from the EF
 startup, so there is only one definition of the schema. Do not hand-write DDL to create
 `vms.VisitorEntry`.
 
-It creates absent tables but never alters present ones, so **a property added to the model
-needs an `ALTER TABLE` script in `db/`**. Startup checks the model's columns against the
-database and refuses to run if any are missing, naming them — so the failure is a clear
-message rather than `Invalid column name` on the first query.
+It creates absent tables, and it adds absent **nullable** columns to tables that already
+exist — so a new optional property on the model needs no manual step. Adding a nullable
+column cannot lose data and cannot fail on a table with rows in it, which is what makes it
+safe to do unattended; every addition is logged, naming the column.
+
+Everything else still needs a script in `db/`: a **required** column, a widened type, a
+rename, a drop. Startup refuses to run when one of those is missing and names it, so the
+failure is a clear message rather than `Invalid column name` on the first query. Write the
+script anyway for an additive change — SQL lives in `db/` whether or not the application
+also applies it — but do not expect anyone to have to run it.

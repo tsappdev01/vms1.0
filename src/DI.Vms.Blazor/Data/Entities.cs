@@ -118,6 +118,17 @@ public class VisitorEntry
     public string? AddressEmail { get; set; }
 
     // ---- Visit
+    /// <summary>
+    /// The number the visitor gave at the desk.
+    ///
+    /// Separate from <see cref="AddressMobile"/> on purpose. That one is whatever the chip
+    /// held in the card's home-address block, and it is part of what the signed response
+    /// said - it is not the desk's to correct. This one is a contact number for this visit,
+    /// typed by reception, prefilled from the card when the card had one. Keeping them
+    /// apart means the report can still show what the card actually carried.
+    /// </summary>
+    public string? ContactMobile { get; set; }
+
     public int DiEntityId { get; set; }
     public DiEntity? DiEntity { get; set; }
     /// <summary>

@@ -313,6 +313,9 @@ public static class VisitsApi
                 PersonToVisitTitle = FieldLengths.Clamp(host?.Title, FieldLengths.Title),
                 PersonToVisitEmail = FieldLengths.Clamp(host?.Email, FieldLengths.Email),
                 PersonToVisitCompany = FieldLengths.Clamp(host?.CompanyName, FieldLengths.Company),
+                ContactMobile = FieldLengths.Clamp(
+                    request.ContactMobile?.Trim() is { Length: > 0 } mobile ? mobile : null,
+                    FieldLengths.ContactMobile),
                 Purpose = FieldLengths.Clamp(request.Purpose!, FieldLengths.Purpose) ?? string.Empty,
                 PurposeOther = request.Purpose == VisitPurposes.Other
                     ? FieldLengths.Clamp(request.PurposeOther?.Trim(), FieldLengths.PurposeOther)
@@ -435,4 +438,9 @@ public sealed record SaveVisitRequest(
     int? PersonToVisitId,
     string? PersonToVisitDirectoryId,
     string? Purpose,
-    string? PurposeOther);
+    string? PurposeOther,
+    /// <summary>
+    /// The number the visitor gave at the desk, optional. Nullable and last so a tablet
+    /// built before this existed goes on working - it simply sends nothing.
+    /// </summary>
+    string? ContactMobile = null);

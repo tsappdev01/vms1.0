@@ -110,6 +110,7 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.Property(x => x.CaptureMethod).HasMaxLength(FieldLengths.CaptureMethod).IsRequired();
             e.Property(x => x.RecordedBy).HasMaxLength(FieldLengths.RecordedBy);
             e.Property(x => x.AddressEmail).HasMaxLength(FieldLengths.Email);
+            e.Property(x => x.ContactMobile).HasMaxLength(FieldLengths.ContactMobile);
 
             foreach (var name in new[]
             {

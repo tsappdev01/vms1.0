@@ -80,7 +80,7 @@ else
                             <th>Recorded (GST)</th><th>Person to Visit</th><th>Purpose</th><th>Visitor</th>
                             <th>ID Number</th><th>Card No.</th><th>Nationality</th>
                             <th>Gender</th><th>Date of Birth</th><th>ID Issue</th><th>ID Expiry</th>
-                            <th>Mobile</th><th>Email</th><th>Address</th><th>Source</th><th>Recorded by</th>
+                            <th>Mobile</th><th>Contact no.</th><th>Email</th><th>Address</th><th>Source</th><th>Recorded by</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -99,6 +99,7 @@ else
                                 <td class="mono">@Dash(v.IssueDate)</td>
                                 <td class="mono">@Dash(v.ExpiryDate)</td>
                                 <td class="mono">@Dash(v.AddressMobile)</td>
+                                <td class="mono">@Dash(v.ContactMobile)</td>
                                 <td>@Dash(v.AddressEmail)</td>
                                 <td class="wrap">@Dash(PostalAddress(v))</td>
                                 @* The capture cell is the way to the stored card, rather
@@ -225,7 +226,7 @@ else
                 "Full Name (Arabic)", "ID Number", "Card Number", "ID Type", "ID Issue",
                 "ID Expiry", "Gender", "Date of Birth", "Nationality", "Nationality Code",
                 "Place of Birth", "Emirate", "City", "Area", "Street", "Building", "PO Box",
-                "Phone", "Mobile", "Email", "Source", "Recorded By",
+                "Phone", "Mobile", "Contact No", "Email", "Source", "Recorded By",
             }.Select(Escape)),
         };
 
@@ -237,7 +238,7 @@ else
             v.ExpiryDate, v.Gender, v.DateOfBirth, v.NationalityEnglish, v.NationalityCode,
             v.PlaceOfBirthEnglish, v.AddressEmirate, v.AddressCity, v.AddressArea,
             v.AddressStreet, v.AddressBuilding, v.AddressPoBox, v.AddressPhone,
-            v.AddressMobile, v.AddressEmail, v.CaptureMethod, v.RecordedBy,
+            v.AddressMobile, v.ContactMobile, v.AddressEmail, v.CaptureMethod, v.RecordedBy,
         }.Select(Escape))));
 
         await Js.InvokeVoidAsync("vms.downloadCsv",
