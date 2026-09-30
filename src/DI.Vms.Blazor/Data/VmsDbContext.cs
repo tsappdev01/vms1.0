@@ -111,6 +111,7 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             e.Property(x => x.RecordedBy).HasMaxLength(FieldLengths.RecordedBy);
             e.Property(x => x.AddressEmail).HasMaxLength(FieldLengths.Email);
             e.Property(x => x.ContactMobile).HasMaxLength(FieldLengths.ContactMobile);
+            e.Property(x => x.SignedOutBy).HasMaxLength(FieldLengths.RecordedBy);
 
             foreach (var name in new[]
             {
@@ -133,6 +134,13 @@ public class VmsDbContext(DbContextOptions<VmsDbContext> options) : DbContext(op
             // The report groups by entity and orders by time, so both are indexed.
             e.HasIndex(x => new { x.DiEntityId, x.RecordedAtUtc });
             e.HasIndex(x => x.IdNumber);
+
+            /* Who is still in the building is the one question the sign-out screen asks, and
+               it asks it on every load. Filtered, because the rows that matter are always the
+               few open ones and never the years of closed ones behind them. */
+            e.HasIndex(x => x.SignedOutAtUtc)
+             .HasFilter("[SignedOutAtUtc] IS NULL")
+             .HasDatabaseName("IX_VisitorEntry_StillInside");
         });
     }
 }

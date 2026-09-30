@@ -117,6 +117,27 @@ public class VisitorEntry
     public string? AddressMobile { get; set; }
     public string? AddressEmail { get; set; }
 
+    // ---- Leaving
+
+    /// <summary>
+    /// When the visitor was signed out, or null while they are still in the building.
+    ///
+    /// Nullable is the whole design: "still inside" is the absence of a value rather than a
+    /// status column somebody has to remember to set, so a visit can never be both recorded
+    /// as inside and carry a time for leaving.
+    ///
+    /// Nothing sets this automatically. A visitor who leaves without telling reception stays
+    /// open until somebody signs them out, and that is honest - a system that closed entries
+    /// at midnight would report an evacuation list that was tidy and wrong.
+    /// </summary>
+    public DateTimeOffset? SignedOutAtUtc { get; set; }
+
+    /// <summary>
+    /// Who signed them out. The same shape as <see cref="RecordedBy"/>, and
+    /// "(not signed in)" for the same reason when nobody was.
+    /// </summary>
+    public string? SignedOutBy { get; set; }
+
     // ---- Visit
     /// <summary>
     /// The number the visitor gave at the desk.

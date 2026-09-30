@@ -1,0 +1,325 @@
+@page "/sign-out"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = VmsRoles.CanCheckIn)]
+@inject IDbContextFactory<VmsDbContext> DbFactory
+@inject ILogger<SignOut> Logger
+
+@*
+    Who is still in the building, and the way to close an entry when they leave.
+
+    Manual, entirely. Nothing here closes an entry on a timer, and nothing closes one at
+    midnight. A visitor who walks out without telling reception stays open until somebody
+    signs them out, which looks untidy and is the point: this list is what gets read during
+    an evacuation, and a list that tidied itself would be trusted while being wrong.
+*@
+
+<PageTitle>Sign out a visitor &middot; DI VMS</PageTitle>
+
+<h1>Still in the building</h1>
+<p class="page-sub">
+    @if (loading) { <text>Checking…</text> }
+    else if (open.Count == 0) { <text>Nobody is signed in.</text> }
+    else { <text>@open.Count visitor@(open.Count == 1 ? "" : "s") signed in and not yet signed out.</text> }
+</p>
+
+@if (error is not null)
+{
+    <div class="banner critical"><strong>Could not load.</strong><span>@error</span></div>
+}
+
+@if (done is not null)
+{
+    <div class="banner ok" role="status"><strong>Signed out.</strong><span>@done</span></div>
+}
+
+<div class="toolbar">
+    <div class="field grow">
+        <label for="search">Find a visitor</label>
+        <input id="search" type="search" placeholder="Name, ID number or who they came to see"
+               @bind="search" @bind:event="oninput" autocomplete="off" />
+    </div>
+    <div class="field">
+        <label for="filter-entity">Entity</label>
+        <select id="filter-entity" @bind="entityId">
+            <option value="0">All entities</option>
+            @foreach (var e in entities)
+            {
+                <option value="@e.Id">@e.Name</option>
+            }
+        </select>
+    </div>
+    <button @onclick="Load" disabled="@loading">@(loading ? "Loading…" : "Refresh")</button>
+</div>
+
+@if (Shown.Count > 0)
+{
+    <div class="toolbar">
+        <button @onclick="SelectAllShown" disabled="@busy">
+            Select all @Shown.Count shown
+        </button>
+        <button @onclick="() => selected.Clear()" disabled="@(busy || selected.Count == 0)">
+            Clear selection
+        </button>
+        <span class="grow"></span>
+
+        @* Three ways out, because reception has three situations: one visitor at the desk,
+           a group leaving together, and the end of the day. *@
+        <button class="primary" @onclick="SignOutSelected" disabled="@(busy || selected.Count == 0)">
+            Sign out @selected.Count selected
+        </button>
+        <button @onclick="() => confirmAll = true" disabled="@(busy || open.Count == 0)">
+            Sign out everyone
+        </button>
+    </div>
+}
+
+@if (confirmAll)
+{
+    <div class="fallback">
+        <strong>Sign out all @open.Count visitors?</strong>
+        <p>
+            Every open entry gets the same time, and that time is now. Use this at the end of
+            a day, not to tidy a list &mdash; a visitor who is still here would be recorded as
+            having left.
+        </p>
+        <div class="actions">
+            <button @onclick="() => confirmAll = false" disabled="@busy">Cancel</button>
+            <button class="primary" @onclick="SignOutEveryone" disabled="@busy">
+                @(busy ? "Signing out…" : "Yes, sign out all")
+            </button>
+        </div>
+    </div>
+}
+
+@if (!loading && open.Count > 0 && Shown.Count == 0)
+{
+    <p class="page-sub">Nobody matches that search.</p>
+}
+
+@if (Shown.Count > 0)
+{
+    <table class="grid">
+        <thead>
+            <tr>
+                <th class="tick"><span class="sr-only">Select</span></th>
+                <th>Visitor</th>
+                <th>ID number</th>
+                <th>Mobile</th>
+                <th>Entity</th>
+                <th>Person visited</th>
+                <th>Purpose</th>
+                <th>Signed in</th>
+                <th>Here for</th>
+                <th class="tick"><span class="sr-only">Sign out</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var v in Shown)
+            {
+                <tr class="@(Overstayed(v) ? "warn-row" : null)">
+                    <td class="tick">
+                        <input type="checkbox" aria-label="@($"Select {v.FullNameEnglish}")"
+                               checked="@selected.Contains(v.Id)"
+                               @onchange="e => Select(v.Id, (bool?)e.Value == true)" />
+                    </td>
+                    <td>@v.FullNameEnglish</td>
+                    <td class="mono">@v.IdNumber</td>
+                    <td class="mono">@Dash(v.ContactMobile ?? v.AddressMobile)</td>
+                    <td>@v.DiEntity?.Name</td>
+                    <td>@v.PersonToVisit</td>
+                    <td>@v.Purpose</td>
+                    <td>@Gst(v.RecordedAtUtc)</td>
+                    <td>@Elapsed(v.RecordedAtUtc)</td>
+                    <td class="tick">
+                        <button @onclick="() => SignOutOne(v.Id)" disabled="@busy">Sign out</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private readonly List<VisitorEntry> open = [];
+    private readonly HashSet<int> selected = [];
+    private List<DiEntity> entities = [];
+
+    private string search = string.Empty;
+    private int entityId;
+    private bool loading = true;
+    private bool busy;
+    private bool confirmAll;
+    private string? error;
+    private string? done;
+
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    /// <summary>
+    /// A visit long enough to be worth a glance. Not a rule and not enforced - the row is
+    /// tinted, nothing more - because "too long" depends on why they came, and a system that
+    /// decided that for reception would be wrong most days.
+    /// </summary>
+    private static readonly TimeSpan LongVisit = TimeSpan.FromHours(8);
+
+    private List<VisitorEntry> Shown =>
+        open.Where(v => entityId == 0 || v.DiEntityId == entityId)
+            .Where(v => search.Trim() is { Length: > 0 } term
+                ? (v.FullNameEnglish.Contains(term, StringComparison.OrdinalIgnoreCase)
+                   || v.IdNumber.Contains(term, StringComparison.OrdinalIgnoreCase)
+                   || v.PersonToVisit.Contains(term, StringComparison.OrdinalIgnoreCase))
+                : true)
+            .ToList();
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        StateHasChanged();
+
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+
+            entities = await db.DiEntities.Where(e => e.IsActive)
+                .OrderBy(e => e.Name).ToListAsync();
+
+            var rows = await db.VisitorEntries
+                .Include(v => v.DiEntity)
+                .Where(v => v.SignedOutAtUtc == null)
+                .OrderBy(v => v.RecordedAtUtc)
+                .ToListAsync();
+
+            open.Clear();
+            open.AddRange(rows);
+
+            // A row signed out by somebody else since this list was drawn is gone from it.
+            selected.RemoveWhere(id => open.All(v => v.Id != id));
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Could not load the visitors still in the building.");
+            error = e.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void Select(int id, bool wanted)
+    {
+        if (wanted) selected.Add(id); else selected.Remove(id);
+    }
+
+    private void SelectAllShown()
+    {
+        foreach (var v in Shown) selected.Add(v.Id);
+    }
+
+    private Task SignOutOne(int id) => CloseEntries([id], one: true);
+
+    private Task SignOutSelected() => CloseEntries([.. selected], one: false);
+
+    private Task SignOutEveryone() => CloseEntries([.. open.Select(v => v.Id)], one: false);
+
+    /// <summary>
+    /// Closes the entries, with one timestamp for the whole action.
+    ///
+    /// One timestamp because a group that left together left together; taking
+    /// DateTimeOffset.UtcNow per row would spread eleven people across a second for no
+    /// reason and make the report read as though they trickled out.
+    /// </summary>
+    private async Task CloseEntries(int[] ids, bool one)
+    {
+        if (ids.Length == 0) return;
+
+        busy = true;
+        error = null;
+        done = null;
+        confirmAll = false;
+        StateHasChanged();
+
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+
+            var at = DateTimeOffset.UtcNow;
+            var by = await SignedInAs() ?? SignInOptions.NotSignedIn;
+
+            /* Re-read inside the transaction and skip anything already closed: two officers
+               on two screens is the normal case at a busy desk, and the second one must not
+               overwrite the first one's time. */
+            var rows = await db.VisitorEntries
+                .Where(v => ids.Contains(v.Id) && v.SignedOutAtUtc == null)
+                .ToListAsync();
+
+            foreach (var row in rows)
+            {
+                row.SignedOutAtUtc = at;
+                row.SignedOutBy = by.Length > FieldLengths.RecordedBy
+                    ? by[..FieldLengths.RecordedBy]
+                    : by;
+            }
+
+            await db.SaveChangesAsync();
+
+            var already = ids.Length - rows.Count;
+
+            done = one && rows.Count == 1
+                ? $"{open.FirstOrDefault(v => v.Id == ids[0])?.FullNameEnglish ?? "The visitor"} was signed out."
+                : $"{rows.Count} visitor{(rows.Count == 1 ? "" : "s")} signed out"
+                  + (already > 0 ? $"; {already} had already been signed out by somebody else." : ".");
+
+            Logger.LogInformation(
+                "{Count} visitor(s) signed out by {By}.", rows.Count, by);
+
+            selected.Clear();
+            await Load();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Could not sign the visitors out.");
+            error = e.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task<string?> SignedInAs()
+    {
+        if (AuthenticationState is null) return null;
+
+        var user = (await AuthenticationState).User;
+        if (user.Identity?.IsAuthenticated != true) return null;
+
+        return user.FindFirst("preferred_username")?.Value
+            ?? user.FindFirst(System.Security.Claims.ClaimTypes.Upn)?.Value
+            ?? user.Identity.Name;
+    }
+
+    private static bool Overstayed(VisitorEntry v) =>
+        DateTimeOffset.UtcNow - v.RecordedAtUtc > LongVisit;
+
+    private static string Dash(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    private static string Gst(DateTimeOffset instant) =>
+        instant.ToOffset(TimeSpan.FromHours(4)).ToString("dd MMM, HH:mm");
+
+    /// <summary>How long they have been here, in the words somebody would say it.</summary>
+    private static string Elapsed(DateTimeOffset since)
+    {
+        var span = DateTimeOffset.UtcNow - since;
+
+        if (span < TimeSpan.Zero) return "just now";
+        if (span < TimeSpan.FromMinutes(1)) return "just now";
+        if (span < TimeSpan.FromHours(1)) return $"{(int)span.TotalMinutes} min";
+        if (span < TimeSpan.FromDays(1)) return $"{(int)span.TotalHours}h {span.Minutes:D2}m";
+
+        return $"{(int)span.TotalDays}d {span.Hours}h";
+    }
+}

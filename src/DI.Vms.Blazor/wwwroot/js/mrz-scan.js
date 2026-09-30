@@ -146,6 +146,138 @@ export async function scan(file, engineBaseUrl, trainedDataUrl) {
     return results;
 }
 
+/* ---- the camera ------------------------------------------------------------------
+ *
+ *  A live camera, because `capture="environment"` is a hint browsers honour on phones and
+ *  ignore on desktops - which is why a PC showed a file picker where reception expected a
+ *  viewfinder.
+ *
+ *  The preview is deliberately NOT mirrored. Browsers and laptop drivers mirror a selfie
+ *  preview by convention, and that convention is wrong here: this is a document being held
+ *  up, and text reads backwards. Nothing relies on getting it right, though - the recogniser
+ *  tries all four orientations and the check digits decide - so this is about the officer
+ *  being able to aim, not about correctness.
+ */
+const streams = new Map();
+
+export async function openCamera(videoId) {
+    const video = document.getElementById(videoId);
+    if (!video) return { ok: false, problem: 'The camera panel is not on screen.' };
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                /* The rear camera where there is one - a tablet on a desk stand has the
+                   visitor's card in front of it, not the officer's face. Not "exact", so a
+                   laptop with only a front camera still works. */
+                facingMode: 'environment',
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+            },
+            audio: false,
+        });
+
+        streams.set(videoId, stream);
+        video.srcObject = stream;
+        await video.play();
+        return { ok: true };
+    } catch (e) {
+        const reason = e?.name === 'NotAllowedError'
+            ? 'The browser blocked the camera. Allow it for this site and try again.'
+            : e?.name === 'NotFoundError'
+                ? 'This device has no camera. Choose a photograph instead.'
+                : (e?.message ?? 'The camera could not be opened.');
+        return { ok: false, problem: reason };
+    }
+}
+
+export function closeCamera(videoId) {
+    const stream = streams.get(videoId);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    streams.delete(videoId);
+
+    const video = document.getElementById(videoId);
+    if (video) video.srcObject = null;
+}
+
+/** One frame, full sensor resolution, as base64 JPEG. Not mirrored: a video frame never is. */
+export function grab(videoId) {
+    const video = document.getElementById(videoId);
+    if (!video || !video.videoWidth) return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    return canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+}
+
+/** A chosen file, as base64, so the camera and the picker feed the same code below. */
+export async function fileAsBase64(inputId, maximumBytes) {
+    const file = document.getElementById(inputId)?.files?.[0];
+    if (!file) return null;
+    if (file.size > maximumBytes) return { tooLarge: true };
+
+    const bitmap = await bitmapOf(file);
+    const width = Math.min(1920, bitmap.width);
+    const height = Math.round(bitmap.height * (width / bitmap.width));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+
+    return { image: canvas.toDataURL('image/jpeg', 0.92).split(',')[1] };
+}
+
+/** Recognises a base64 image in all four orientations. */
+export async function scanImage(base64, engineBaseUrl, trainedDataUrl) {
+    try {
+        const blob = await (await fetch(`data:image/jpeg;base64,${base64}`)).blob();
+        const results = await scan(blob, engineBaseUrl, trainedDataUrl);
+        return { ok: true, results };
+    } catch (e) {
+        return { ok: false, problem: e?.message ?? 'The photograph could not be read.' };
+    }
+}
+
+/**
+ * The two sides as one picture, front above back.
+ *
+ * One image because the visit stores one, and because the pair is the evidence: the face
+ * the officer was shown and the zone the details came from, in the same frame, neither able
+ * to be separated from the other afterwards.
+ */
+export async function compose(frontBase64, backBase64) {
+    const sides = [];
+    for (const b of [frontBase64, backBase64]) {
+        if (!b) continue;
+        sides.push(await createImageBitmap(await (await fetch(`data:image/jpeg;base64,${b}`)).blob()));
+    }
+    if (sides.length === 0) return null;
+
+    const width = Math.min(1100, Math.max(...sides.map(s => s.width)));
+    const heights = sides.map(s => Math.round(s.height * (width / s.width)));
+    const gap = sides.length > 1 ? 12 : 0;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = heights.reduce((a, b) => a + b, 0) + gap;
+
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    let y = 0;
+    sides.forEach((s, i) => {
+        ctx.drawImage(s, 0, y, width, heights[i]);
+        y += heights[i] + gap;
+    });
+
+    return canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+}
+
 /**
  * The entry point the page calls: reads the chosen file straight out of the input.
  *

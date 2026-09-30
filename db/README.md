@@ -22,6 +22,7 @@ against being run in `master` and stops without changing anything if it is.
 | `010_add_person_directory_object_id.sql` | **Run before deploying the build that reads the host list from Entra ID.** Adds `vms.Person.DirectoryObjectId` and a unique filtered index on it. The "person to visit" list becomes the SSO directory; this table stops being that list and becomes a record of who has actually been visited, so a visit stays readable after the person leaves the tenant. |
 | `011_add_card_image_blob.sql` | **Run before deploying the build that stores card images in Azure Blob Storage.** Adds `BlobName` to `vms.VisitorCardImage` and makes `Image` nullable, so a row holds either the bytes (UATWEB01, no storage account) or a blob name (Azure). Rows written before it keep working untouched. |
 | `012_add_visitor_contact_mobile.sql` | Adds `vms.VisitorEntry.ContactMobile`, the number the visitor gives at the desk. Usually unnecessary: the application adds absent nullable columns itself at startup. |
+| `013_add_visitor_sign_out.sql` | Adds `SignedOutAtUtc` and `SignedOutBy` to `vms.VisitorEntry`, and the filtered index the sign-out screen reads. The columns are added at startup; **the index is not** — run this for it. |
 
 ## Which scripts for which database
 

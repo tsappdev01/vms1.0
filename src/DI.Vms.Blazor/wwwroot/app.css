@@ -1167,3 +1167,76 @@ button.link:hover { background: none; color: var(--accent-hover); }
   .card { border: none; box-shadow: none; break-inside: avoid; }
   body { background: #fff; }
 }
+
+
+/* ---- Sign out a visitor -------------------------------------------------------------
+   The table is the report's, with two additions: a narrow column for the checkbox and the
+   per-row button, and a tint for a visit that has run long. The tint is a prompt to look,
+   not a status - nothing in the data says a long visit is wrong. */
+.grid th.tick, .grid td.tick { width: 1%; white-space: nowrap; text-align: center; }
+.grid td.tick input[type="checkbox"] { width: 18px; height: 18px; }
+
+.grid tr.warn-row > td { background: var(--warn-soft, #fdf6e3); }
+@media (prefers-color-scheme: dark) {
+  .grid tr.warn-row > td { background: rgba(200, 164, 92, 0.10); }
+}
+
+.toolbar .grow { flex: 1 1 auto; }
+
+/* Announced to a screen reader, invisible to everyone else. The checkbox and the sign-out
+   button carry the visitor's name that way without repeating it in the cell. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* A tablet holds fewer columns than a desk monitor. The ones that go are the ones the
+   officer can get from the visitor standing there. */
+@media (max-width: 1000px) {
+  .grid th:nth-child(4), .grid td:nth-child(4),
+  .grid th:nth-child(7), .grid td:nth-child(7) { display: none; }
+}
+
+
+/* ---- Photographing a digital card ---------------------------------------------------
+   The viewfinder is deliberately NOT mirrored. A preview of a document that reads
+   backwards is worse than useless, whatever a selfie camera conventionally does - and
+   nothing depends on it anyway, because the recogniser tries all four orientations. */
+.scan-view {
+  width: 100%;
+  max-height: 46vh;
+  border-radius: 10px;
+  background: #0b1a27;
+  object-fit: contain;
+  display: block;
+}
+
+.scan-sides { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.scan-side {
+  flex: 1 1 160px;
+  min-width: 140px;
+  border: 1px dashed var(--outline, #c3ced8);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
+}
+
+.scan-side.have { border-style: solid; }
+.scan-side img { width: 100%; border-radius: 6px; display: block; }
+.scan-side-name { font-size: 0.82rem; font-weight: 600; }
+.scan-side-empty { font-size: 0.82rem; opacity: 0.65; padding: 14px 0; }
+
+.scan-files { display: grid; gap: 6px; }
+.scan-files label { font-size: 0.82rem; font-weight: 600; }
+
+/* On a tablet the viewfinder is the screen; the thumbnails sit under it rather than
+   competing with it for width. */
+@media (max-width: 700px) {
+  .scan-view { max-height: 38vh; }
+  .scan-side { flex-basis: 100%; }
+}
