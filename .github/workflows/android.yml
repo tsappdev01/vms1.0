@@ -23,7 +23,7 @@ on:
     inputs:
       apiBaseUrl:
         description: 'Server the build points at by default'
-        default: 'https://vms.dubaiinvestments.com/'
+        default: 'https://vmsdi.dubaiinvestments.com/'
         required: false
 
 jobs:
@@ -86,7 +86,7 @@ jobs:
         working-directory: android
         run: |
           ./gradlew --no-daemon assembleDebug \
-            -PVMS_API_BASE_URL='${{ inputs.apiBaseUrl || 'https://vms.dubaiinvestments.com/' }}' \
+            -PVMS_API_BASE_URL='${{ inputs.apiBaseUrl || 'https://vmsdi.dubaiinvestments.com/' }}' \
             -PVMS_API_KEY='${{ secrets.VMS_API_KEY }}'
 
       # What the APK actually contains, checked rather than assumed.

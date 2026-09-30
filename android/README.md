@@ -145,7 +145,7 @@ The gear in the top bar. Two fields, and both of them are addressed to whoever i
 tablet rather than to reception:
 
 - **Server address** — where visits are sent. It defaults to what the build was made with
-  (`VMS_API_BASE_URL`), currently `https://vms.dubaiinvestments.com/`. A bare host is accepted
+  (`VMS_API_BASE_URL`), currently `https://vmsdi.dubaiinvestments.com/`. A bare host is accepted
   and `https://` is added; a missing trailing slash is added too, because without it
   Retrofit silently drops the last path segment of the base URL.
 - **API key** — what the tablet identifies itself with. Blank is right for the
@@ -431,7 +431,7 @@ between attempts when something is stuck.
   instead of copied into three. A wrong value fails the build naming the file it looked
   for.
 - `VMS_API_BASE_URL` — the server a build points at *by default*;
-  `https://vms.dubaiinvestments.com/` unless overridden. The
+  `https://vmsdi.dubaiinvestments.com/` unless overridden. The
   tablet can be moved elsewhere from the settings screen, so this only decides where a
   fresh install looks first. The trailing slash matters to Retrofit; without it Retrofit
   drops the last path segment.

@@ -200,7 +200,7 @@ one, or the reverse.
 Register both, as **Web** (not SPA, not public client):
 
 ```
-https://vms.dubaiinvestments.com/signin-oidc
+https://vmsdi.dubaiinvestments.com/signin-oidc
 https://vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net/signin-oidc
 ```
 

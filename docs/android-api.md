@@ -75,6 +75,40 @@ On the on-premises host it goes in `appsettings.Production.json`, which is gitig
 environment. UATWEB01 has never had one and does not need one — it is reachable only from the
 office network.
 
+### 2b. One key per tablet, so the report can say which one
+
+With two desks, give each its own key and the report names the desk that recorded each visit.
+
+| Name | Value |
+|---|---|
+| `Api__Keys__Reception 1` | a key generated for that tablet |
+| `Api__Keys__Reception 2` | a different key |
+
+The name is whatever you put after `Api__Keys__`, and it is what appears in the visit's
+**Recorded by** column. Spaces are fine.
+
+This is a credential rather than a label the tablet types about itself, which matters more than
+it looks: a name typed into a settings screen works until somebody types the wrong one, or
+copies a tablet's settings onto its replacement and leaves two desks both claiming to be desk
+one. A key cannot be got wrong that way, and one tablet can be withdrawn without taking the
+other down with it.
+
+Two guards, both at startup rather than in a report months later:
+
+- **The same key on two tablets is refused.** Both would record the first one's name, which is
+  worse than no name at all — the report would be confidently wrong instead of silent.
+- **A key under 32 characters is refused**, named so you know which one.
+
+The plain `Api__Key` still works and still records `(not signed in)`, so a deployment already
+using one keeps working unchanged. Set both if you are migrating: the old key keeps the desks
+running while you move them across one at a time.
+
+Startup names them:
+
+```
+Tablet keys configured: Reception 1, Reception 2.
+```
+
 ### 3. Check the server before touching a tablet
 
 Two checks, and both are worth doing in this order, because they separate a server problem from

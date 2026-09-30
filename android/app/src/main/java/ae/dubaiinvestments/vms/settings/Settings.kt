@@ -57,7 +57,7 @@ class Settings(context: Context) {
         val normalised = normalise(baseUrl)
             ?: return if (baseUrl.contains("@")) {
                 "That looks like an email address. The server address is a web address, " +
-                    "such as vms.dubaiinvestments.com."
+                    "such as vmsdi.dubaiinvestments.com."
             } else {
                 "That is not an address the tablet can use."
             }

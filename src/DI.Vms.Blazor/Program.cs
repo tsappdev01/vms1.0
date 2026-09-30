@@ -78,6 +78,7 @@ builder.Services.AddSingleton(signIn);
    and note that a key protects /api only. The Blazor screens, the visitor report
    included, are protected by sign-in or by nothing. */
 var apiKey = ApiKey.Configured(builder.Configuration);
+var tabletKeys = ApiKey.AllConfigured(builder.Configuration);
 
 if (signIn.Enabled)
 {
@@ -193,11 +194,11 @@ if (signIn.Enabled)
        Without this, turning sign-in on for the web app answers 401 to every screen on every
        tablet, which is a working reception desk broken by a setting that was about the
        browser. */
-    if (apiKey is not null)
+    if (tabletKeys.Count > 0)
     {
         authentication.AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
             ApiKeyAuthenticationHandler.SchemeName,
-            options => options.ExpectedKey = apiKey);
+            options => options.Keys = tabletKeys);
     }
 }
 else
@@ -380,15 +381,25 @@ using (var scope = app.Services.CreateScope())
     }
 
     logger.Log(
-        signIn.Enabled || apiKey is not null ? LogLevel.Information : LogLevel.Warning,
+        signIn.Enabled || tabletKeys.Count > 0 ? LogLevel.Information : LogLevel.Warning,
         "The /api endpoints are guarded by {Guard}.",
-        (signIn.Enabled, apiKey is not null) switch
+        (signIn.Enabled, tabletKeys.Count > 0) switch
         {
             (true, true) => "an Entra ID token or the tablet's API key",
             (true, false) => "an Entra ID token - no Api:Key is set, so no tablet can reach them",
             (false, true) => "an API key",
             (false, false) => "nothing but the network this server is on",
         });
+
+    /* Which tablets can reach it, by name. A desk that says "the report does not show which
+       tablet recorded this" is usually a tablet holding the unnamed Api:Key, and this line is
+       where that shows. Names only - a key is never logged, not even a prefix. */
+    if (tabletKeys.Count > 0)
+    {
+        logger.LogInformation(
+            "Tablet keys configured: {Tablets}.",
+            string.Join(", ", tabletKeys.Select(k => k.Name)));
+    }
 
     BrandAssets.Locate(app.Environment.WebRootPath, logger);
 }
@@ -430,7 +441,7 @@ app.MapControllers();
 
 /* The Android reception app's endpoints. With sign-in on they take an Entra token or the
    tablet's key; with it off, the open-desk scheme and the key middleware above. */
-app.MapVisitsApi(signIn.Enabled, acceptTabletKey: signIn.Enabled && apiKey is not null);
+app.MapVisitsApi(signIn.Enabled, acceptTabletKey: signIn.Enabled && tabletKeys.Count > 0);
 
 /* The stored card for one visit.
 

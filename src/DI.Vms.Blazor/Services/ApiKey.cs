@@ -49,14 +49,61 @@ public static class ApiKey
         var key = configuration["Api:Key"];
         if (string.IsNullOrWhiteSpace(key)) return null;
 
-        if (key.Length < 32)
+        Check("Api:Key", key);
+        return key;
+    }
+
+    /// <summary>
+    /// Every key this host accepts, each with the name of the tablet that holds it.
+    ///
+    /// One key per tablet rather than one key shared by all of them, because the key is the
+    /// only thing that says which tablet a visit came from. A name typed into a settings
+    /// screen would do the same job until somebody typed the wrong one, or copied a tablet's
+    /// settings to its replacement and left two desks claiming to be desk one. A credential
+    /// cannot be got wrong that way, and it can be withdrawn from one tablet without taking
+    /// the other one down with it.
+    ///
+    /// <c>Api:Key</c> still works and still means "a tablet, unnamed", so a deployment that
+    /// has one keeps working and reads exactly as it did.
+    /// </summary>
+    public static IReadOnlyList<TabletKey> AllConfigured(IConfiguration configuration)
+    {
+        var keys = new List<TabletKey>();
+
+        if (configuration["Api:Key"] is { Length: > 0 } single)
         {
-            throw new InvalidOperationException(
-                $"Api:Key is {key.Length} characters. Use at least 32 - on a public host this is the " +
-                "only thing standing in front of the visitor database while sign-in is off.");
+            Check("Api:Key", single);
+            keys.Add(new TabletKey(SignInOptions.NotSignedIn, single));
         }
 
-        return key;
+        foreach (var named in configuration.GetSection("Api:Keys").GetChildren())
+        {
+            if (string.IsNullOrWhiteSpace(named.Value)) continue;
+
+            Check($"Api:Keys:{named.Key}", named.Value);
+            keys.Add(new TabletKey(named.Key, named.Value));
+        }
+
+        /* Two tablets sharing a key would both record the first one's name, which is worse
+           than no name at all: the report would be confidently wrong rather than silent. */
+        var clash = keys.GroupBy(k => k.Value).FirstOrDefault(g => g.Count() > 1);
+        if (clash is not null)
+        {
+            throw new InvalidOperationException(
+                $"{string.Join(" and ", clash.Select(k => k.Name))} are configured with the same key. " +
+                "Give each tablet its own, or the report cannot say which one recorded a visit.");
+        }
+
+        return keys;
+    }
+
+    private static void Check(string setting, string key)
+    {
+        if (key.Length >= 32) return;
+
+        throw new InvalidOperationException(
+            $"{setting} is {key.Length} characters. Use at least 32 - on a public host this is the " +
+            "only thing standing in front of the visitor database while sign-in is off.");
     }
 
     /// <summary>
@@ -147,10 +194,13 @@ public static class ApiKey
     }
 }
 
-/// <summary>Carries the key the handler compares against. One per host.</summary>
+/// <summary>A key a tablet presents, and the name of the tablet that holds it.</summary>
+public sealed record TabletKey(string Name, string Value);
+
+/// <summary>Carries the keys the handler compares against - one per tablet.</summary>
 public sealed class ApiKeyAuthenticationOptions : AuthenticationSchemeOptions
 {
-    public string ExpectedKey { get; set; } = string.Empty;
+    public IReadOnlyList<TabletKey> Keys { get; set; } = [];
 }
 
 /// <summary>
@@ -190,13 +240,25 @@ public sealed class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAu
         if (string.IsNullOrEmpty(presented)) return Task.FromResult(AuthenticateResult.NoResult());
 
         var presentedBytes = Encoding.UTF8.GetBytes(presented);
-        var expectedBytes = Encoding.UTF8.GetBytes(Options.ExpectedKey);
+        TabletKey? matched = null;
 
-        /* Fixed-time, and length-checked first because FixedTimeEquals requires equal
-           lengths. Comparing with == would leak the key a character at a time to anyone
-           patient enough to measure. */
-        if (presentedBytes.Length != expectedBytes.Length ||
-            !CryptographicOperations.FixedTimeEquals(presentedBytes, expectedBytes))
+        /* Fixed-time per candidate, and length-checked first because FixedTimeEquals requires
+           equal lengths. Comparing with == would leak a key a character at a time to anyone
+           patient enough to measure. How many keys are configured is not a secret, so walking
+           the list costs nothing worth hiding. */
+        foreach (var candidate in Options.Keys)
+        {
+            var expectedBytes = Encoding.UTF8.GetBytes(candidate.Value);
+
+            if (presentedBytes.Length == expectedBytes.Length &&
+                CryptographicOperations.FixedTimeEquals(presentedBytes, expectedBytes))
+            {
+                matched = candidate;
+                break;
+            }
+        }
+
+        if (matched is null)
         {
             /* Logged with the caller's address, because on a public host this is the signal
                that someone is trying keys. One line per attempt is what makes a pattern
@@ -213,12 +275,16 @@ public sealed class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAu
 
         var claims = new List<Claim>
         {
-            new(ClaimTypes.Name, SignInOptions.NotSignedIn),
+            /* The tablet's name, which is what the report shows in RecordedBy. It comes from
+               which key was presented, not from anything the tablet said about itself, so a
+               desk cannot record a visit under another desk's name. An unnamed Api:Key still
+               produces "(not signed in)", which is what it has always produced. */
+            new(ClaimTypes.Name, matched.Name),
 
             /* The same claim Entra sends, and the first one VisitsApi looks for. Keeping the
                shape identical means the audit column reads the same way whether the record
                came from a signed-in browser or from a tablet. */
-            new("preferred_username", SignInOptions.NotSignedIn),
+            new("preferred_username", matched.Name),
 
             new(ClaimTypes.Role, VmsRoles.Officer),
         };
