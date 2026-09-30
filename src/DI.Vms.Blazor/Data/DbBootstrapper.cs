@@ -18,12 +18,12 @@ namespace DI.Vms.Blazor.Data;
 /// The DDL is generated from the EF model rather than written out here, so there is only
 /// one definition of the schema and no second copy to drift.
 ///
-/// It creates absent tables, and it adds absent <em>nullable</em> columns to tables that
-/// are already there. That second part is deliberately the only alteration it will make:
-/// adding a nullable column cannot lose data, cannot fail on a table with rows in it, and
-/// is what a new optional field on the model needs. Everything else - a required column, a
-/// widened type, a renamed or dropped column - still needs a script in db/, because those
-/// have a right answer only a person knows.
+/// It creates absent tables, adds absent <em>nullable</em> columns to tables that are
+/// already there, and creates absent indexes. Those three are deliberately the whole of
+/// what it will alter: none of them can lose data, and each is what an ordinary addition to
+/// the model needs. Everything else - a required column, a widened type, a renamed or
+/// dropped column - still needs a script in db/, because those have a right answer only a
+/// person knows.
 ///
 /// This is still a bootstrap, not a migration tool. Once the database holds data that
 /// cannot be dropped and the changes stop being additive, move to EF migrations -
@@ -116,6 +116,7 @@ public static class DbBootstrapper
         {
             logger.LogInformation("Schema present: {Tables}.", string.Join(", ", wanted));
             await VerifyColumnsAsync(db, logger, ct);
+            await EnsureIndexesAsync(db, logger, ct);
             return;
         }
 
@@ -222,5 +223,119 @@ public static class DbBootstrapper
             "with rows in it without deciding what the existing rows should say, so this " +
             "one is not automatic. Run the scripts in db/ against this database - the " +
             "newest one adds them - and start again.");
+    }
+
+    /// <summary>
+    /// Creates the indexes the model declares and the database does not have.
+    ///
+    /// This used to be a script somebody had to run, on the reasoning that CREATE INDEX
+    /// takes a schema lock and when to take one is a decision. That reasoning is sound and
+    /// was the wrong trade here: a reception desk's visit table is thousands of rows, where
+    /// the lock is measured in milliseconds, and the real cost of the manual step was that
+    /// it got skipped - leaving a screen that scans a table to answer a question it has an
+    /// index for, with nobody knowing why it felt slow.
+    ///
+    /// So it is automatic, with the guard that makes it stay safe: above
+    /// <see cref="IndexRowCeiling"/> rows it refuses and names the script instead. The point
+    /// at which the original objection becomes real is the point at which a person should
+    /// choose the moment.
+    /// </summary>
+    private const long IndexRowCeiling = 500_000;
+
+    private static async Task EnsureIndexesAsync(VmsDbContext db, ILogger logger, CancellationToken ct)
+    {
+        var present = await db.Database
+            .SqlQueryRaw<string>(
+                "SELECT s.name + '.' + t.name + '.' + i.name AS Value FROM sys.indexes i " +
+                "JOIN sys.tables t ON t.object_id = i.object_id " +
+                "JOIN sys.schemas s ON s.schema_id = t.schema_id " +
+                "WHERE i.name IS NOT NULL")
+            .ToListAsync(ct);
+
+        var found = new HashSet<string>(present, StringComparer.OrdinalIgnoreCase);
+        var sql = db.GetService<ISqlGenerationHelper>();
+
+        foreach (var type in db.Model.GetEntityTypes())
+        {
+            var table = type.GetTableName();
+            if (table is null) continue;
+
+            var schema = type.GetSchema() ?? db.Model.GetDefaultSchema() ?? "dbo";
+
+            foreach (var index in type.GetIndexes())
+            {
+                var name = index.GetDatabaseName();
+                if (string.IsNullOrEmpty(name)) continue;
+                if (found.Contains($"{schema}.{table}.{name}")) continue;
+
+                var columns = index.Properties
+                    .Select(property => property.GetColumnName())
+                    .Where(column => !string.IsNullOrEmpty(column))
+                    .ToList();
+
+                if (columns.Count != index.Properties.Count) continue;
+
+                var rows = await RowCountAsync(db, schema, table, ct);
+
+                if (rows > IndexRowCeiling)
+                {
+                    /* Not an exception: the application runs perfectly well without an
+                       index, just with a scan. Refusing to start over a missing index would
+                       take a working desk down to fix a slow screen. */
+                    logger.LogWarning(
+                        "{Schema}.{Table} has {Rows:N0} rows, so the index {Index} is not created " +
+                        "automatically - CREATE INDEX would hold a schema lock for long enough to " +
+                        "matter. Run the script in db/ that adds it, at a quiet moment.",
+                        schema, table, rows, name);
+                    continue;
+                }
+
+                var unique = index.IsUnique ? "UNIQUE " : string.Empty;
+                var filter = index.GetFilter() is { Length: > 0 } f ? $" WHERE {f}" : string.Empty;
+                var columnList = string.Join(", ", columns.Select(c => sql.DelimitIdentifier(c!)));
+
+                var statement =
+                    $"IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = " +
+                    $"OBJECT_ID('{schema}.{table}', 'U') AND name = '{name}') " +
+                    $"CREATE {unique}INDEX {sql.DelimitIdentifier(name)} " +
+                    $"ON {sql.DelimitIdentifier(table, schema)} ({columnList}){filter};";
+
+                try
+                {
+                    await db.Database.ExecuteSqlRawAsync(statement, ct);
+
+                    logger.LogInformation(
+                        "Created the index {Schema}.{Table}.{Index} over ({Columns}){Filter}.",
+                        schema, table, name, string.Join(", ", columns), filter);
+                }
+                catch (Exception ex)
+                {
+                    /* An index is a performance decision, and a database that will not take
+                       one is not a reason to refuse a reception desk. Said loudly, then on. */
+                    logger.LogError(ex,
+                        "Could not create the index {Index} on {Schema}.{Table}. The application " +
+                        "will run without it, reading that table by scan.",
+                        name, schema, table);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// How many rows the table holds, from the partition statistics rather than COUNT(*).
+    ///
+    /// COUNT(*) on a table large enough for this question to matter is itself the scan the
+    /// question is about.
+    /// </summary>
+    private static async Task<long> RowCountAsync(
+        VmsDbContext db, string schema, string table, CancellationToken ct)
+    {
+        var rows = await db.Database
+            .SqlQueryRaw<long>(
+                "SELECT ISNULL(SUM(p.row_count), 0) AS Value FROM sys.dm_db_partition_stats p " +
+                $"WHERE p.object_id = OBJECT_ID('{schema}.{table}', 'U') AND p.index_id IN (0, 1)")
+            .ToListAsync(ct);
+
+        return rows.FirstOrDefault();
     }
 }

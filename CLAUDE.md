@@ -33,10 +33,14 @@ Table *schema* is different: `Data/DbBootstrapper.cs` creates tables from the EF
 startup, so there is only one definition of the schema. Do not hand-write DDL to create
 `vms.VisitorEntry`.
 
-It creates absent tables, and it adds absent **nullable** columns to tables that already
-exist — so a new optional property on the model needs no manual step. Adding a nullable
-column cannot lose data and cannot fail on a table with rows in it, which is what makes it
-safe to do unattended; every addition is logged, naming the column.
+It creates absent tables, adds absent **nullable** columns, and creates absent **indexes**
+— so an ordinary addition to the model needs no manual step at all. None of the three can
+lose data, and each is logged, naming what it made.
+
+Indexes have one guard: above 500,000 rows the table is left alone and a warning names the
+script, because `CREATE INDEX` holds a schema lock and when to take one is then a decision
+rather than a detail. Below that it is milliseconds. A failure to create an index is logged
+and the application carries on — a slow screen is not a reason to refuse a reception desk.
 
 Everything else still needs a script in `db/`: a **required** column, a widened type, a
 rename, a drop. Startup refuses to run when one of those is missing and names it, so the

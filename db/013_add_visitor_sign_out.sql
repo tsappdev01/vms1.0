@@ -1,13 +1,17 @@
 /*  013_add_visitor_sign_out.sql
     Adds the two columns a visitor sign-out needs, and the index the sign-out screen reads.
 
-    The COLUMNS you probably do not need to run: they are nullable, and DbBootstrapper adds
-    absent nullable columns itself at startup.
+    You do not need to run this. DbBootstrapper adds absent nullable columns AND creates
+    absent indexes at startup, and all three objects here are one of those.
 
-    The INDEX you do. The bootstrapper adds columns and nothing else - an index on a table
-    with rows in it is a decision about when to take the write lock, and that belongs to
-    whoever knows when the desk is quiet. Without it the sign-out screen still works; it just
-    scans the visit table instead of seeking a few open rows.
+    It is kept because SQL in this project lives in db/ whether or not the application also
+    applies it, and because it is what a DBA should be shown when they ask what the
+    application did to their database. Applying it first simply means the bootstrapper finds
+    nothing to do.
+
+    The one case where it is still needed: above 500,000 rows the bootstrapper leaves the
+    index alone and logs a warning naming this file, because CREATE INDEX holds a schema lock
+    for long enough to matter at that size and when to take it is a decision.
 
     Re-runnable.
 
