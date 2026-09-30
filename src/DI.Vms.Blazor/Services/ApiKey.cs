@@ -70,7 +70,18 @@ public static class ApiKey
     {
         var keys = new List<TabletKey>();
 
-        if (configuration["Api:Key"] is { Length: > 0 } single)
+        /*  Trimmed, because the other end is.
+         *
+         *  HTTP strips the whitespace around a header value, and the tablet trims what is
+         *  typed into its settings screen before storing it - so a key pasted into the portal
+         *  with a space on the end is compared against one without, and never matches. The
+         *  only symptom is a 401 that says the key was not accepted, which is true and says
+         *  nothing about why; OkHttp sends the space without complaint, so there is no other
+         *  sign of it anywhere.
+         *
+         *  Nobody has a key whose value depends on surrounding whitespace. Trimming here is
+         *  what makes the two ends agree about what was configured. */
+        if (configuration["Api:Key"]?.Trim() is { Length: > 0 } single)
         {
             Check("Api:Key", single);
             keys.Add(new TabletKey(SignInOptions.NotSignedIn, single));
@@ -78,10 +89,11 @@ public static class ApiKey
 
         foreach (var named in configuration.GetSection("Api:Keys").GetChildren())
         {
-            if (string.IsNullOrWhiteSpace(named.Value)) continue;
+            var value = named.Value?.Trim();
+            if (string.IsNullOrEmpty(value)) continue;
 
-            Check($"Api:Keys:{named.Key}", named.Value);
-            keys.Add(new TabletKey(named.Key, named.Value));
+            Check($"Api:Keys:{named.Key}", value);
+            keys.Add(new TabletKey(named.Key.Trim(), value));
         }
 
         /* Two tablets sharing a key would both record the first one's name, which is worse

@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -108,7 +109,22 @@ fun SettingsScreen(
                         )
                     }
                 },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                /*  Password, and autocorrect off, both stated rather than left to the
+                 *  default.
+                 *
+                 *  This is sixty-four random characters typed on a soft keyboard. A field the
+                 *  IME believes to be prose will helpfully capitalise, suggest and substitute
+                 *  in it, and the result is a key that looks right on screen, is wrong by one
+                 *  character, and produces a 401 that says only that the server did not accept
+                 *  it. Nothing anywhere points at the keyboard.
+                 *
+                 *  KeyboardType.Password is the one that tells every IME to keep out. */
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    autoCorrect = false,
+                    capitalization = KeyboardCapitalization.None,
+                    imeAction = ImeAction.Done,
+                ),
                 modifier = Modifier.fillMaxWidth(),
             )
 
