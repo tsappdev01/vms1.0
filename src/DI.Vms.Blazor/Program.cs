@@ -237,7 +237,20 @@ if (signIn.Enabled)
     controllers.AddMicrosoftIdentityUI();
 }
 
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents().AddHubOptions(options =>
+{
+    /* A photograph crosses the circuit, and the default ceiling is 32 KB.
+       
+       That default is right for a Blazor app whose interop carries form values. This one
+       carries a picture of an Emirates ID from the browser's camera to the server, which is
+       a few hundred kilobytes of base64 - and over the limit the call is rejected with no
+       error anyone sees, so the camera shows a clear picture and the capture button appears
+       to do nothing. That is exactly what it did.
+
+       Eight megabytes is a ceiling, not a reservation: nothing is allocated until a message
+       arrives, and DigitalCard:MaximumBytes refuses anything larger before it is sent. */
+    options.MaximumReceiveMessageSize = 8 * 1024 * 1024;
+});
 
 /* EnableRetryOnFailure, because this app now runs against Azure SQL as well as against
    SQL Server on UATWEB01. Azure SQL moves a database between nodes and throttles, and both

@@ -394,7 +394,7 @@
                                     <div class="actions">
                                         <button @onclick="StopCamera" disabled="@scanning">Close camera</button>
                                         <button class="primary" @onclick="() => Grab(back: true)" disabled="@scanning">
-                                            Capture the back
+                                            Capture the back and read it
                                         </button>
                                         <button @onclick="() => Grab(back: false)" disabled="@scanning">
                                             Capture the front
@@ -456,9 +456,12 @@
 
                                 <div class="actions">
                                     <button @onclick="CloseScan" disabled="@scanning">Cancel</button>
-                                    <button class="primary" @onclick="ReadTheZone"
+                                    @* The back is read the moment it is captured. This is here
+                                       for a photograph chosen from a file, and for a retry after
+                                       a read that did not hold. *@
+                                    <button class="primary" @onclick="() => ReadTheZone()"
                                             disabled="@(scanning || backImage is null)">
-                                        @(backImage is null ? "Capture the back first" : "Read the card")
+                                        @(backImage is null ? "Capture the back first" : "Read the card again")
                                     </button>
                                 </div>
                             </div>
@@ -1118,18 +1121,39 @@ else if (step == 3 && saved is not null)
         cameraOn = false;
     }
 
+    /// <summary>
+    /// Takes one frame, and - for the back - reads it straight away.
+    ///
+    /// Reading it at once is the difference between a scanner and a file upload. The officer
+    /// holds the card up, presses once, and either the form fills or the screen says what was
+    /// wrong with the photograph while the card is still in their hand. Making them press a
+    /// second button to find that out is how a two-second job becomes a conversation.
+    /// </summary>
     private async Task Grab(bool back)
     {
-        var image = await (await ScanModule()).InvokeAsync<string?>("grab", ScanVideoId);
+        scanProblem = null;
 
-        if (image is null)
+        try
         {
-            scanProblem = "The camera had no picture to take yet. Give it a moment and try again.";
+            var image = await (await ScanModule()).InvokeAsync<string?>("grab", ScanVideoId);
+
+            if (image is null)
+            {
+                scanProblem = "The camera had no picture yet. Give it a moment and try again.";
+                return;
+            }
+
+            if (back) backImage = image; else frontImage = image;
+        }
+        catch (JSException e)
+        {
+            scanProblem = e.Message;
             return;
         }
 
-        if (back) backImage = image; else frontImage = image;
-        scanProblem = null;
+        /* The front is kept, not read - the zone is not on it - so capturing it never
+           interrupts what the officer is doing. */
+        if (back) await ReadTheZone(automatic: true);
     }
 
     private async Task Chose(bool back)
@@ -1149,6 +1173,9 @@ else if (step == 3 && saved is not null)
 
         if (back) backImage = chosen.Image; else frontImage = chosen.Image;
         scanProblem = null;
+
+        // Same as the camera: chosen, then read, with no second button in between.
+        if (back) await ReadTheZone(automatic: true);
     }
 
     private async Task CloseScan()
@@ -1168,7 +1195,7 @@ else if (step == 3 && saved is not null)
     /// a mirrored or upside-down zone cannot pass them. That is why nothing on the client has
     /// to know whether a webcam mirrored the picture.
     /// </summary>
-    private async Task ReadTheZone()
+    private async Task ReadTheZone(bool automatic = false)
     {
         if (backImage is null) return;
 
@@ -1200,7 +1227,12 @@ else if (step == 3 && saved is not null)
 
             if (!found.Ok)
             {
-                scanProblem = found.Problem;
+                /* After an automatic attempt the camera stays open and the picture stays in
+                   place, so "try again" is one press with the card still held up. The
+                   message is the same either way - it already says what to change. */
+                scanProblem = automatic
+                    ? found.Problem + " The camera is still on: line the three lines up and press again."
+                    : found.Problem;
                 return;
             }
 

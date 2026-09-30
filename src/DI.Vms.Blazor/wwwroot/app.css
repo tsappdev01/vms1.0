@@ -1194,8 +1194,35 @@ button.link:hover { background: none; color: var(--accent-hover); }
   /* The scroller, unwrapped. Everything else here is pointless without this. */
   .table-wrap { overflow: visible !important; width: auto !important; }
 
-  table.data { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 8pt; }
-  table.data th, table.data td { padding: 3px 4px; word-break: break-word; }
+  table.data { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 7.5pt; }
+
+  table.data th, table.data td {
+    padding: 3px 5px;
+    vertical-align: top;
+    /* Both, and both needed. A visitor's name breaks between words; a fifteen-digit ID
+       number has no word boundary to break at and would otherwise run into the next
+       column, which is what made the first printout look like overlapping text. */
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  /* nowrap is right on screen, where the column can be dragged wider. On paper it is the
+     thing that pushes a timestamp through its neighbour. */
+  table.data td.nowrap, table.data th.nowrap { white-space: normal !important; }
+
+  /* Equal widths are wrong for these columns: a name needs three times what a gender does.
+     The eleven that survive the hiding below, in order, adding to 100. */
+  table.data th:nth-child(1),  table.data td:nth-child(1)  { width: 9%; }
+  table.data th:nth-child(2),  table.data td:nth-child(2)  { width: 11%; }
+  table.data th:nth-child(3),  table.data td:nth-child(3)  { width: 7%; }
+  table.data th:nth-child(4),  table.data td:nth-child(4)  { width: 17%; }
+  table.data th:nth-child(5),  table.data td:nth-child(5)  { width: 11%; }
+  table.data th:nth-child(7),  table.data td:nth-child(7)  { width: 8%; }
+  table.data th:nth-child(13), table.data td:nth-child(13) { width: 8%; }
+  table.data th:nth-child(16), table.data td:nth-child(16) { width: 9%; }
+  table.data th:nth-child(17), table.data td:nth-child(17) { width: 7%; }
+  table.data th:nth-child(18), table.data td:nth-child(18) { width: 6%; }
+  table.data th:nth-child(19), table.data td:nth-child(19) { width: 7%; }
 
   /* Repeated on every sheet, because a column of ID numbers with no heading three pages
      in is a column of digits. */
