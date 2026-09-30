@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun VisitDetailsScreen(
     state: UiState,
+    onRetryReference: () -> Unit,
     onEntity: (Int) -> Unit,
     onHostQuery: (String) -> Unit,
     onSelectHost: (PersonDto) -> Unit,
@@ -102,8 +103,19 @@ fun VisitDetailsScreen(
             }
 
             if (state.entities.isEmpty()) {
+                /* A way out, because there was not one. A desk that lost the race against a
+                   cold server used to be stuck with an empty form until the app was
+                   force-closed, which is not something to ask of somebody with a visitor in
+                   front of them. */
+                if (!state.referenceLoading && state.referenceError != null) {
+                    TextButton(onClick = onRetryReference) { Text("Try again") }
+                }
+
                 Text(
-                    state.referenceError ?: "The entity list has not loaded yet.",
+                    when {
+                        state.referenceLoading -> "Waiting for the server\u2026"
+                        else -> state.referenceError ?: "The entity list has not loaded yet."
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                 )

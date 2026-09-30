@@ -73,6 +73,8 @@ data class UiState(
     val purposes: List<String> = emptyList(),
     val otherPurpose: String = "Other",
     val referenceError: String? = null,
+    /** True while the lists are being asked for again after a failure. */
+    val referenceLoading: Boolean = false,
 
     val entityId: Int? = null,
     val hostQuery: String = "",
@@ -145,6 +147,9 @@ class VisitorViewModel(
 
     private companion object {
         const val TAG = "VmsViewModel"
+
+        /** Four tries, roughly fifteen seconds in all - about what a cold start costs. */
+        const val Attempts = 4
 
         /** How often the reader is asked whether a card is in it. Fast enough that
             inserting a card looks instant, slow enough not to hammer the native layer. */
@@ -262,21 +267,57 @@ class VisitorViewModel(
 
     // ---------------------------------------------------------------- reference data
 
+    /**
+     * The entity and purpose lists, with the patience their timing needs.
+     *
+     * This runs the moment the app opens, which is the worst moment to ask: an App Service
+     * that has scaled to zero takes the better part of a minute to answer its first request,
+     * and a reception desk opens this app exactly when nobody has used it for hours. One
+     * attempt with a thirty-second timeout loses that race, and losing it used to be
+     * permanent - the lists stayed empty until somebody force-closed the app, and the screen
+     * showed an entity error and a purpose list with nothing in it but "Other", which looks
+     * like two faults and is one.
+     *
+     * So it waits and asks again. Four attempts over about fifteen seconds covers a cold
+     * start; beyond that the server is genuinely down and saying so is the right answer.
+     */
     fun loadReference() = viewModelScope.launch {
-        try {
-            val reference = VmsClient.call { apis.current().reference() }
-            _state.value = _state.value.copy(
-                entities = reference.entities,
-                purposes = reference.purposes,
-                otherPurpose = reference.otherPurpose,
-                referenceError = null,
-                /* One entity is not a choice. Pre-selecting it saves a tap at every
-                   check-in and cannot be wrong. */
-                entityId = _state.value.entityId ?: reference.entities.singleOrNull()?.id,
-            )
-        } catch (e: ApiException) {
-            _state.value = _state.value.copy(referenceError = e.message)
+        var delayMs = 1_000L
+
+        repeat(Attempts) { attempt ->
+            try {
+                val reference = VmsClient.call { apis.current().reference() }
+                _state.value = _state.value.copy(
+                    entities = reference.entities,
+                    purposes = reference.purposes,
+                    otherPurpose = reference.otherPurpose,
+                    referenceError = null,
+                    referenceLoading = false,
+                    /* One entity is not a choice. Pre-selecting it saves a tap at every
+                       check-in and cannot be wrong. */
+                    entityId = _state.value.entityId ?: reference.entities.singleOrNull()?.id,
+                )
+                return@launch
+            } catch (e: ApiException) {
+                val last = attempt == Attempts - 1
+
+                _state.value = _state.value.copy(
+                    referenceError = if (last) e.message else null,
+                    referenceLoading = !last,
+                )
+
+                if (last) return@launch
+
+                delay(delayMs)
+                delayMs *= 2
+            }
         }
+    }
+
+    /** For the button beside the error, so a desk is never stuck with an empty form. */
+    fun retryReference() {
+        _state.value = _state.value.copy(referenceError = null, referenceLoading = true)
+        loadReference()
     }
 
     // ---------------------------------------------------------------- the reader
@@ -478,6 +519,11 @@ class VisitorViewModel(
 
     fun toVisitDetails() {
         _state.value = _state.value.copy(step = Step.VisitDetails, error = null)
+
+        /* A last chance before the officer meets a form they cannot fill. The lists are
+           needed here and nowhere else, and by now the server has had a visitor's worth of
+           time to wake up. */
+        if (_state.value.entities.isEmpty() && !_state.value.referenceLoading) loadReference()
     }
 
     fun backToVisitorInformation() {

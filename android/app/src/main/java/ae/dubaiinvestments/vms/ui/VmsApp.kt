@@ -166,6 +166,7 @@ fun VmsApp(viewModel: VisitorViewModel) {
 
                     Step.VisitDetails -> VisitDetailsScreen(
                         state = state,
+                        onRetryReference = { viewModel.retryReference() },
                         onEntity = viewModel::setEntity,
                         onHostQuery = viewModel::setHostQuery,
                         onSelectHost = viewModel::selectHost,
