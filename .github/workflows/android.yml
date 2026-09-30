@@ -110,7 +110,9 @@ jobs:
 
           # useLegacyPackaging: the native libraries must be STORED, not Deflated, or the
           # toolkit's dlopen finds nothing to open.
-          method=$(unzip -v "$apk" | awk '/lib\/arm64-v8a\/.*\.so/ {print $7; exit}')
+          # Column 2 is Method; column 7 is the CRC. Reading 7 made this fail every build
+          # with "native libraries are '9c6accee'" - a checksum being compared to a word.
+          method=$(unzip -v "$apk" | awk '/lib\/arm64-v8a\/.*\.so/ {print $2; exit}')
           if [ "$method" = "Stored" ]; then
             echo "  ok   native libraries are stored uncompressed ($method)"
           else

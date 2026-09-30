@@ -351,8 +351,19 @@ class VisitorViewModel(
         if (_state.value.step != Step.MrzScan) return
 
         viewModelScope.launch {
-            val result = runCatching { VmsClient.call { api.current().readMrz(MrzRequest(text)) } }
-                .getOrElse { return@launch }
+            /*  A failed frame is not an error to show.
+             *
+             *  This runs on whatever the camera happened to see, several times a second. A
+             *  connection that blinked, or a frame that turned out not to be a card after
+             *  all, is the ordinary case - and putting it on the screen would bury the one
+             *  message that matters under a stream of ones that do not. The officer finds
+             *  out the server is unreachable from the card read, which says so properly. */
+            val result = try {
+                VmsClient.call { apis.current().readMrz(MrzRequest(text)) }
+            } catch (e: ApiException) {
+                Log.d(TAG, "A frame could not be checked", e)
+                return@launch
+            }
 
             if (!result.ok || _state.value.step != Step.MrzScan) return@launch
 
