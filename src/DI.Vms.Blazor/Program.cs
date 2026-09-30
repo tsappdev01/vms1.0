@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 
@@ -313,6 +314,26 @@ using (var scope = app.Services.CreateScope())
 
     capture.LogTo(logger);
     signIn.LogTo(logger);
+
+    /* The sign-in flow, by name, at every startup.
+
+       Twice now a sign-in failure has been diagnosed from the outside as configuration
+       when the real answer was that the running build predated the fix - and nothing in
+       the log said which build was running. This resolves the options the framework
+       actually ends up with, after every library has had its say, so the answer to "is
+       the code-flow build deployed?" is one line rather than an inference from an
+       absence of AADSTS700054. */
+    if (signIn.Enabled)
+    {
+        var oidc = scope.ServiceProvider
+            .GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+            .Get(OpenIdConnectDefaults.AuthenticationScheme);
+
+        logger.LogInformation(
+            "Sign-in uses the {ResponseType} flow, returning to {CallbackPath}.",
+            oidc.ResponseType,
+            oidc.CallbackPath);
+    }
 
     logger.Log(
         signIn.Enabled || apiKey is not null ? LogLevel.Information : LogLevel.Warning,
