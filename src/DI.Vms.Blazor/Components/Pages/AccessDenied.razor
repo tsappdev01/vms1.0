@@ -1,0 +1,64 @@
+@page "/access-denied"
+@attribute [AllowAnonymous]
+
+@*
+    Where a signed-in person with no VMS role lands.
+
+    It exists because the framework's default AccessDeniedPath is
+    /MicrosoftIdentity/Account/AccessDenied, and Microsoft.Identity.Web.UI does not
+    implement that action - so the one failure this deployment was always going to hit
+    first arrived as a bare 404 with no hint that a role was the problem.
+
+    A missing role is not an error in the application. It is a directory task, and the page
+    says which one, names the account it is talking about, and says who does it - because
+    the person reading it is standing at a reception desk and cannot fix it themselves.
+*@
+
+<PageTitle>No access &middot; DI VMS</PageTitle>
+
+<h1>You are signed in, but not yet allowed in</h1>
+<p class="page-sub">Your account has no visitor management role</p>
+
+<section class="card">
+    <div class="prose">
+        <AuthorizeView>
+            <Authorized>
+                <p>
+                    Signed in as <strong>@context.User.Identity?.Name</strong>. Sign-in worked;
+                    what is missing is the role that says what you may do here.
+                </p>
+            </Authorized>
+            <NotAuthorized>
+                <p>
+                    You are not signed in. <a href="/">Go back to the desk</a> to sign in again.
+                </p>
+            </NotAuthorized>
+        </AuthorizeView>
+
+        <h2>What IT needs to do</h2>
+        <p>
+            In Entra ID, on the <strong>TS-AI-VisitorManagementSystem</strong> application,
+            assign one of these app roles to the account above:
+        </p>
+        <ul>
+            <li><strong>Vms.Officer</strong> — check visitors in. This is the one a reception desk needs.</li>
+            <li><strong>Vms.Supervisor</strong> — the same, and read the visitor report.</li>
+            <li><strong>Vms.Admin</strong> / <strong>Vms.SystemAdmin</strong> — the same again, for administrators.</li>
+        </ul>
+        <p>
+            The roles are declared under <em>App registrations → App roles</em> and handed out
+            under <em>Enterprise applications → Users and groups</em>. Both steps are needed:
+            a role that exists but is assigned to nobody leaves every account on this page.
+        </p>
+
+        <h2>After the role is assigned</h2>
+        <p>
+            Sign out and in again. The role travels in the sign-in token, so a session that
+            started before the assignment will not have it however long you wait.
+        </p>
+
+        <p>
+            <a class="button" href="/MicrosoftIdentity/Account/SignOut">Sign out</a>
+        </p>
+    </div>
+</section>

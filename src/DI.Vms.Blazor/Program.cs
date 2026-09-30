@@ -4,6 +4,7 @@ using DI.Vms.Blazor.Services;
 using DI.Vms.Blazor.Api;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -150,6 +151,17 @@ if (signIn.Enabled)
         },
         identityOptions => builder.Configuration.GetSection("AzureAd").Bind(identityOptions),
         jwtBearerScheme: JwtBearerDefaults.AuthenticationScheme);
+
+    /* Where a signed-in person with no role is sent.
+
+       The default is /MicrosoftIdentity/Account/AccessDenied, and Microsoft.Identity.Web.UI
+       does not implement that action - so the first failure this deployment was always
+       going to hit, a user signed in with no app role, arrived as a bare 404 with nothing
+       in it naming a role. Components/Pages/AccessDenied.razor says what is missing and who
+       assigns it. */
+    builder.Services.Configure<CookieAuthenticationOptions>(
+        CookieAuthenticationDefaults.AuthenticationScheme,
+        options => options.AccessDeniedPath = "/access-denied");
 
     /* And the tablet's key beside both.
 

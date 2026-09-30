@@ -231,6 +231,23 @@ That message means the cookie never made it back, and the scheme is the first th
 check. `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` on the Web App does the same job from
 the outside and is a reasonable belt-and-braces.
 
+## 6e. A 404 on /MicrosoftIdentity/Account/AccessDenied
+
+That URL means sign-in **worked**. The account signed in, the cookie was set, and then
+authorisation refused every page — because `Program.cs` sets
+`options.FallbackPolicy = options.DefaultPolicy`, so nothing here is anonymous, and the
+pages require one of the `Vms.*` app roles.
+
+The 404 was ours: the framework's default `AccessDeniedPath` is that URL and
+`Microsoft.Identity.Web.UI` does not implement the action. `/access-denied` is a real page
+now and names the missing role and who assigns it.
+
+The fix is steps 3 and 4 of this document, **redone on registration
+`909a5d0c-dff0-4275-9e25-1254b316d739`** — declaring an app role and assigning it are two
+separate jobs, and a role assigned to nobody leaves every account on that page. Sign out and
+in again afterwards: the role travels in the sign-in token, so a session that started before
+the assignment will never see it.
+
 ## 7. IIS must let the request through
 
 **Anonymous authentication ON, Windows authentication OFF.** With Windows authentication
