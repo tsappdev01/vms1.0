@@ -355,7 +355,7 @@
                                     <button @onclick="StartManualEntry">Enter manually</button>
                                     @if (Digital.Enabled)
                                     {
-                                        <button @onclick="() => scanOpen = true" disabled="@scanning">
+                                        <button @onclick="OpenScan" disabled="@scanning">
                                             Scan a digital card
                                         </button>
                                     }
@@ -1063,6 +1063,10 @@ else if (step == 3 && saved is not null)
 
     private bool scanOpen;
     private bool cameraOn;
+
+    /// <summary>The camera has been asked for and is waiting for the &lt;video&gt; to exist.
+    /// Acted on in OnAfterRenderAsync; see StartCamera for why.</summary>
+    private bool cameraPending;
     private bool scanning;
     private string? scanProblem;
     private string scanPhase = "Hold the card in the frame\u2026";
@@ -1088,21 +1092,46 @@ else if (step == 3 && saved is not null)
     private int framesRead;
 
     /// <summary>
-    /// How long an ID number read on its own is held before it is accepted.
+    /// How long an ID number read on its own is held before it is accepted, when the front of
+    /// the card is what the camera is looking at.
     ///
     /// Both sides are readable, but they are not worth the same: the zone on the back carries
-    /// the name, the dates and the nationality, and the printed number is the number alone.
-    /// So a number-only read is not taken the moment it arrives - it is held for a moment in
-    /// case the officer is mid-turn, or in case the next frame of the same card catches the
-    /// zone. A complete read wins if one appears. If none does, a checked ID number is still
-    /// better than nothing and the officer types the rest.
+    /// the name, the dates and the nationality, and the printed number is the number alone. So
+    /// a number-only read is not taken the moment it arrives - it is held in case the officer
+    /// is mid-turn. A complete read wins if one appears. If none does, a checked ID number is
+    /// still better than nothing and the officer types the rest.
     /// </summary>
-    private static readonly TimeSpan HoldTheNumber = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan HoldTheFront = TimeSpan.FromSeconds(3);
+
+    /// <summary>
+    /// The same, when the chevrons say the <em>back</em> is in frame but its zone has not
+    /// parsed yet.
+    ///
+    /// Longer, because the difference is worth waiting for and it is right there: everything
+    /// the form wants is a few centimetres from the lens, and only the photograph is failing.
+    /// Giving up as quickly as for a front would settle for the ID number while the name,
+    /// dates and nationality were on screen the whole time - which is exactly the fault this
+    /// build fixes, and it should not be re-introduced by impatience.
+    /// </summary>
+    private static readonly TimeSpan HoldTheBack = TimeSpan.FromSeconds(7);
 
     private async Task<IJSObjectReference> ScanModule() =>
         scanModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/mrz-scan.js");
 
-    private async Task StartCamera()
+    /// <summary>
+    /// Asks for the camera. The asking happens after the next render, not here.
+    ///
+    /// `getUserMedia` needs the &lt;video&gt; element to exist, and `StateHasChanged` only
+    /// queues a render rather than performing one. This used to work by accident: the awaited
+    /// module import took long enough for the render to land first. Come back to this page
+    /// without reloading and the module is already in the browser's registry, so the import
+    /// resolves on a microtask, the call beats the render, and `getElementById` returns null -
+    /// which is why the camera opened on a fresh load and not on a second visit.
+    ///
+    /// Waiting for the render is the fix, and it is the only thing here that is not a
+    /// coincidence.
+    /// </summary>
+    private void StartCamera()
     {
         scanProblem = null;
         numberOnly = null;
@@ -1110,10 +1139,11 @@ else if (step == 3 && saved is not null)
         accepted = null;
         scanPhase = "Hold the card in the frame\u2026";
         cameraOn = true;
-        StateHasChanged();
+        cameraPending = true;
+    }
 
-        /* After the render, not before: getUserMedia needs the <video> to exist, and it does
-           not until Blazor has drawn the branch that contains it. */
+    private async Task BeginCamera()
+    {
         var module = await ScanModule();
         var outcome = await module.InvokeAsync<CameraOutcome>("openCamera", ScanVideoId);
 
@@ -1121,6 +1151,7 @@ else if (step == 3 && saved is not null)
         {
             cameraOn = false;
             scanProblem = outcome.Problem;
+            StateHasChanged();
             return;
         }
 
@@ -1133,6 +1164,7 @@ else if (step == 3 && saved is not null)
         {
             await StopCamera();
             scanProblem = started.Problem;
+            StateHasChanged();
         }
     }
 
@@ -1143,6 +1175,10 @@ else if (step == 3 && saved is not null)
             await scanModule.InvokeVoidAsync("stopLive");
             await scanModule.InvokeVoidAsync("closeCamera", ScanVideoId);
         }
+
+        /* So that a camera asked for and then cancelled before the render does not open
+           itself a moment later over a panel that has gone. */
+        cameraPending = false;
 
         cameraOn = false;
     }
@@ -1174,13 +1210,21 @@ else if (step == 3 && saved is not null)
             {
                 numberOnly = read.IdNumber;
                 numberSeenUtc = DateTime.UtcNow;
-                scanPhase = $"Read {read.IdNumber} \u2014 hold still, or turn the card over "
-                          + "for the name and dates.";
+
+                scanPhase = read.FromBack
+                    ? $"Read {read.IdNumber} \u2014 now the three lines. Hold the card flat "
+                      + "and steady, and keep them inside the box."
+                    : $"Read {read.IdNumber} \u2014 hold still, or turn the card over for "
+                      + "the name and dates.";
+
                 await InvokeAsync(StateHasChanged);
                 return false;
             }
 
-            if (DateTime.UtcNow - numberSeenUtc < HoldTheNumber) return false;
+            if (DateTime.UtcNow - numberSeenUtc < (read.FromBack ? HoldTheBack : HoldTheFront))
+            {
+                return false;
+            }
 
             accepted = read;
             return true;
@@ -1320,6 +1364,27 @@ else if (step == 3 && saved is not null)
 
         step = 1;
         await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Opens the panel, and sets the recogniser downloading while the officer reaches for the
+    /// card. Not awaited: the first frame waits on the same promise if this has not finished.
+    /// </summary>
+    private async Task OpenScan()
+    {
+        scanOpen = true;
+
+        try
+        {
+            await (await ScanModule()).InvokeVoidAsync("warmUp",
+                Digital.EngineBaseUrl, Digital.TrainedDataUrl, Digital.Language);
+        }
+        catch (JSException ex)
+        {
+            /* Nothing is being read yet, so there is nothing to refuse. A real failure to load
+               the engine is reported when a scan actually needs it. */
+            Logger.LogDebug(ex, "Pre-loading the recogniser failed");
+        }
     }
 
     private async Task CloseScan()
@@ -1579,22 +1644,28 @@ else if (step == 3 && saved is not null)
     }
 
     /// <summary>
-    /// Puts the keyboard in the dialog as it opens, so Enter confirms and Escape backs
-    /// out without reaching for the mouse - and so the confirmation is not a step that
-    /// slows a queue down.
+    /// The work that can only be done once the browser has the markup: putting the keyboard
+    /// in the confirm dialog, and handing the camera a &lt;video&gt; element that exists.
     /// </summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!confirmNeedsFocus) return;
-
-        confirmNeedsFocus = false;
-        try
+        if (confirmNeedsFocus)
         {
-            await confirmButton.FocusAsync();
+            confirmNeedsFocus = false;
+            try
+            {
+                await confirmButton.FocusAsync();
+            }
+            catch
+            {
+                // The dialog closed between render and focus; nothing to focus.
+            }
         }
-        catch
+
+        if (cameraPending)
         {
-            // The dialog closed between render and focus; nothing to focus.
+            cameraPending = false;
+            await BeginCamera();
         }
     }
 
@@ -2124,14 +2195,16 @@ else if (step == 3 && saved is not null)
 
         if (scanModule is not null)
         {
-            /* The live loop and the camera outlive the page unless they are told not to, and
-               the recogniser holds several megabytes per circuit. Leaving them was survivable
-               while a read was one button press; with a loop running it is not. */
+            /* The live loop and the camera outlive this screen unless they are told not to,
+               and a camera left running is a light left on over a page that has gone.
+
+               The recogniser is deliberately not torn down with them: it belongs to the
+               browser page, not to this component, and rebuilding it on every return to this
+               screen costs the next visitor several seconds. See mrz-scan.js. */
             try
             {
                 await scanModule.InvokeVoidAsync("stopLive");
                 await scanModule.InvokeVoidAsync("closeCamera", ScanVideoId);
-                await scanModule.InvokeVoidAsync("release");
                 await scanModule.DisposeAsync();
             }
             catch (JSDisconnectedException) { }

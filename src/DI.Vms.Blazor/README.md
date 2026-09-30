@@ -366,11 +366,25 @@ frame that gets kept is the blurred one.
 So there is no shutter. The camera is read continuously and the form fills when a read
 holds. What that changed:
 
-- **A frame is cheap, so it need not be good.** Every trick the still path used to squeeze a
-  result out of one photograph - three thresholds tried in turn, four orientations, the band
-  cropped and doubled - existed because there was only one picture. With a stream there is
-  always another frame in 300ms, so the live loop does one threshold and one orientation and
-  simply tries again. That is what brought a pass from seconds to a few hundred milliseconds.
+- **A frame is cheap, so it need not be good.** Most of what the still path does to squeeze a
+  result out of one photograph - three thresholds tried in turn, four orientations - exists
+  because there is only one picture. With a stream there is always another frame in 300ms, so
+  the live loop does one threshold and one orientation and simply tries again. That is what
+  brought a pass from seconds to a few hundred milliseconds.
+- **The band is not one of those tricks, and dropping it was a bug.** The first live build read
+  the whole card, and the desk reported the symptom precisely: *the ID number captured, name,
+  date of birth, nationality and expiry not.* That is exactly what reading the whole card
+  produces. The zone is under a third of the card's height, so most of the pixels and most of
+  the time go on the photograph, the emblem, the Arabic and the notice about returning the card
+  to a police station - and the recogniser is asked to find a uniform block of text on a page
+  that is nothing of the sort. The number survives because it is also printed large and sits in
+  line one; nothing else does.
+
+  So a live pass reads the **bottom 45% of the card** at 1100 pixels across, which puts an MRZ
+  character about 40 pixels tall - what the recogniser wants - on a canvas of about a third of
+  a megapixel. That is *fewer* pixels than the whole card at 900 was, so the fix is faster than
+  the fault. One pass in three is still the whole card at 760, because the number printed on
+  the **front** is only found that way.
 - **Only the guide box is read.** A few hundred pixels rather than a megapixel, which is
   where nearly all of the remaining time went - and it makes the failure legible, because
   "it is not reading" becomes "move the card into the box".
@@ -402,16 +416,41 @@ Emirates ID numbers: all eleven pass, and altering any single digit fails. So a 
 held to the same standard as a back read. It is not a guess about what the picture looked
 like; it is arithmetic, same as the MRZ.
 
-A number-only read is not taken the instant it arrives. It is held for three seconds first,
-because the officer may be mid-turn and the back is worth more; a complete read in that
-window wins. If none comes, the checked number fills the ID field, a banner says the name and
-dates still need the back or the keyboard, and the officer carries on.
+A number-only read is not taken the instant it arrives. It is held first - three seconds when
+the front is in frame, seven when the chevrons say the back is and only the photograph is
+failing, because then everything the form wants is a few centimetres from the lens and worth
+waiting for. A complete read in that window wins. If none comes, the checked number fills the
+ID field, a banner says the name and dates still need the back or the keyboard, and the
+officer carries on.
 
 One trap this design walks into and out of: **the ID number is inside the MRZ as well as on
 the front**, so a back photographed too poorly for the zone to parse still yields the number.
 Called a front, that read would have had a "portrait" cut out of the middle of a block of
 text. The sides are separated by counting chevrons - the zone is padded with dozens and
 nothing printed on the front uses one.
+
+### Two things that only failed on the second visit
+
+Both were invisible on a fresh page load and broke on the way back to the screen, which is the
+worst shape a fault can have: the officer's own description was *"the camera opens only after
+a refresh"*.
+
+- **The camera was asked for before the `<video>` existed.** `StateHasChanged` queues a render;
+  it does not perform one. The code worked by accident, because awaiting the module import took
+  long enough for the render to land first. Return to this screen without reloading and the
+  module is already in the browser's registry, the import resolves on a microtask, the call
+  beats the render, and `getElementById` returns null. It is started from
+  `OnAfterRenderAsync` now, which is the only version of this that is not a coincidence.
+- **The recogniser was torn down on the way out.** It belongs to the browser page, not to the
+  component, and leaving this screen in a Blazor application is not leaving the page - so a
+  desk that read a card, looked at the report and came back rebuilt several megabytes of
+  WebAssembly every time. It is kept for the life of the page now, and the panel opening starts
+  it downloading before there is anything to read.
+
+A third of the same family: a failed load was remembered. `loading ??= ...` held the promise
+whatever became of it, so one unanswered CDN request left a rejected promise that every later
+call returned, and the scanner stayed broken until the page was reloaded with nothing on screen
+saying why.
 
 ### The model is configurable, and the default is the wrong one
 

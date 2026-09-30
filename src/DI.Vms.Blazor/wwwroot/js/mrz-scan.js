@@ -31,6 +31,13 @@ const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<';
 async function engine(engineBaseUrl, trainedDataUrl, language) {
     if (worker) return worker;
 
+    /*  A failed load must not be remembered.
+     *
+     *  `loading` held the promise whatever became of it, so one bad moment - a CDN that did
+     *  not answer, a tab woken on a dead network - left a rejected promise that every later
+     *  call returned. The scanner was then broken until the page was reloaded, and nothing on
+     *  screen said why. It is cleared on failure so pressing the button again means something.
+     */
     loading ??= (async () => {
         if (!window.Tesseract) {
             await new Promise((resolve, reject) => {
@@ -60,9 +67,26 @@ async function engine(engineBaseUrl, trainedDataUrl, language) {
 
         worker = created;
         return created;
-    })();
+    })().catch(e => { loading = null; throw e; });
 
     return loading;
+}
+
+/*  Starts the engine loading before there is anything to read.
+ *
+ *  Called when the scan panel opens, so the several megabytes of recogniser are on their way
+ *  down while the officer is still reaching for the card. Without it the first frame pays for
+ *  the download, and the first read of a session looks like the slow one it is not.
+ *
+ *  Deliberately not awaited by the caller: it either finishes before the first frame, in which
+ *  case nothing waited, or it does not, in which case the first frame waits on the same
+ *  promise it would have started itself.
+ */
+export function warmUp(engineBaseUrl, trainedDataUrl, language) {
+    engine(engineBaseUrl, trainedDataUrl, language).catch(() => {
+        /* Nothing to report: there is no scan in progress to fail. The next real read asks
+           again and its failure is the one the officer is shown. */
+    });
 }
 
 /*  The card as the camera saw it, and the three other ways it might have been.
@@ -498,8 +522,6 @@ export async function startLive(videoId, dotnet, engineBaseUrl, trainedDataUrl, 
     liveStop = () => { stopped = true; };
 
     (async () => {
-        /* Upright first. Only after a few fruitless frames is upside-down tried, because a
-           card held the wrong way up is the rarer case and trying both halves the rate. */
         let passes = 0;
 
         while (!stopped) {
@@ -508,8 +530,8 @@ export async function startLive(videoId, dotnet, engineBaseUrl, trainedDataUrl, 
             const guide = guideFor(video);
             showGuide(video, guide);
 
-            const rotate = passes > 3 && passes % 2 === 1;
-            const canvas = guideRegion(video, guide, rotate);
+            const pass = passFor(passes);
+            const canvas = guideRegion(video, guide, pass);
 
             let text = '';
             try {
@@ -528,7 +550,7 @@ export async function startLive(videoId, dotnet, engineBaseUrl, trainedDataUrl, 
                 if (good) {
                     /* The frame that worked is the one kept, not a fresh grab: by the time a
                        second picture is taken the card has moved. */
-                    await dotnet.invokeMethodAsync('OnFrameImage', snapshot(video, guide, rotate));
+                    await dotnet.invokeMethodAsync('OnFrameImage', snapshot(video, guide, pass.rotate));
                     return;
                 }
             } catch {
@@ -539,7 +561,10 @@ export async function startLive(videoId, dotnet, engineBaseUrl, trainedDataUrl, 
             }
 
             passes++;
-            await wait(60);
+
+            /* A breath for the page between frames. Recognition itself is in a worker, so
+               this is not where the time goes - it is what keeps the preview smooth. */
+            await wait(30);
         }
     })();
 
@@ -597,26 +622,81 @@ function showGuide(video, guide) {
     box.style.height = `${guide.h * 100}%`;
 }
 
-function guideRegion(video, guide, rotate) {
-    const sx = video.videoWidth * guide.x;
-    const sy = video.videoHeight * guide.y;
-    const sw = video.videoWidth * guide.w;
-    const sh = video.videoHeight * guide.h;
+/*  What one pass looks at.
+ *
+ *  The band - the bottom of the card, where the zone is - and not the whole card, which is
+ *  the mistake this replaces. The zone is under a third of the card's height, so reading the
+ *  whole card spends most of its pixels and most of its time on the photograph, the emblem,
+ *  the Arabic and the notice about returning the card to a police station, and leaves the
+ *  zone itself a fraction of the resolution. The symptom is precise, and was exactly what
+ *  came back from the desk: the ID number reads, because it is also printed large and sits
+ *  in line one, and the name, dates and nationality never do.
+ *
+ *  A whole-card pass is still worth having, because the number printed on the FRONT is only
+ *  found that way - so one pass in three is the whole card. Upside down is not tried until
+ *  several frames have failed: a card held the wrong way up is the rarer case, and trying
+ *  both from the start halves the rate for everybody.
+ */
+const PASSES = [
+    { band: true,  rotate: false },
+    { band: true,  rotate: false },
+    { band: false, rotate: false },
+    { band: true,  rotate: true  },
+    { band: true,  rotate: true  },
+    { band: false, rotate: true  },
+];
 
-    /* 900 across the card puts an OCR-B character at about 30 pixels, which is what the
-       recogniser wants, and keeps a pass at a few hundred milliseconds rather than a few
-       thousand. More resolution than that buys nothing and costs the frame rate. */
-    const width = Math.min(900, Math.round(sw));
-    const height = Math.round(sh * (width / sw));
+const UPRIGHT_ONLY = 3;     // the first three entries are the right way up
+const BEFORE_ROTATING = 6;  // frames spent upright before the other way up joins the cycle
+
+const passFor = n =>
+    n < BEFORE_ROTATING ? PASSES[n % UPRIGHT_ONLY] : PASSES[n % PASSES.length];
+
+/*  How much of the card's height the zone occupies, from the edge it sits against.
+ *  Generous - the three lines are nearer a third - because a card held at a slight angle
+ *  puts one corner of the zone higher than the other. */
+const BAND = 0.45;
+
+/*  Rendered widths, both expressed as the width of the whole card.
+ *
+ *  1100 across the card puts an MRZ character about 40 pixels tall, comfortably what the
+ *  recogniser wants, while the band being under half the card's height keeps the canvas at
+ *  about a third of a megapixel - fewer pixels than the whole card at 900, so this is faster
+ *  as well as more accurate. 760 is enough for the front, whose ID number is printed several
+ *  times larger than anything in the zone.
+ */
+const BAND_WIDTH = 1100;
+const CARD_WIDTH = 760;
+
+function sourceRect(video, guide, pass) {
+    const x = video.videoWidth * guide.x;
+    const w = video.videoWidth * guide.w;
+    const y = video.videoHeight * guide.y;
+    const h = video.videoHeight * guide.h;
+
+    if (!pass.band) return { x, y, w, h };
+
+    /* Held the other way up, the zone is against the top edge rather than the bottom. */
+    const band = h * BAND;
+    return { x, y: pass.rotate ? y : y + h - band, w, h: band };
+}
+
+function guideRegion(video, guide, pass) {
+    const src = sourceRect(video, guide, pass);
+    const cardWidth = video.videoWidth * guide.w;
+
+    const width = Math.min(pass.band ? BAND_WIDTH : CARD_WIDTH, Math.round(cardWidth));
+    const height = Math.max(1, Math.round(src.h * (width / src.w)));
 
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.imageSmoothingQuality = 'high';
     ctx.save();
-    if (rotate) { ctx.translate(width, height); ctx.rotate(Math.PI); }
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, width, height);
+    if (pass.rotate) { ctx.translate(width, height); ctx.rotate(Math.PI); }
+    ctx.drawImage(video, src.x, src.y, src.w, src.h, 0, 0, width, height);
     ctx.restore();
 
     const pixels = ctx.getImageData(0, 0, width, height);
@@ -627,9 +707,17 @@ function guideRegion(video, guide, rotate) {
         grey[g] = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
     }
 
-    /* The local threshold, and only that one. It is the one that copes with whatever light
-       the desk has, and trying the other two would triple the time for the frames where it
-       would have worked anyway - and another frame is along in a moment regardless. */
+    /*  The local threshold, and only that one.
+     *
+     *  It is the one that copes with whatever light the desk has, and trying the other two
+     *  would triple the time for the frames where this one would have worked anyway - and
+     *  another frame is along in a moment regardless.
+     *
+     *  Thresholding the band alone is safe here in a way it would not be for Otsu: a global
+     *  threshold taken from the strip has only ink and paper to look at and no idea what the
+     *  card's paper is, which is why the still path crops after thresholding. This one is
+     *  computed per window and sees both wherever it looks.
+     */
     const binary = localThreshold(grey, width, height);
 
     for (let i = 0, g = 0; i < d.length; i += 4, g++) {
@@ -668,12 +756,14 @@ function snapshot(video, guide, rotate) {
     return canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
 }
 
-/** Frees the worker when the desk leaves the screen; it holds several megabytes. */
-export async function release() {
-    stopLive();
-
-    const w = worker;
-    worker = null;
-    loading = null;
-    if (w) { try { await w.terminate(); } catch { /* going away anyway */ } }
-}
+/*  There is deliberately no release().
+ *
+ *  There was one, called when the page was left, and it was wrong. The worker belongs to the
+ *  browser page rather than to the component, and leaving this screen in a Blazor application
+ *  is not leaving the page - so a reception desk that reads a card, looks at the report and
+ *  comes back paid several seconds to build the recogniser again every single time.
+ *
+ *  What it bought was a few megabytes back while the officer was on another screen of the
+ *  same application, which is not worth a visitor standing at the desk. The page going away
+ *  frees it anyway, and that is the only moment it is genuinely not wanted.
+ */
