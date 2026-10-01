@@ -117,7 +117,8 @@ class ToolkitEmiratesIdReader(private val context: Context) : EmiratesIdReader {
                     kit.readerWithEmiratesID.also { it.connect() }
                 } catch (e: ToolkitException) {
                     throw CardReadException(
-                        e.message ?: "The card could not be reached. Check it is seated chip-first.",
+                        (e.message ?: "The card could not be reached. Check it is seated chip-first.") +
+                            " (toolkit code ${e.code})",
                         e,
                     )
                 }
@@ -200,8 +201,34 @@ class ToolkitEmiratesIdReader(private val context: Context) : EmiratesIdReader {
                         photo = decodePhoto(data.cardHolderPhoto),
                     )
                 } catch (e: ToolkitException) {
-                    Log.w(TAG, "Read failed, code ${e.code}", e)
-                    throw CardReadException(e.message ?: "The card could not be read.", e)
+                    /*  The toolkit's code goes on the screen, not just into logcat.
+                     *
+                     *  This is the point a read actually fails, and until now the officer got
+                     *  ICP's sentence and nothing else - so "failed to get response from
+                     *  server" reached the desk with no way to tell which of the toolkit's
+                     *  faults produced it, and nobody at a counter is running adb. The code
+                     *  identifies it exactly, and it is the first thing ICP will ask for. */
+                    Log.w(TAG, "Read failed, code ${e.code}, type ${e.exceptionType}", e)
+
+                    throw CardReadException(
+                        (e.message ?: "The card could not be read.") +
+                            " (toolkit code ${e.code}, ${e.exceptionType})",
+                        e,
+                    )
+                } catch (e: CardReadException) {
+                    throw e
+                } catch (e: Throwable) {
+                    /*  Anything else, named rather than lost.
+                     *
+                     *  Only ToolkitException was caught here, so any other failure went past
+                     *  readCard - which catches ApiException and CardReadException - and took
+                     *  the coroutine with it. The officer saw a screen that simply stopped. */
+                    Log.e(TAG, "The read failed in a way the toolkit does not describe", e)
+
+                    throw CardReadException(
+                        "The read failed unexpectedly: ${e::class.simpleName} ${e.message.orEmpty()}".trim(),
+                        e,
+                    )
                 } finally {
                     // The card may already have been pulled out; that is not an error.
                     runCatching { reader.disconnect() }

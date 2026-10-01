@@ -639,6 +639,15 @@ class VisitorViewModel(
             _state.value = _state.value.copy(busy = null, error = e.message)
         } catch (e: CardReadException) {
             _state.value = _state.value.copy(busy = null, error = e.message)
+        } catch (e: Throwable) {
+            /* A backstop, so the screen can never simply stop. Anything not already named by
+               the two catches above used to take the coroutine with it, leaving the officer
+               on "Reading the chip…" with no message and nothing to report. */
+            Log.e(TAG, "The card read failed in a way nothing else described", e)
+            _state.value = _state.value.copy(
+                busy = null,
+                error = "The card read failed: ${e::class.simpleName} ${e.message.orEmpty()}".trim(),
+            )
         }
     }
 
