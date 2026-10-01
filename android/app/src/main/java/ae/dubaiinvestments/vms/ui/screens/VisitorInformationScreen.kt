@@ -86,16 +86,43 @@ fun VisitorInformationScreen(
             }
         }
 
-        /* Folded, the way the web app folds it. Reception needs the name and the face;
-           nationality and expiry are for the times somebody asks. */
+        /*  Folded, because reception needs the name and the face and nothing else until
+         *  somebody asks - but everything the server parses out of the card is in here when
+         *  they do. It used to stop at six rows while the record carried twenty-three, which
+         *  is how a mobile number sitting on the chip came to be typed in by hand. */
         Fold("Card details") {
+            FieldRow("Name (Arabic)", card?.fullNameArabic)
+            FieldRow("Title", card?.titleEnglish)
             FieldRow("Nationality", card?.nationalityEnglish ?: manual?.nationalityEnglish)
-            FieldRow("Gender", card?.gender)
             FieldRow("Date of birth", card?.dateOfBirth ?: manual?.dateOfBirth)
+            FieldRow("Place of birth", card?.placeOfBirthEnglish)
+            FieldRow("Gender", card?.gender)
             FieldRow("Card number", card?.cardNumber ?: manual?.cardNumber)
+            FieldRow("Card type", card?.idType)
             FieldRow("Issued", card?.issueDate)
             FieldRow("Expires", card?.expiryDate ?: manual?.expiryDate)
             if (manual != null) FieldRow("Mobile", manual.mobile)
+        }
+
+        /*  Its own fold, and only when a card was read.
+         *
+         *  The chip is asked for the address on every read and the server has always stored
+         *  it; the tablet threw all of it away. It is the one part of a card a reception desk
+         *  genuinely does not need in front of it, which is why it is folded separately rather
+         *  than mixed into the rows above - but "did not need to see" was never a reason not
+         *  to have read it. */
+        if (card?.hasHomeAddress == true) {
+            Fold("Home address, from the card") {
+                FieldRow("Emirate", card.addressEmirate)
+                FieldRow("City", card.addressCity)
+                FieldRow("Area", card.addressArea)
+                FieldRow("Street", card.addressStreet)
+                FieldRow("Building", card.addressBuilding)
+                FieldRow("PO box", card.addressPoBox)
+                FieldRow("Telephone", card.addressPhone)
+                FieldRow("Mobile", card.addressMobile)
+                FieldRow("Email", card.addressEmail)
+            }
         }
 
         Button(

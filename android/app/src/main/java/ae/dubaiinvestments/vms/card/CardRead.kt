@@ -9,29 +9,58 @@ package ae.dubaiinvestments.vms.card
  * them - it parses its own copy out of the XML - which is exactly the arrangement the web
  * app uses for a read coming from a browser, and for the same reason: this device is not
  * where trust should live.
+ *
+ * Every field `CardResponseParser` takes out of that XML is taken out here too, deliberately.
+ * The stored record was never in question - the server parses the same document whichever
+ * client sent it, so a visit recorded from a tablet already carried the home address and the
+ * place of birth - but what the officer could *see* stopped at six fields, and the mobile
+ * number going missing was the first anyone noticed of it. One list, both clients.
  */
 data class CardRead(
     val responseXml: String,
+
+    // -- identity, from the header and the non-modifiable data
     val idNumber: String,
     val cardNumber: String?,
+    val idType: String?,
     val fullNameEnglish: String,
+    /** Before the comma-joining [fullNameEnglish] does to it, which is how the card stores a
+        name and not how anybody writes one. The server keeps both for the same reason. */
+    val fullNameRaw: String?,
     val fullNameArabic: String?,
-    val nationalityEnglish: String?,
+    val titleEnglish: String?,
     val gender: String?,
     val dateOfBirth: String?,
+    val placeOfBirthEnglish: String?,
+    val nationalityEnglish: String?,
+    val nationalityArabic: String?,
+    val nationalityCode: String?,
     val issueDate: String?,
     val expiryDate: String?,
-    /**
-     * The mobile number held in the card's home address.
-     *
-     * Read so the desk does not retype a number the chip is already holding. It is not the
-     * record - the server parses its own copy out of the signed XML like every other field -
-     * it is what the contact box is filled in with, and the officer overwrites it whenever
-     * the visitor gives a different number.
-     */
+
+    // -- the home address, which the read already asks the chip for
+    val addressEmirate: String?,
+    val addressCity: String?,
+    val addressArea: String?,
+    val addressStreet: String?,
+    val addressBuilding: String?,
+    val addressPoBox: String?,
+    val addressPhone: String?,
+    /** What the contact box is filled from. The officer overwrites it whenever the visitor
+        gives a different number. */
     val addressMobile: String?,
+    val addressEmail: String?,
+
     val photo: ByteArray?,
 ) {
+    /** Whether the chip gave up an address at all. Not every card carries one, and an empty
+        panel of nine dashes is worse than no panel. */
+    val hasHomeAddress: Boolean
+        get() = listOf(
+            addressEmirate, addressCity, addressArea, addressStreet, addressBuilding,
+            addressPoBox, addressPhone, addressMobile, addressEmail,
+        ).any { !it.isNullOrBlank() }
+
     /* A data class with a ByteArray gets equals() and hashCode() that compare the array
        by identity, which is a trap for anyone who later puts one of these in a set. */
     override fun equals(other: Any?) = this === other

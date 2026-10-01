@@ -251,6 +251,14 @@ sends reception for a pen and paper.
 Also here: **every box is capped** at the width of the column behind it, which the tablet did
 not do at all before. A long paste used to reach the server and be cut to fit in silence.
 
+**Everything the server parses out of a card is read here too** - all twenty-five fields of
+`CardResponseParser`, checked field for field rather than by eye. The stored record was never
+in question: the server parses the same signed document whichever client sent it, so a visit
+recorded from a tablet already carried the home address and the place of birth. What the
+officer could *see* stopped at six rows, and the mobile number going missing was the first
+anyone noticed of it. The card details fold now carries the identity fields and a second fold
+carries the home address, shown only when the chip gave one.
+
 **The mobile number is read from the chip.** `HomeAddress.getMobilePhoneNumber()` - the
 address was already being read, and the number in it was simply never taken out. The contact
 box is filled from it, and only when empty: a number the officer has already typed is the one

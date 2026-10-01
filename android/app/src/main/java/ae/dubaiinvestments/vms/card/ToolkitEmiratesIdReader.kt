@@ -153,22 +153,50 @@ class ToolkitEmiratesIdReader(private val context: Context) : EmiratesIdReader {
 
                     val nm = data.nonModifiablePublicData
 
+                    /*  The same list CardResponseParser takes out of the signed XML.
+                     *
+                     *  The address was already being read - it is the `address = true` above -
+                     *  and none of it was taken out of the response. The mobile number was the
+                     *  part somebody noticed, because the desk browser fills its contact box
+                     *  from it and the tablet asked the officer to type it; the rest was
+                     *  missing just as quietly. Field for field now, so the two clients show
+                     *  the same card. */
+                    val home = data.homeAddress
+
                     CardRead(
                         responseXml = xml,
+
                         idNumber = data.idNumber ?: "",
                         cardNumber = data.cardNumber,
+                        /* getIDType() and getPOBOX() are called outright. Kotlin only
+                           lower-cases a getter into a property when the name does not start
+                           with two capitals, so these two are IDType and POBOX and not idType
+                           and pobox - and getting that wrong is a compile error on a machine
+                           that has no Android SDK on it to find one. */
+                        idType = nm?.getIDType().orNull(),
                         fullNameEnglish = cleanName(nm?.fullNameEnglish),
+                        fullNameRaw = nm?.fullNameEnglish.orNull(),
                         fullNameArabic = cleanName(nm?.fullNameArabic).ifBlank { null },
-                        nationalityEnglish = nm?.nationalityEnglish,
-                        gender = nm?.gender,
-                        dateOfBirth = nm?.dateOfBirth,
-                        issueDate = nm?.issueDate,
-                        expiryDate = nm?.expiryDate,
-                        /* The address was already being read - it is the `address = true`
-                           above - and the mobile number in it was simply never taken out of
-                           it. The desk browser has filled its contact box from this for as
-                           long as it has existed; the tablet asked the officer to type it. */
-                        addressMobile = data.homeAddress?.mobilePhoneNumber?.trim()?.ifBlank { null },
+                        titleEnglish = nm?.titleEnglish.orNull(),
+                        gender = nm?.gender.orNull(),
+                        dateOfBirth = nm?.dateOfBirth.orNull(),
+                        placeOfBirthEnglish = nm?.placeOfBirthEnglish.orNull(),
+                        nationalityEnglish = nm?.nationalityEnglish.orNull(),
+                        nationalityArabic = nm?.nationalityArabic.orNull(),
+                        nationalityCode = nm?.nationalityCode.orNull(),
+                        issueDate = nm?.issueDate.orNull(),
+                        expiryDate = nm?.expiryDate.orNull(),
+
+                        addressEmirate = home?.emiratesDescEnglish.orNull(),
+                        addressCity = home?.cityDescEnglish.orNull(),
+                        addressArea = home?.areaDescEnglish.orNull(),
+                        addressStreet = home?.streetEnglish.orNull(),
+                        addressBuilding = home?.buildingNameEnglish.orNull(),
+                        addressPoBox = home?.getPOBOX().orNull(),
+                        addressPhone = home?.residentPhoneNumber.orNull(),
+                        addressMobile = home?.mobilePhoneNumber.orNull(),
+                        addressEmail = home?.email.orNull(),
+
                         photo = decodePhoto(data.cardHolderPhoto),
                     )
                 } catch (e: ToolkitException) {
@@ -200,6 +228,10 @@ class ToolkitEmiratesIdReader(private val context: Context) : EmiratesIdReader {
      * The chip stores names as comma-delimited segments, most of them empty:
      * "NAYYAR JAWAID,,,,,ALI KHAN," is one person, not seven fields.
      */
+    /** Trimmed, or null. A chip returns an unset field as an empty string, and an empty
+        string shown as a value is worse than a row that is not there. */
+    private fun String?.orNull(): String? = this?.trim()?.ifBlank { null }
+
     private fun cleanName(value: String?): String {
         if (value.isNullOrBlank()) return ""
         val joined = value.split(',').map(String::trim).filter(String::isNotEmpty).joinToString(" ")
