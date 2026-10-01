@@ -2,6 +2,7 @@ package ae.dubaiinvestments.vms.ui.screens
 
 import ae.dubaiinvestments.vms.ui.FieldRules
 import ae.dubaiinvestments.vms.ui.ManualDraft
+import ae.dubaiinvestments.vms.ui.parts.DigitGrouping
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +48,19 @@ fun ManualEntryDialog(
 ) {
     var draft by remember { mutableStateOf(initial) }
 
+    /*  The fields hold digits; the separators are painted over them by DigitGrouping.
+     *
+     *  Reformatting the value itself is what produced "784-91" from 7841980: the field was
+     *  set to "784-1" as the fourth digit landed, Compose put the caret before the 1, and the
+     *  next digit went in front of it. The caret is not the value's to decide, so the value
+     *  stopped trying to.
+     *
+     *  The draft still carries the grouped string, because that is what is sent and what the
+     *  server has always been given. Only what the officer types is digits. */
+    var idDigits by remember { mutableStateOf(FieldRules.digits(initial.idNumber)) }
+    var bornDigits by remember { mutableStateOf(FieldRules.digits(initial.dateOfBirth)) }
+    var expiryDigits by remember { mutableStateOf(FieldRules.digits(initial.expiryDate)) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Enter the details by hand") },
@@ -73,15 +87,12 @@ fun ManualEntryDialog(
                 val idProblem = FieldRules.typedIdNumberProblem(draft.idNumber)
 
                 OutlinedTextField(
-                    value = draft.idNumber,
-                    /* The officer types fifteen digits; the hyphens are put in here. Two of
-                       them on a soft keyboard are two more chances for the number to come out
-                       a character wrong, and the field never needed them. */
+                    value = idDigits,
                     onValueChange = { entry ->
-                        draft = draft.copy(
-                            idNumber = FieldRules.retype(entry, draft.idNumber, FieldRules::groupIdNumber),
-                        )
+                        idDigits = FieldRules.digits(entry).take(FieldRules.EmiratesIdDigits)
+                        draft = draft.copy(idNumber = FieldRules.groupIdNumber(idDigits))
                     },
+                    visualTransformation = DigitGrouping.EmiratesIdNumber,
                     label = { Text("Emirates ID number") },
                     /* Said only once something has been typed: an empty required box is
                        already marked required, and one that turns red before it is touched
@@ -90,7 +101,7 @@ fun ManualEntryDialog(
                     supportingText = {
                         Text(
                             if (draft.idNumber.isNotBlank() && idProblem != null) idProblem
-                            else "Type the digits - the hyphens are added for you.",
+                            else "Fifteen digits - the hyphens draw themselves.",
                         )
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -115,14 +126,14 @@ fun ManualEntryDialog(
                 )
 
                 OutlinedTextField(
-                    value = draft.dateOfBirth,
+                    value = bornDigits,
                     onValueChange = { entry ->
-                        draft = draft.copy(
-                            dateOfBirth = FieldRules.retype(entry, draft.dateOfBirth, FieldRules::groupCardDate),
-                        )
+                        bornDigits = FieldRules.digits(entry).take(FieldRules.CardDateDigits)
+                        draft = draft.copy(dateOfBirth = FieldRules.groupCardDate(bornDigits))
                     },
+                    visualTransformation = DigitGrouping.CardDate,
                     label = { Text("Date of birth") },
-                    supportingText = { Text("Digits only - 13 12 1980 becomes 13/12/1980.") },
+                    supportingText = { Text("Day, month, year - the slashes draw themselves.") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -134,16 +145,16 @@ fun ManualEntryDialog(
                 val expiryConcern = FieldRules.expiryConcern(draft.expiryDate)
 
                 OutlinedTextField(
-                    value = draft.expiryDate,
+                    value = expiryDigits,
                     onValueChange = { entry ->
-                        draft = draft.copy(
-                            expiryDate = FieldRules.retype(entry, draft.expiryDate, FieldRules::groupCardDate),
-                        )
+                        expiryDigits = FieldRules.digits(entry).take(FieldRules.CardDateDigits)
+                        draft = draft.copy(expiryDate = FieldRules.groupCardDate(expiryDigits))
                     },
+                    visualTransformation = DigitGrouping.CardDate,
                     label = { Text("Expiry date") },
                     isError = expiryConcern != null,
                     supportingText = {
-                        Text(expiryConcern ?: "Required. Digits only - 25 08 2028 becomes 25/08/2028.")
+                        Text(expiryConcern ?: "Required. Day, month, year - 25 08 2028.")
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,

@@ -36,6 +36,9 @@ object FieldRules {
     const val ContactMobile = 40
 
     const val EmiratesIdDigits = 15
+
+    /** ddMMyyyy - what a card date is, once its slashes are the screen's business. */
+    const val CardDateDigits = 8
     const val EmiratesIdPrefix = "784"
 
     fun digits(raw: String?): String = raw?.filter(Char::isDigit) ?: ""
@@ -272,6 +275,10 @@ object FieldRules {
      *  and a slash each are three more chances to fumble on a soft keyboard, three more
      *  reasons for a number to come out a character wrong, and the field accepts the digits
      *  alone anyway - so asking for them was never anything but friction.
+     *
+     *  These build the string that is stored and sent. What the officer sees while typing is
+     *  drawn by DigitGrouping instead, over a field holding digits and nothing else - the
+     *  separators cannot be in the value without taking the caret with them.
      */
 
     /** 784-1980-5919869-1, from however many digits there are so far. */
@@ -290,25 +297,6 @@ object FieldRules {
         }
 
         return built.toString()
-    }
-
-    /**
-     * What the field should now hold, given what is in it and what was in it before.
-     *
-     * The one subtlety in a field that formats itself. Backspace over a separator deletes the
-     * separator, the digits are unchanged, and re-grouping them puts it straight back - so the
-     * field cannot be shortened past it and the officer is stuck pressing a key that does
-     * nothing. When the text got shorter and the digits did not, a separator is what was
-     * deleted, and the digit in front of it is what was meant.
-     */
-    fun retype(typed: String, previous: String, group: (String) -> String): String {
-        var digits = digits(typed)
-
-        if (typed.length < previous.length && digits == digits(previous)) {
-            digits = digits.dropLast(1)
-        }
-
-        return group(digits)
     }
 
     /**
