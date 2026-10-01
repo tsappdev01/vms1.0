@@ -181,6 +181,13 @@ data class UiState(
             if (purpose == null) add("purpose")
             if (purpose == otherPurpose && purposeOther.isBlank()) add("details for Other")
             if (contactMobile.isBlank()) add("mobile number")
+
+            /* The server requires this of every visit however it arrived, and a chip that
+               gives no expiry date was reaching it unchecked - the save came back refused and
+               the officer was told about it on the wrong screen. Asked for here, where the
+               form can say which field and the officer can type it. */
+            val expiry = card?.expiryDate ?: manual?.expiryDate
+            if (expiry.isNullOrBlank()) add("card expiry")
         }
 
     /** What the save button needs before it is worth pressing. */
@@ -225,6 +232,10 @@ class VisitorViewModel(
 
         /** Four tries, roughly fifteen seconds in all - about what a cold start costs. */
         const val Attempts = 4
+
+        /** The ProblemDetails title the server gives a refusal that is about the card read
+            rather than about the visit's fields. Must match VisitsApi.ReadRefused. */
+        const val CardReadRefused = "The card read was not accepted"
 
         /** How long the camera may see nothing card-like before the screen stops saying
             "Reading…" and says what to do about it. Long enough not to nag at somebody still
@@ -946,11 +957,21 @@ class VisitorViewModel(
             val saved = VmsClient.call { apis.current().saveVisit(request) }
             _state.value = _state.value.copy(busy = null, saved = saved, step = Step.Saved)
         } catch (e: ApiException) {
-            /* A rejected read is the one failure with a recovery: the request ID is spent
-               after five minutes, and the answer is to read the card again. The visit
-               details stay exactly as they are, so that is one tap and not a re-typed
-               form. */
-            val readRejected = e.status == 400 && current.card != null
+            /*  Only a rejected READ goes back to the card.
+             *
+             *  A rejected read is the one failure with a recovery: the request ID is spent
+             *  after five minutes, and the answer is to read the card again. The visit
+             *  details stay exactly as they are, so that is one tap and not a re-typed form.
+             *
+             *  This used to fire on any 400 with a card present, which was wrong the moment
+             *  the server began refusing a visit for a missing mobile number or expiry date.
+             *  The officer pressed Save, was thrown back to the Insert Card screen with the
+             *  card cleared, and read the server's complaint there - so a field the form had
+             *  not collected presented as a card that would not read. The server now titles
+             *  the two refusals differently and this matches on that, not on the status. */
+            val readRejected = e.status == 400 &&
+                current.card != null &&
+                e.title == CardReadRefused
 
             _state.value = _state.value.copy(
                 busy = null,

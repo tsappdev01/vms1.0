@@ -89,7 +89,18 @@ object VmsClient {
         try {
             block()
         } catch (e: HttpException) {
-            throw ApiException(describe(e), e.code())
+            /*  Read once.
+             *
+             *  errorBody().string() consumes the stream, so asking a second time - for the
+             *  title, having already taken the detail - gives back nothing and the officer
+             *  gets a blank message. Parsed here, and both the words and the decision come
+             *  from the one result. */
+            val problem = problemOf(e)
+            throw ApiException(
+                describe(e, problem),
+                e.code(),
+                problem?.title?.takeIf { it.isNotBlank() },
+            )
         } catch (e: UnknownHostException) {
             throw ApiException(
                 "The server could not be reached. Check the tablet's network, and the " +
@@ -113,7 +124,16 @@ object VmsClient {
             )
         }
 
-    private fun describe(e: HttpException): String {
+    /** ProblemDetails, if that is what came back. An HTML error page from IIS is the other
+        possibility, and parsing that as JSON throws - hence the runCatching. Call it once:
+        it consumes the response body. */
+    private fun problemOf(e: HttpException): ProblemDetails? = runCatching {
+        e.response()?.errorBody()?.string()?.takeIf { it.isNotBlank() }?.let {
+            json.decodeFromString<ProblemDetails>(it)
+        }
+    }.getOrNull()
+
+    private fun describe(e: HttpException, problem: ProblemDetails?): String {
         /* Nobody signs in on the tablet, so a 401 is never an expired session - it is the
            API key. Saying "sign in again" would send reception looking for a button that
            does not exist. */
@@ -122,16 +142,8 @@ object VmsClient {
                 "it may have been rotated."
         }
 
-        /* ProblemDetails, if that is what came back. An HTML error page from IIS is the
-           other possibility, and parsing that as JSON throws - hence the runCatching. */
-        val detail = runCatching {
-            e.response()?.errorBody()?.string()?.takeIf { it.isNotBlank() }?.let {
-                json.decodeFromString<ProblemDetails>(it)
-            }
-        }.getOrNull()
-
-        detail?.detail?.takeIf { it.isNotBlank() }?.let { return it }
-        detail?.title?.takeIf { it.isNotBlank() }?.let { return it }
+        problem?.detail?.takeIf { it.isNotBlank() }?.let { return it }
+        problem?.title?.takeIf { it.isNotBlank() }?.let { return it }
 
         return "The server refused the request (${e.code()})."
     }

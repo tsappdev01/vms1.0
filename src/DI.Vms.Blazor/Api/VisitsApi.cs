@@ -309,7 +309,7 @@ public static class VisitsApi
             {
                 if (string.IsNullOrWhiteSpace(request.RequestId) || request.ReadResponseXml is null)
                 {
-                    return Problem("A card read needs both the request ID it was issued for and the response.");
+                    return ReadProblem("A card read needs both the request ID it was issued for and the response.");
                 }
 
                 try
@@ -322,7 +322,7 @@ public static class VisitsApi
                        pass on - it says what is wrong with the read, not how the check
                        works. */
                     log.LogWarning("Rejected a tablet card read: {Reason}", ex.Message);
-                    return Problem(ex.Message);
+                    return ReadProblem(ex.Message);
                 }
 
                 captureMethod = card.SignatureWarning is null ? "CardReader" : "CardReaderUnverified";
@@ -531,8 +531,30 @@ public static class VisitsApi
         ExpiryDate: read.Zone?.ExpiryDate,
         AddressMobile: null);
 
+    /// <summary>
+    /// A refusal about the visit's own fields: a missing mobile number, an expiry date that
+    /// is not there, a purpose with no detail. The card, if one was read, is still good.
+    /// </summary>
     private static IResult Problem(string detail) =>
-        Results.Problem(detail, statusCode: StatusCodes.Status400BadRequest, title: "The visit was not saved");
+        Results.Problem(detail, statusCode: StatusCodes.Status400BadRequest, title: VisitRefused);
+
+    /// <summary>
+    /// A refusal about the card read itself - a spent request ID, a response that will not
+    /// verify, a read with no document attached. Only this one is worth sending the officer
+    /// back to the card, and it is given its own title so a client can tell.
+    ///
+    /// Both used to answer with the same title, which left the tablet unable to distinguish
+    /// them: it treated every 400 on a card visit as a rejected read, threw the officer back
+    /// to the Insert Card screen and cleared the card. A missing mobile number therefore
+    /// presented as a card that would not read.
+    /// </summary>
+    private static IResult ReadProblem(string detail) =>
+        Results.Problem(detail, statusCode: StatusCodes.Status400BadRequest, title: ReadRefused);
+
+    /* The tablet matches on these, so they are constants rather than literals at the call
+       sites. Changing one changes what a tablet does; see ui/VisitorViewModel.kt. */
+    public const string VisitRefused = "The visit was not saved";
+    public const string ReadRefused = "The card read was not accepted";
 
     private const string LikeEscape = "\\";
 
