@@ -77,6 +77,7 @@ import ae.dubaiinvestments.vms.ui.parts.SectionCard
 fun MrzScanScreen(
     state: UiState,
     onText: (String) -> Unit,
+    onNumberSeen: (String) -> Unit,
     onUsePrinted: (ManualDraft) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -125,7 +126,7 @@ fun MrzScanScreen(
                         .clip(RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CameraPreview(onText = onText)
+                    CameraPreview(onText = onText, onNumberSeen = onNumberSeen)
 
                     /* The card is ID-1, so the guide is ID-1. A box of any other shape invites
                        the officer to fill it with a card that is then either cropped or too
@@ -224,10 +225,10 @@ fun MrzScanScreen(
 }
 
 @Composable
-private fun CameraPreview(onText: (String) -> Unit) {
+private fun CameraPreview(onText: (String) -> Unit, onNumberSeen: (String) -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val analyzer = remember { MrzAnalyzer(onText) }
+    val analyzer = remember { MrzAnalyzer(onText, onNumberSeen) }
 
     DisposableEffect(Unit) {
         onDispose { analyzer.close() }

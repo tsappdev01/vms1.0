@@ -216,6 +216,53 @@ object FieldRules {
         return SimpleDate(year, month, (days + 1).toInt())
     }
 
+    /**
+     * The first valid Emirates ID number in a block of recognised text, or null.
+     *
+     * The same search the server does, on the tablet, so the officer sees the number the
+     * instant the camera reads it rather than after a round trip. It can be done here
+     * precisely because the number carries its own Luhn check digit: there is no judgement in
+     * it to get wrong, only arithmetic, and arithmetic gives the same answer on both sides.
+     *
+     * Found loosely and judged strictly. The front prints it as 784-1980-5919869-1 and a
+     * recogniser returns those hyphens, or spaces, or neither, or a line break in the middle
+     * of them - the UAE Pass card wraps the number across two lines - so anything that is not
+     * a digit between the digits is ignored, and the fifteen that fall out either satisfy
+     * Luhn or are not an Emirates ID number.
+     */
+    fun findIdNumber(text: String?): String? {
+        if (text.isNullOrBlank()) return null
+
+        for (match in Candidate.findAll(text.uppercase())) {
+            val digits = match.value.filter(Char::isDigit)
+            if (digits.length < EmiratesIdDigits) continue
+
+            /* The pattern can over-reach into a number that follows, so the first fifteen
+               digits are taken rather than all of them. */
+            val candidate = digits.take(EmiratesIdDigits)
+            if (typedIdNumberProblem(candidate) == null) return candidate
+        }
+
+        return null
+    }
+
+    /**
+     * Whether this looks like the three lines off the back of a card.
+     *
+     * Used to decide which frames are worth a round trip. A zone line is thirty characters
+     * from a 37-character alphabet, so three lines of twenty or more of those characters is a
+     * zone and almost nothing else is - a shirt, a desk or the front of a card does not
+     * produce them.
+     */
+    fun looksLikeZone(text: String?): Boolean =
+        (text ?: "").lineSequence()
+            .count { line -> line.count { it in ZoneAlphabet } >= 20 } >= 3
+
+    private const val ZoneAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<"
+
+    /** 784 and fifteen digits in all, with whatever the recogniser put between them. */
+    private val Candidate = Regex("""784\D{0,3}(?:\d\D{0,3}){12}""")
+
     // ------------------------------------------------------------------ typing help
 
     /*  The separators are put in by the screen, not by the officer.

@@ -172,6 +172,7 @@ fun VmsApp(viewModel: VisitorViewModel) {
                     Step.MrzScan -> MrzScanScreen(
                         state = state,
                         onText = { viewModel.onMrzText(it) },
+                        onNumberSeen = { viewModel.onMrzNumberSeen(it) },
                         onUsePrinted = { viewModel.useManualEntry(it) },
                         onClose = { viewModel.closeMrzScan() },
                     )

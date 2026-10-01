@@ -682,6 +682,26 @@ class VisitorViewModel(
      * carries everything and the front carries one field. Settling for the number while the
      * rest is in front of the camera is the fault this whole path exists to avoid.
      */
+    /**
+     * The number, the moment the camera reads it.
+     *
+     * Found on the tablet rather than asked about, because it carries a Luhn check digit and
+     * arithmetic gives the same answer on both sides. It is not the record - the record is
+     * built from what the server parses - it is what the officer sees while that is being
+     * asked, and it is the difference between a number appearing as the card comes into frame
+     * and a number appearing after a round trip over office wifi.
+     */
+    fun onMrzNumberSeen(number: String) {
+        if (_state.value.step != Step.MrzScan) return
+        if (_state.value.mrzComplete) return
+
+        framesSent++
+
+        _state.value = _state.value.copy(
+            busy = "Read $number \u2014 looking for the name and dates\u2026",
+        )
+    }
+
     fun onMrzText(text: String) {
         if (_state.value.step != Step.MrzScan) return
 
