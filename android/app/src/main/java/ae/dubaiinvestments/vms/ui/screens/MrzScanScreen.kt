@@ -63,6 +63,12 @@ import ae.dubaiinvestments.vms.ui.parts.SectionCard
  * frame is filtered here first, on something no recogniser can be wrong about: the zone is
  * padded with chevrons and the printed number starts 784. Text with neither is not a card, and
  * is dropped without a call. In practice nothing is sent until the card is actually in view.
+ *
+ * Which means **this screen does not work off the network**, and it has to say so. The frames
+ * that do look like a card go to `/api/mrz` to be judged, and a tablet that cannot reach the
+ * server gets no answer about any of them. That used to read as "Reading…" for as long as
+ * anyone cared to hold the card up. Both ways of getting nowhere are now named: the server not
+ * answering, and the camera never seeing anything card-like in the first place.
  */
 @Composable
 fun MrzScanScreen(
@@ -129,16 +135,35 @@ fun MrzScanScreen(
                     )
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (state.busy != null) {
-                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                    }
+                /*  The server, not the camera.
+                 *
+                 *  Every frame is judged by `/api/mrz`, so a tablet that cannot reach the
+                 *  server cannot scan at all. Said here, in the error colour and with the
+                 *  spinner gone, because the alternative is what was reported: a card held
+                 *  in the frame for fifteen seconds under the word "Reading…". */
+                if (state.mrzProblem != null) {
                     Text(
-                        state.busy ?: "Reading…",
+                        state.mrzProblem,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 10.dp),
+                        color = MaterialTheme.colorScheme.error,
                     )
+                    Text(
+                        "The camera reads the card, but the server checks it - so scanning " +
+                            "needs the network. Cancel and use Read card, or type the " +
+                            "details in.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        Text(
+                            state.busy ?: "Reading…",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 10.dp),
+                        )
+                    }
                 }
             }
 

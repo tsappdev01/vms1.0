@@ -33,8 +33,8 @@ android {
          *  broken feature. 1.1.0 is the first with the camera scanner and the settings PIN;
          *  1.1.1 is the first that requires a mobile number, which the server now refuses a
          *  visit without. */
-        versionCode = 3
-        versionName = "1.1.1"
+        versionCode = 4
+        versionName = "1.1.2"
 
         /* The toolkit's native libraries are built for these two only. Without the
            filter, an x86_64 emulator installs an APK with no usable library and fails at

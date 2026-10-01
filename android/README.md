@@ -199,6 +199,31 @@ reader plugged into it, not in front of Android Studio. `settings/Settings.kt` h
 device-to-device transfers. `api/ApiProvider.kt` rebuilds the Retrofit client when, and
 only when, the address changes.
 
+## The camera scanner needs the network
+
+Worth stating on its own, because it is not obvious from the screen and it was reported as
+"the scanner does not detect anything".
+
+ML Kit recognises the text on the tablet. **Everything that decides whether that text is an
+Emirates ID is on the server** - the TD1 check digits, the Luhn digit, the positional repair of
+OCR-B confusions - so every frame that looks card-like is posted to `/api/mrz` and the answer
+comes back from there. One implementation of that rule, in the place the record is written; see
+`card/MrzCamera.kt` for why. The cost is that **a tablet off the network cannot scan a card at
+all**, and neither can one pointed at a server too old to have `/api/mrz` on it.
+
+Both now say so. A failure on that call is shown immediately and in the error colour, because
+the endpoint answers `200` with `ok=false` when the text simply is not a card - so an exception
+from it is never an ordinary frame. It is the server unreachable, the key refused, or a build
+without the endpoint, and none of those improve while the officer holds the card steadier. A
+connection that genuinely blinked clears itself when the next frame gets through.
+
+The other way to get nowhere is the camera never seeing anything card-like, which sends no
+requests at all. After seven seconds of that the screen stops saying "Reading…" and says what
+to do about it instead.
+
+Off the network, **Read card** still works - the chip read is done by the toolkit on the tablet.
+Saving the visit does not, because that is the server too.
+
 ## What the tablet checks before it sends
 
 `ui/FieldRules.kt`, and it is a **copy**. The rules belong to the server, in

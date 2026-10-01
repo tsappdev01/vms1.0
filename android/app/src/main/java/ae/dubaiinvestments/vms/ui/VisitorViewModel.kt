@@ -82,6 +82,16 @@ data class UiState(
         number and has to type or scan the rest. */
     val mrzComplete: Boolean = false,
 
+    /**
+     * Why the frames are not being checked.
+     *
+     * Every frame the camera reads is sent to `/api/mrz` to be judged, so a tablet that
+     * cannot reach the server cannot scan a card at all - and used to say so by showing
+     * "Reading…" forever, which is indistinguishable from a card held badly. This is that
+     * silence, ended.
+     */
+    val mrzProblem: String? = null,
+
     val entities: List<EntityDto> = emptyList(),
     val purposes: List<String> = emptyList(),
     val otherPurpose: String = "Other",
@@ -202,6 +212,11 @@ class VisitorViewModel(
         /** Four tries, roughly fifteen seconds in all - about what a cold start costs. */
         const val Attempts = 4
 
+        /** How long the camera may see nothing card-like before the screen stops saying
+            "Reading…" and says what to do about it. Long enough not to nag at somebody still
+            lining the card up; short enough to beat giving up. */
+        const val NothingHappeningAfter = 7_000L
+
         /** How often the reader is asked whether a card is in it. Fast enough that
             inserting a card looks instant, slow enough not to hammer the native layer. */
         const val ReaderPollMillis = 1_200L
@@ -227,6 +242,13 @@ class VisitorViewModel(
     /** The PIN check in flight, so a second tap cannot spend a second attempt on the same
         guess while the first is still hashing. */
     private var pinJob: Job? = null
+
+    /** Frames the camera thought were worth asking about, this scan. Zero after a while
+        means the camera is not seeing a card, which is a different fault from the server
+        not answering and needs different words. */
+    private var framesSent = 0
+
+    private var nothingHappening: Job? = null
 
     init {
         loadReference()
@@ -596,17 +618,44 @@ class VisitorViewModel(
     // ---------------------------------------------------------------- the camera
 
     fun openMrzScan() {
+        framesSent = 0
         _state.value = _state.value.copy(
             step = Step.MrzScan,
             busy = "Hold the card in the frame\u2026",
             error = null,
             mrzText = null,
             mrzComplete = false,
+            mrzProblem = null,
         )
+        watchForNothingHappening()
     }
 
     fun closeMrzScan() {
-        _state.value = _state.value.copy(step = Step.InsertCard, busy = null)
+        nothingHappening?.cancel()
+        _state.value = _state.value.copy(step = Step.InsertCard, busy = null, mrzProblem = null)
+    }
+
+    /**
+     * Says so when the camera has been looking for a while and has seen nothing card-like.
+     *
+     * The other half of the same problem. A frame is only sent to the server once it holds
+     * chevrons or a 784 number, so a card too far away, too dark or out of focus produces no
+     * requests at all - and the screen said "Reading…" through every second of it. Fifteen
+     * seconds of that is somebody concluding the scanner does not work, which is the report
+     * that brought this about.
+     */
+    private fun watchForNothingHappening() {
+        nothingHappening?.cancel()
+        nothingHappening = viewModelScope.launch {
+            delay(NothingHappeningAfter)
+
+            if (framesSent == 0 && _state.value.step == Step.MrzScan && _state.value.mrzProblem == null) {
+                _state.value = _state.value.copy(
+                    busy = "Nothing that looks like a card yet. Fill the frame with it, " +
+                        "hold it steady, and keep it in good light.",
+                )
+            }
+        }
     }
 
     /**
@@ -622,18 +671,35 @@ class VisitorViewModel(
         if (_state.value.step != Step.MrzScan) return
 
         viewModelScope.launch {
-            /*  A failed frame is not an error to show.
+            framesSent++
+
+            /*  A failure here is shown, and that is a correction.
              *
-             *  This runs on whatever the camera happened to see, several times a second. A
-             *  connection that blinked, or a frame that turned out not to be a card after
-             *  all, is the ordinary case - and putting it on the screen would bury the one
-             *  message that matters under a stream of ones that do not. The officer finds
-             *  out the server is unreachable from the card read, which says so properly. */
+             *  It used to be swallowed, on the reasoning that this runs several times a
+             *  second on whatever the camera saw and that a frame which turned out not to be
+             *  a card is ordinary. The second half of that is wrong: `/api/mrz` answers 200
+             *  even when the text is not a card at all - it says so in the body, as ok=false
+             *  - so an exception on this call is never "that was not a card". It is the
+             *  server unreachable, the key refused, or an older build with no /api/mrz on
+             *  it. All three are worth saying immediately, and none of them will fix
+             *  themselves while the officer holds the card steadier.
+             *
+             *  A connection that genuinely blinked clears itself: the next frame that
+             *  succeeds takes the message away. */
             val result = try {
                 VmsClient.call { apis.current().readMrz(MrzRequest(text)) }
             } catch (e: ApiException) {
                 Log.d(TAG, "A frame could not be checked", e)
+
+                if (_state.value.step == Step.MrzScan) {
+                    _state.value = _state.value.copy(mrzProblem = e.message, busy = null)
+                }
                 return@launch
+            }
+
+            /* Reached it. Whatever it said about the last one, the connection is alive. */
+            if (_state.value.mrzProblem != null) {
+                _state.value = _state.value.copy(mrzProblem = null)
             }
 
             if (!result.ok || _state.value.step != Step.MrzScan) return@launch
