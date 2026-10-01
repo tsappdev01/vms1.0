@@ -195,9 +195,10 @@ fun VisitDetailsScreen(
         }
 
         SectionCard("Contact") {
-            /* Typed, not read. The card's own mobile is parsed out of the signed XML on
-               the server; on every card tested at DIP that field came back empty, so this
-               is the number that will actually reach the visitor today. */
+            /* Filled from the chip's home address when a card was read, typed otherwise, and
+               editable either way - the number the visitor gives at the desk beats the one the
+               card was registered with. The record is still built from the server's own parse
+               of the signed XML; this is the box the officer sees. */
             /* Required, and it says so. It was marked optional here while the desk browser
                required it, which is the kind of disagreement that only shows up as a visitor
                nobody can ring. */
@@ -209,7 +210,15 @@ fun VisitDetailsScreen(
                 label = { Text("Mobile number") },
                 isError = mobileConcern != null,
                 supportingText = {
-                    Text(mobileConcern ?: "How to reach the visitor. Required.")
+                    Text(
+                        mobileConcern
+                            ?: if (state.card?.addressMobile.isNullOrBlank()) {
+                                "How to reach the visitor. Required."
+                            } else {
+                                "Read from the card. Correct it if the visitor gives another " +
+                                    "number."
+                            },
+                    )
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),

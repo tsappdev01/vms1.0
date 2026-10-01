@@ -125,9 +125,10 @@ data class UiState(
     val purpose: String? = null,
     val purposeOther: String = "",
 
-    /** The number the visitor gives at the desk. Typed, always: the card's own mobile is
-        parsed out of the signed XML on the server, so there is nothing here to prefill
-        from - and on every card tested at DIP that field came back empty anyway. */
+    /** The number the visit is contacted on. Filled from the chip's home address when a card
+        is read, and typed otherwise. This was documented as "typed, always", on the belief
+        that the card's mobile field came back empty - the desk browser has been filling its
+        contact box from that field all along, and the desk said so. */
     val contactMobile: String = "",
 
     /** Where this tablet sends its visits. Shown in the top bar and edited under the gear. */
@@ -617,6 +618,10 @@ class VisitorViewModel(
                 card = card,
                 readRequestId = ticket.requestId,
                 manual = null,
+                /* Filled from the chip, and only into an empty box: a number the officer has
+                   already typed is the one the visitor gave at the desk, and the card must not
+                   overwrite it. The same rule the desk browser applies. */
+                contactMobile = _state.value.contactMobile.ifBlank { card.addressMobile.orEmpty() },
                 step = Step.VisitorInformation,
             )
         } catch (e: ApiException) {
@@ -809,10 +814,10 @@ class VisitorViewModel(
             readRequestId = null,
             manual = draft,
             /* The number typed in the dialog is the number the visit is contacted on. It used
-               to be the card's own mobile, which is a different field and empty on every card
-               tested here, while the visit screen asked for the real one separately - so the
-               desk met two mobile boxes and one of them said optional. Carried across rather
-               than asked for twice; still editable there. */
+               to be the card's own mobile, a second box that said optional, while the visit
+               screen asked for the real one separately - so the desk met two mobile fields and
+               filled in the wrong one. Carried across rather than asked for twice; still
+               editable there. */
             contactMobile = draft.mobile.trim().ifBlank { _state.value.contactMobile },
             error = null,
             step = Step.VisitorInformation,

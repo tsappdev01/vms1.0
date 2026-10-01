@@ -21,6 +21,15 @@ data class CardRead(
     val dateOfBirth: String?,
     val issueDate: String?,
     val expiryDate: String?,
+    /**
+     * The mobile number held in the card's home address.
+     *
+     * Read so the desk does not retype a number the chip is already holding. It is not the
+     * record - the server parses its own copy out of the signed XML like every other field -
+     * it is what the contact box is filled in with, and the officer overwrites it whenever
+     * the visitor gives a different number.
+     */
+    val addressMobile: String?,
     val photo: ByteArray?,
 ) {
     /* A data class with a ByteArray gets equals() and hashCode() that compare the array

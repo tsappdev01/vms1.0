@@ -171,10 +171,11 @@ fun ManualEntryDialog(
 
                 /*  Required, and it used to say "optional" here.
                  *
-                 *  This box was the card's own mobile - a field that is empty on every card
-                 *  tested at DIP - sitting next to a visit screen that required a different
-                 *  mobile number. Two mobile fields at a reception desk, one of them marked
-                 *  optional, is a desk that fills in the wrong one.
+                 *  This box was the card's own mobile, sitting next to a visit screen that
+                 *  required a different mobile number. Two mobile fields at a reception desk,
+                 *  one of them marked optional, is a desk that fills in the wrong one. When a
+                 *  card reads, that number now arrives from the chip; this box is for when it
+                 *  did not, which is the only reason this dialog exists.
                  *
                  *  So there is one number now. What is typed here is the number the visit is
                  *  contacted on, it is carried to the visit screen, and the officer is not

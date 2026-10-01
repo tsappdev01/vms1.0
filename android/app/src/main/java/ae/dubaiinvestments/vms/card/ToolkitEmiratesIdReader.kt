@@ -164,6 +164,11 @@ class ToolkitEmiratesIdReader(private val context: Context) : EmiratesIdReader {
                         dateOfBirth = nm?.dateOfBirth,
                         issueDate = nm?.issueDate,
                         expiryDate = nm?.expiryDate,
+                        /* The address was already being read - it is the `address = true`
+                           above - and the mobile number in it was simply never taken out of
+                           it. The desk browser has filled its contact box from this for as
+                           long as it has existed; the tablet asked the officer to type it. */
+                        addressMobile = data.homeAddress?.mobilePhoneNumber?.trim()?.ifBlank { null },
                         photo = decodePhoto(data.cardHolderPhoto),
                     )
                 } catch (e: ToolkitException) {

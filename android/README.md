@@ -251,6 +251,12 @@ sends reception for a pen and paper.
 Also here: **every box is capped** at the width of the column behind it, which the tablet did
 not do at all before. A long paste used to reach the server and be cut to fit in silence.
 
+**The mobile number is read from the chip.** `HomeAddress.getMobilePhoneNumber()` - the
+address was already being read, and the number in it was simply never taken out. The contact
+box is filled from it, and only when empty: a number the officer has already typed is the one
+the visitor gave at the desk, and the card must not overwrite it. The desk browser has done
+this all along, which is how the gap was found.
+
 Two things were made to agree with the desk browser rather than with themselves:
 
 - **The mobile number is required**, and the field says so. It was marked *optional* here while
