@@ -115,22 +115,24 @@ object ToolkitConfig {
      * install time, so this is where the toolkit finds it - not a path on the device that
      * somebody has to populate.
      *
-     * There used to be a `read_publicdata_offline = true` line here, carried over from the
-     * Windows configuration and described in this comment as the reason a read came back
-     * unsigned. It was neither. That key appears in no ICP document - not the Programmer's
-     * Reference, not the Android guide - and in no string table in the toolkit's own native
-     * libraries, all of which were searched. The toolkit never recognised it, so every read
-     * this app has ever done went out in online mode, and a tablet that could not reach
-     * ICP's Validation Gateway failed with code 233, ETSTATUS_SERVER_RESPONSE_ERROR:
-     * "Failed to get response from server".
+     * `read_publicdata_offline` asks for a read that does not go to ICP's Validation Gateway.
      *
-     * Offline is chosen by what the configuration directory holds, which is why it is done
-     * in [ensureExtracted] rather than here.
+     * It is undocumented - it is in neither the Programmer's Reference nor the Java and
+     * Android guide, which is why it was taken from the working Windows configuration. It is
+     * real: the string is in the Android toolkit's own native library,
+     * libEIDAToolkitJNIWrapper.so, beside ReadPublicDataOffline and is_first_offline_service,
+     * and in the toolkit's recognised parameter list.
+     *
+     * It was briefly removed from here on the strength of a search that looked in the wrong
+     * files - libc++_shared.so in the SDK folder, and a jar whose contents are compressed and
+     * so yield nothing to `strings`. The conclusion drawn from that was wrong and the line is
+     * back. Searching a shipped binary means searching the one that is shipped.
      */
     fun build(context: Context, configDir: File, logDir: File): String = buildString {
         appendLine("config_directory = ${configDir.absolutePath}")
         appendLine("log_directory = ${logDir.absolutePath}")
         appendLine("plugin_directory_path = ${context.applicationInfo.nativeLibraryDir}/")
+        appendLine("read_publicdata_offline = true")
     }
 
     fun logDirectory(context: Context): File =

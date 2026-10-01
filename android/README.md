@@ -206,10 +206,15 @@ server" - ICP's own table, beside 232 (licence contains no service) and 234 (Val
 Gateway connection error). It means the toolkit tried to reach **ICP's** server while reading
 a card, and could not.
 
-It did that on every read this app has ever done. `ToolkitConfig` passed
-`read_publicdata_offline = true` and a comment here said that was why reads came back
-unsigned. It was not: that key appears in no ICP document and in no string table in the
-toolkit's own native libraries, all of which were searched. The toolkit never recognised it.
+`read_publicdata_offline = true` is what asks for a read that does not go to the gateway, and
+it is **real** — the string is in `libEIDAToolkitJNIWrapper.so`, the toolkit's own native
+library, beside `ReadPublicDataOffline` and `is_first_offline_service`. It is undocumented,
+which is why it was taken from the working Windows configuration in the first place.
+
+It was briefly removed from this app on the strength of a search that looked in the wrong
+files — `libc++_shared.so` from the SDK folder, and a jar whose contents are compressed and
+so yield nothing to `strings`. That search found nothing and the conclusion drawn from it was
+wrong. The line is back. Search the binary that ships.
 
 Offline is not a flag. ICP's Programmer's Reference makes `config_ag` "mandatory when
 operating in online mode" and documents no parameter that moves a configured toolkit
