@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -62,6 +64,7 @@ fun SettingsScreen(
     onTest: (String, String) -> Unit,
     onSave: (String, String) -> Unit,
     onResetToDefault: () -> Unit,
+    onOfflineToolkit: (Boolean) -> Unit,
     onSetPin: (current: String, new: String, confirm: String) -> Unit,
     onRemovePin: (current: String) -> Unit,
     onClose: () -> Unit,
@@ -176,6 +179,31 @@ fun SettingsScreen(
 
             if (!state.serverIsDefault) {
                 TextButton(onClick = onResetToDefault) { Text("Use the default address") }
+            }
+        }
+
+        SectionCard("Card reading") {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Read cards without ICP's gateway", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        if (state.server.offlineToolkit) {
+                            "On. The toolkit is kept off the internet, so a read needs nothing " +
+                                "but the reader. The visit records as unverified, which is what " +
+                                "the report already shows for every read from this tablet."
+                        } else {
+                            "Off. Reading a card calls ICP's Validation Gateway over the " +
+                                "internet. On a tablet that cannot reach it, every read fails " +
+                                "with \"failed to get response from server\" (toolkit code 233)."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = state.server.offlineToolkit,
+                    onCheckedChange = onOfflineToolkit,
+                )
             }
         }
 

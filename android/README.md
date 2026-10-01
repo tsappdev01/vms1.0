@@ -199,6 +199,27 @@ reader plugged into it, not in front of Android Studio. `settings/Settings.kt` h
 device-to-device transfers. `api/ApiProvider.kt` rebuilds the Retrofit client when, and
 only when, the address changes.
 
+## ICP's gateway, and the switch that avoids it
+
+Toolkit code **233** is `ETSTATUS_SERVER_RESPONSE_ERROR`, "Failed to get response from
+server" - ICP's own table, beside 232 (licence contains no service) and 234 (Validation
+Gateway connection error). It means the toolkit tried to reach **ICP's** server while reading
+a card, and could not.
+
+It did that on every read this app has ever done. `ToolkitConfig` passed
+`read_publicdata_offline = true` and a comment here said that was why reads came back
+unsigned. It was not: that key appears in no ICP document and in no string table in the
+toolkit's own native libraries, all of which were searched. The toolkit never recognised it.
+
+Offline is not a flag. ICP's Programmer's Reference makes `config_ag` "mandatory when
+operating in online mode" and documents no parameter that moves a configured toolkit
+offline - so the way to have an offline read is to withhold that file, which is what
+**Settings → Read cards without ICP's gateway** does when it unpacks the bundle.
+
+Off by default: a tablet that can reach ICP should, because an online read comes back signed
+and the server can verify it. On a tablet with no route out - a locked-down device with
+access to the backend and nothing else - it is the difference between reading cards and not.
+
 ## The camera scanner needs the network
 
 Worth stating on its own, because it is not obvious from the screen and it was reported as

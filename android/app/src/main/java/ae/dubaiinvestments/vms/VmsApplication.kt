@@ -26,5 +26,5 @@ class VmsApplication : Application() {
 
     val apis: ApiProvider by lazy { ApiProvider(settings) }
 
-    val reader: EmiratesIdReader by lazy { ToolkitEmiratesIdReader(this) }
+    val reader: EmiratesIdReader by lazy { ToolkitEmiratesIdReader(this, settings) }
 }

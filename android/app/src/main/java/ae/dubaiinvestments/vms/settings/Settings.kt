@@ -11,6 +11,19 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 data class ServerSettings(
     val baseUrl: String,
     val apiKey: String,
+    /**
+     * Whether the toolkit is kept away from ICP's Validation Gateway.
+     *
+     * ICP's Programmer's Reference makes config_ag "mandatory when operating in online
+     * mode", and lists no parameter that switches a configured toolkit to offline. So the
+     * way to have an offline read is to withhold that file - which is what this does, by
+     * leaving it out when the bundle is unpacked.
+     *
+     * Off by default, because a tablet that can reach ICP should: an online read comes back
+     * signed and the server can verify it, where an offline one cannot be. On a tablet with
+     * no route to ICP it is the difference between reading cards and not.
+     */
+    val offlineToolkit: Boolean = false,
 ) {
     /** Just the host, for the top bar. A desk should be able to see at a glance which
         server it is talking to without opening anything. */
@@ -44,7 +57,15 @@ class Settings(context: Context) {
     private fun read() = ServerSettings(
         baseUrl = prefs.getString(KeyBaseUrl, null)?.takeIf { it.isNotBlank() } ?: DefaultBaseUrl,
         apiKey = prefs.getString(KeyApiKey, null) ?: DefaultApiKey,
+        offlineToolkit = prefs.getBoolean(KeyOfflineToolkit, false),
     )
+
+    /** Kept apart from [save] because it is not typed into a form - it is a switch, and the
+        toolkit has to be rebuilt when it moves. */
+    fun setOfflineToolkit(on: Boolean) {
+        prefs.edit().putBoolean(KeyOfflineToolkit, on).apply()
+        _current.value = read()
+    }
 
     /**
      * Saves an address typed at the desk.
@@ -83,6 +104,7 @@ class Settings(context: Context) {
     companion object {
         private const val KeyBaseUrl = "baseUrl"
         private const val KeyApiKey = "apiKey"
+        private const val KeyOfflineToolkit = "offlineToolkit"
 
         /** What the build was made with - see VMS_API_BASE_URL in gradle.properties. */
         val DefaultBaseUrl: String = normalise(BuildConfig.API_BASE_URL) ?: BuildConfig.API_BASE_URL

@@ -22,6 +22,10 @@ object ToolkitConfig {
     /** The file every bundle has. Its absence is the useful thing to detect. */
     private const val SENTINEL = "config_li"
 
+    /** ICP's agent configuration. Documented as mandatory for online mode, so withholding
+        it is how a read is kept off the Validation Gateway. */
+    private const val AgentConfig = "config_ag"
+
     /**
      * Extracts the bundle if what is on disk is not from this build, and returns the
      * directory.
@@ -35,9 +39,12 @@ object ToolkitConfig {
      *   ICP's files, which is worth naming rather than letting the toolkit report
      *   "invalid or incomplete configuration data".
      */
-    fun ensureExtracted(context: Context): File {
-        val target = File(context.filesDir, ASSET_DIR)
-        val stamp = File(context.filesDir, "$ASSET_DIR.stamp")
+    fun ensureExtracted(context: Context, offline: Boolean = false): File {
+        /* Its own directory, so moving the switch re-extracts rather than leaving a
+           config_ag behind from the last time. */
+        val dirName = if (offline) "$ASSET_DIR-offline" else ASSET_DIR
+        val target = File(context.filesDir, dirName)
+        val stamp = File(context.filesDir, "$dirName.stamp")
 
         val names = runCatching { context.assets.list(ASSET_DIR)?.toList() }.getOrNull().orEmpty()
         if (names.isEmpty()) {
@@ -58,7 +65,7 @@ object ToolkitConfig {
             return target
         }
 
-        val copied = copyAssets(context, ASSET_DIR, target)
+        val copied = copyAssets(context, ASSET_DIR, target, skip = if (offline) AgentConfig else null)
         stamp.writeText(installedAt)
 
         Log.i(TAG, "Extracted $copied toolkit config files to $target")
@@ -70,16 +77,21 @@ object ToolkitConfig {
      * FileNotFoundException on a directory name. `assets.list` does not say which entries
      * are directories, so the test is whether an entry has children of its own.
      */
-    private fun copyAssets(context: Context, assetPath: String, target: File): Int {
+    private fun copyAssets(context: Context, assetPath: String, target: File, skip: String? = null): Int {
         target.mkdirs()
         var count = 0
 
         for (name in context.assets.list(assetPath).orEmpty()) {
+            if (skip != null && name == skip) {
+                Log.i(TAG, "Leaving $name out: the toolkit is being kept offline.")
+                continue
+            }
+
             val child = "$assetPath/$name"
             val children = runCatching { context.assets.list(child) }.getOrNull().orEmpty()
 
             count += if (children.isNotEmpty()) {
-                copyAssets(context, child, File(target, name))
+                copyAssets(context, child, File(target, name), skip)
             } else {
                 context.assets.open(child).use { input ->
                     File(target, name).outputStream().use(input::copyTo)
@@ -103,14 +115,22 @@ object ToolkitConfig {
      * install time, so this is where the toolkit finds it - not a path on the device that
      * somebody has to populate.
      *
-     * `read_publicdata_offline` is true because the licence ICP issued is an offline
-     * bundle. It is the reason a read comes back unsigned; see android/README.md.
+     * There used to be a `read_publicdata_offline = true` line here, carried over from the
+     * Windows configuration and described in this comment as the reason a read came back
+     * unsigned. It was neither. That key appears in no ICP document - not the Programmer's
+     * Reference, not the Android guide - and in no string table in the toolkit's own native
+     * libraries, all of which were searched. The toolkit never recognised it, so every read
+     * this app has ever done went out in online mode, and a tablet that could not reach
+     * ICP's Validation Gateway failed with code 233, ETSTATUS_SERVER_RESPONSE_ERROR:
+     * "Failed to get response from server".
+     *
+     * Offline is chosen by what the configuration directory holds, which is why it is done
+     * in [ensureExtracted] rather than here.
      */
     fun build(context: Context, configDir: File, logDir: File): String = buildString {
         appendLine("config_directory = ${configDir.absolutePath}")
         appendLine("log_directory = ${logDir.absolutePath}")
         appendLine("plugin_directory_path = ${context.applicationInfo.nativeLibraryDir}/")
-        appendLine("read_publicdata_offline = true")
     }
 
     fun logDirectory(context: Context): File =

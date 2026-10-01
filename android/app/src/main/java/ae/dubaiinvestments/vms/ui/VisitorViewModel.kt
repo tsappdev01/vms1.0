@@ -369,6 +369,18 @@ class VisitorViewModel(
         applySettings()
     }
 
+    /**
+     * Keeps the toolkit away from ICP's Validation Gateway, or lets it reach it.
+     *
+     * The reader rebuilds itself on the next read, so this takes effect without restarting
+     * the app - and it is reversible on the tablet, which matters because which way round is
+     * right depends on what that particular tablet's network allows.
+     */
+    fun setOfflineToolkit(on: Boolean) {
+        settings.setOfflineToolkit(on)
+        _state.value = _state.value.copy(server = settings.value)
+    }
+
     fun resetServer() {
         settings.resetToDefault()
         applySettings()

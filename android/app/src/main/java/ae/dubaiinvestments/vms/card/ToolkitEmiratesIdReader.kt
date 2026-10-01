@@ -3,6 +3,7 @@ package ae.dubaiinvestments.vms.card
 import ae.emiratesid.idcard.toolkit.CardReader
 import ae.emiratesid.idcard.toolkit.Toolkit
 import ae.emiratesid.idcard.toolkit.ToolkitException
+import ae.dubaiinvestments.vms.settings.Settings
 import android.content.Context
 import android.util.Base64
 import android.util.Log
@@ -24,7 +25,10 @@ import kotlinx.coroutines.withContext
  * instance and a [Mutex] around it. A second tap on Read Card while the first is still
  * going would otherwise reach the native layer twice at once.
  */
-class ToolkitEmiratesIdReader(private val context: Context) : EmiratesIdReader {
+class ToolkitEmiratesIdReader(
+    private val context: Context,
+    private val settings: Settings,
+) : EmiratesIdReader {
 
     private companion object {
         const val TAG = "VmsCardReader"
@@ -38,20 +42,37 @@ class ToolkitEmiratesIdReader(private val context: Context) : EmiratesIdReader {
         rather than retrying a native initialisation on every tap. */
     private var initialisationError: String? = null
 
+    /** Which way the cached toolkit was built, so moving the switch takes effect without
+        the app being restarted. */
+    private var builtOffline: Boolean? = null
+
     private fun requireToolkit(): Toolkit {
+        val offline = settings.value.offlineToolkit
+
+        if (builtOffline != null && builtOffline != offline) {
+            Log.i(TAG, "The offline switch moved; rebuilding the toolkit.")
+            toolkit = null
+            initialisationError = null
+        }
+
         toolkit?.let { return it }
         initialisationError?.let { throw CardReadException(it) }
 
+        builtOffline = offline
+
         try {
-            val configDir = ToolkitConfig.ensureExtracted(context)
+            val configDir = ToolkitConfig.ensureExtracted(context, offline)
             val logDir = ToolkitConfig.logDirectory(context)
             val config = ToolkitConfig.build(context, configDir, logDir)
 
             Log.i(TAG, "Initialising the toolkit with:\n$config")
 
-            /* The boolean is ICP's "validate the configuration" flag. Their sample passes
-               true and so does the Windows build; false defers the complaint to the
-               first read, which is a worse place to find out. */
+            /*  The boolean is inProcessMode, per ICP's Java and Android guide: true runs the
+             *  toolkit in this process, false forwards to the Toolkit Agent - and agent mode
+             *  is not supported on Android, so true is the only correct value here.
+             *
+             *  It was described in this comment as a "validate the configuration" flag, which
+             *  it is not. The value was right for the wrong reason. */
             return Toolkit(true, config, context).also { toolkit = it }
         } catch (e: CardReadException) {
             initialisationError = e.message

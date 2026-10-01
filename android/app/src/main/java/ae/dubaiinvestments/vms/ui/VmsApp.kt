@@ -148,6 +148,7 @@ fun VmsApp(viewModel: VisitorViewModel) {
                         onTest = { url, key -> viewModel.testServer(url, key) },
                         onSave = viewModel::saveServer,
                         onResetToDefault = viewModel::resetServer,
+                        onOfflineToolkit = viewModel::setOfflineToolkit,
                         onSetPin = viewModel::setPin,
                         onRemovePin = viewModel::removePin,
                         onClose = viewModel::closeSettings,
