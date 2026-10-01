@@ -1,6 +1,7 @@
 package ae.dubaiinvestments.vms.ui.screens
 
 import ae.dubaiinvestments.vms.card.MrzAnalyzer
+import ae.dubaiinvestments.vms.ui.ManualDraft
 import ae.dubaiinvestments.vms.ui.UiState
 import android.Manifest
 import android.content.pm.PackageManager
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +47,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import ae.dubaiinvestments.vms.ui.parts.FieldRow
 import ae.dubaiinvestments.vms.ui.parts.SectionCard
 
 /**
@@ -74,6 +77,7 @@ import ae.dubaiinvestments.vms.ui.parts.SectionCard
 fun MrzScanScreen(
     state: UiState,
     onText: (String) -> Unit,
+    onUsePrinted: (ManualDraft) -> Unit,
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -168,6 +172,53 @@ fun MrzScanScreen(
             }
 
             TextButton(onClick = onClose) { Text("Cancel") }
+        }
+
+        /*  What the print gave, offered rather than taken.
+         *
+         *  Reached by the UAE Pass card on a phone, which has a QR code where the zone would
+         *  be - so the ID number is the only thing arithmetic can confirm and the name, the
+         *  expiry and the nationality are printed in large type beside it. Leaving the officer
+         *  to retype what the camera is already reading is a gap, not a safeguard.
+         *
+         *  A separate card below the viewfinder, so the camera keeps looking while this sits
+         *  there: a plastic card's back still wins if it is presented, because its zone is
+         *  checked and this is not. */
+        state.mrzPrinted?.let { printed ->
+            SectionCard("Read from the print") {
+                Text(
+                    "This card has no machine-readable zone, so only the ID number is " +
+                        "checked. The rest is read the way a person reads it - check it " +
+                        "against the card before you continue.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                FieldRow("ID number", printed.idNumber.ifBlank { "-" })
+                FieldRow("Name", printed.fullNameEnglish.ifBlank { "not found" })
+                FieldRow("Expiry", printed.expiryDate.ifBlank { "not found" })
+                if (printed.nationalityEnglish.isNotBlank()) {
+                    FieldRow("Nationality", printed.nationalityEnglish)
+                }
+
+                if (state.mrzNameWasCut) {
+                    Text(
+                        "The card cut the name short itself - it ends in an ellipsis. Finish " +
+                            "it on the next screen rather than leaving it as it stands.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+
+                Button(
+                    onClick = { onUsePrinted(printed) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                ) {
+                    Text("Use these details")
+                }
+            }
         }
     }
 }

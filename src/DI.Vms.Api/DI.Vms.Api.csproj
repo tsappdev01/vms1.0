@@ -65,6 +65,7 @@
     <Compile Include="..\DI.Vms.Blazor\Services\MachineReadableZone.cs" LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\EmiratesIdNumber.cs"    LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\MrzReader.cs"           LinkBase="Shared\Services" />
+    <Compile Include="..\DI.Vms.Blazor\Services\PrintedCard.cs"         LinkBase="Shared\Services" />
     <!-- The host list from Entra ID, which /api/people serves. -->
     <Compile Include="..\DI.Vms.Blazor\Services\DirectoryOptions.cs"   LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\StaffDirectory.cs"     LinkBase="Shared\Services" />

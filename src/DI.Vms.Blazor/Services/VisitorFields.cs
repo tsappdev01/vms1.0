@@ -174,6 +174,60 @@ public static class VisitorFields
         return null;
     }
 
+    // ------------------------------------------------------------------ typing help
+
+    /*  The separators are put in by the screen, not by the officer.
+     *
+     *  An Emirates ID number is printed 784-1980-5919869-1 and a card date 25/08/2028, and a
+     *  desk copying one off a card should be typing the digits and nothing else. Two hyphens
+     *  and a slash each are three more chances to fumble on a soft keyboard, three more
+     *  reasons for a number to come out a character wrong, and the field accepts the digits
+     *  alone anyway - so asking for them was never anything but friction.
+     */
+
+    /// <summary>784-1980-5919869-1, from however many digits there are so far.</summary>
+    public static string GroupIdNumber(string? digits) => Group(digits, '-', 15, 3, 7, 14);
+
+    /// <summary>25/08/2028, from however many digits there are so far.</summary>
+    public static string GroupCardDate(string? digits) => Group(digits, '/', 8, 2, 4);
+
+    private static string Group(string? raw, char separator, int maximum, params int[] before)
+    {
+        var digits = Digits(raw);
+        if (digits.Length > maximum) digits = digits[..maximum];
+
+        var built = new System.Text.StringBuilder(digits.Length + before.Length);
+
+        for (var i = 0; i < digits.Length; i++)
+        {
+            if (Array.IndexOf(before, i) >= 0) built.Append(separator);
+            built.Append(digits[i]);
+        }
+
+        return built.ToString();
+    }
+
+    /// <summary>
+    /// What the field should now hold, given what is in it and what was in it before.
+    ///
+    /// The one subtlety in a field that formats itself. Backspace over a separator deletes
+    /// the separator, the digits are unchanged, and re-grouping them puts it straight back -
+    /// so the field cannot be shortened past it and the officer is stuck pressing a key that
+    /// does nothing. When the text got shorter and the digits did not, a separator is what
+    /// was deleted, and the digit in front of it is what was meant.
+    /// </summary>
+    public static string Retype(string? typed, string? previous, Func<string, string> group)
+    {
+        var digits = Digits(typed);
+
+        if ((typed ?? "").Length < (previous ?? "").Length && digits == Digits(previous))
+        {
+            digits = digits.Length > 0 ? digits[..^1] : digits;
+        }
+
+        return group(digits);
+    }
+
     /// <summary>
     /// Today at the desk, which is in Dubai.
     ///

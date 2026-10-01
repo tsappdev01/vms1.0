@@ -538,7 +538,10 @@ else if (step == 1 && card is not null && IsTyped)
             <div class="grid-2 mt">
                 <div class="field">
                     <label for="m-id">ID Number <span class="req">required</span></label>
-                    <input id="m-id" maxlength="@FieldLengths.IdNumber" @bind="manual.IdNumber" @bind:event="oninput"
+                    @* The officer types fifteen digits; the hyphens are put in by TypedId's
+                       setter. Two of them are two more chances for the number to come out a
+                       character wrong, and the field never needed them typed. *@
+                    <input id="m-id" maxlength="@FieldLengths.IdNumber" @bind="TypedId" @bind:event="oninput"
                            placeholder="784-1979-4076928-0" inputmode="numeric" autocomplete="off" />
                     @* Shown only once something has been typed: an empty required field is
                        already marked required, and a box that turns red before it is touched
@@ -572,13 +575,16 @@ else if (step == 1 && card is not null && IsTyped)
 
                 <div class="field">
                     <label for="m-dob">Date of Birth</label>
-                    <input id="m-dob" maxlength="@FieldLengths.CardField" @bind="manual.DateOfBirth" placeholder="08/10/1979" autocomplete="off" />
+                    <input id="m-dob" maxlength="@FieldLengths.CardField" @bind="TypedDateOfBirth" @bind:event="oninput"
+                           placeholder="08/10/1979" inputmode="numeric" autocomplete="off" />
+                    <span class="hint">Digits only &ndash; the slashes are added for you.</span>
                 </div>
 
                 <div class="field">
                     <label for="m-expiry">Card Expiry <span class="req">required</span></label>
-                    <input id="m-expiry" maxlength="@FieldLengths.CardField" @bind="manual.ExpiryDate" @bind:event="oninput"
-                           placeholder="25/08/2028" autocomplete="off" />
+                    <input id="m-expiry" maxlength="@FieldLengths.CardField" @bind="TypedExpiry" @bind:event="oninput"
+                           placeholder="25/08/2028" inputmode="numeric" autocomplete="off" />
+                    <span class="hint">Digits only &ndash; the slashes are added for you.</span>
                     @* A note, not a block. An unrecognised format is worth saying and never
                        worth refusing a visitor over; an expired card is worth saying loudest,
                        and nothing said it at all before. *@
@@ -1854,6 +1860,36 @@ else if (step == 3 && saved is not null)
     /// <summary>The ID number reduced to digits, for the length check and for storage.</summary>
     private string IdDigits =>
         new(manual.IdNumber.Where(char.IsAsciiDigit).ToArray());
+
+    /*  Three fields that punctuate themselves.
+     *
+     *  The separators are the screen's job, not the officer's: an Emirates ID is printed
+     *  784-1980-5919869-1 and a card date 25/08/2028, and a desk copying one off a card
+     *  should be typing digits and nothing else. Retype carries the previous value so a
+     *  backspace over a separator takes the digit with it, instead of the setter putting the
+     *  separator straight back and the key appearing to do nothing.
+     *
+     *  Both of these live in VisitorFields, which the tablet mirrors, so the two screens
+     *  punctuate a number the same way.
+     */
+
+    private string TypedId
+    {
+        get => manual.IdNumber;
+        set => manual.IdNumber = VisitorFields.Retype(value, manual.IdNumber, VisitorFields.GroupIdNumber);
+    }
+
+    private string TypedExpiry
+    {
+        get => manual.ExpiryDate ?? string.Empty;
+        set => manual.ExpiryDate = VisitorFields.Retype(value, manual.ExpiryDate, VisitorFields.GroupCardDate);
+    }
+
+    private string TypedDateOfBirth
+    {
+        get => manual.DateOfBirth ?? string.Empty;
+        set => manual.DateOfBirth = VisitorFields.Retype(value, manual.DateOfBirth, VisitorFields.GroupCardDate);
+    }
 
     /// <summary>
     /// What an entry must carry, whatever produced it.

@@ -98,6 +98,15 @@ data class MrzResultDto(
     val problem: String? = null,
     val complete: Boolean = false,
     val identity: ManualIdentity? = null,
+    /** The identity carries fields read off the face of the card rather than out of a zone,
+        so nothing in it but the ID number has been checked by arithmetic. True for the UAE
+        Pass digital card, which has a QR code where a zone would be. Defaulted, so a server
+        built before this simply never sets it. */
+    val fromPrint: Boolean = false,
+    /** The card itself cut the name short with an ellipsis, as UAE Pass does when it does not
+        fit the box. The officer has to finish it, which is a different instruction from
+        checking it. */
+    val nameWasCut: Boolean = false,
 )
 
 /** ASP.NET's ProblemDetails, which is what the API answers a bad request with. */

@@ -216,6 +216,54 @@ object FieldRules {
         return SimpleDate(year, month, (days + 1).toInt())
     }
 
+    // ------------------------------------------------------------------ typing help
+
+    /*  The separators are put in by the screen, not by the officer.
+     *
+     *  An Emirates ID number is printed 784-1980-5919869-1 and a card date 25/08/2028, and a
+     *  desk copying one off a card should be typing the digits and nothing else. Two hyphens
+     *  and a slash each are three more chances to fumble on a soft keyboard, three more
+     *  reasons for a number to come out a character wrong, and the field accepts the digits
+     *  alone anyway - so asking for them was never anything but friction.
+     */
+
+    /** 784-1980-5919869-1, from however many digits there are so far. */
+    fun groupIdNumber(digits: String?): String = group(digits, '-', 15, 3, 7, 14)
+
+    /** 25/08/2028, from however many digits there are so far. */
+    fun groupCardDate(digits: String?): String = group(digits, '/', 8, 2, 4)
+
+    private fun group(raw: String?, separator: Char, maximum: Int, vararg before: Int): String {
+        val digits = digits(raw).take(maximum)
+        val built = StringBuilder(digits.length + before.size)
+
+        for (i in digits.indices) {
+            if (i in before) built.append(separator)
+            built.append(digits[i])
+        }
+
+        return built.toString()
+    }
+
+    /**
+     * What the field should now hold, given what is in it and what was in it before.
+     *
+     * The one subtlety in a field that formats itself. Backspace over a separator deletes the
+     * separator, the digits are unchanged, and re-grouping them puts it straight back - so the
+     * field cannot be shortened past it and the officer is stuck pressing a key that does
+     * nothing. When the text got shorter and the digits did not, a separator is what was
+     * deleted, and the digit in front of it is what was meant.
+     */
+    fun retype(typed: String, previous: String, group: (String) -> String): String {
+        var digits = digits(typed)
+
+        if (typed.length < previous.length && digits == digits(previous)) {
+            digits = digits.dropLast(1)
+        }
+
+        return group(digits)
+    }
+
     /**
      * Luhn, right to left, doubling every second digit and casting out nines.
      *

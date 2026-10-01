@@ -59,7 +59,8 @@ data class ManualDraft(
     val isUsable: Boolean
         get() = FieldRules.typedIdNumberProblem(idNumber) == null &&
             fullNameEnglish.isNotBlank() &&
-            expiryDate.isNotBlank()
+            expiryDate.isNotBlank() &&
+            mobile.isNotBlank()
 }
 
 data class UiState(
@@ -91,6 +92,18 @@ data class UiState(
      * silence, ended.
      */
     val mrzProblem: String? = null,
+
+    /**
+     * Fields read off the face of a card that has no machine-readable zone - the UAE Pass
+     * digital card, which carries a QR code where the zone would be, and the front of the
+     * plastic one. Offered for the officer to confirm, never taken automatically: the back of
+     * a plastic card is checked by arithmetic and this is not, so the back must keep its
+     * chance to win while the camera is still looking.
+     */
+    val mrzPrinted: ManualDraft? = null,
+
+    /** The card cut the name short itself. The officer finishes it rather than checks it. */
+    val mrzNameWasCut: Boolean = false,
 
     val entities: List<EntityDto> = emptyList(),
     val purposes: List<String> = emptyList(),
@@ -626,6 +639,8 @@ class VisitorViewModel(
             mrzText = null,
             mrzComplete = false,
             mrzProblem = null,
+            mrzPrinted = null,
+            mrzNameWasCut = false,
         )
         watchForNothingHappening()
     }
@@ -707,13 +722,43 @@ class VisitorViewModel(
             val identity = result.identity ?: return@launch
 
             if (!result.complete) {
-                /* Kept, so a second or two later the officer can stop and use it if the back
-                   will not read at all. Not advanced, so the back gets its chance first. */
+                /*  No zone, so only the fifteen-digit number is proved.
+                 *
+                 *  What else the server could read off the print comes back too, and the
+                 *  difference decides what to say. A plastic card has a zone on its back, so
+                 *  "turn it over" is the right instruction and the right outcome. The UAE Pass
+                 *  card on a phone has no back to turn - it has a QR code, which carries a
+                 *  verification token and not the card's contents - so telling the officer to
+                 *  turn it over is telling them to do something that cannot work.
+                 *
+                 *  Kept rather than advanced either way: the back is checked by arithmetic and
+                 *  the print is not, so it must keep its chance while the camera is looking. */
+                val printed = if (result.fromPrint) {
+                    ManualDraft(
+                        idNumber = identity.idNumber.orEmpty(),
+                        cardNumber = identity.cardNumber.orEmpty(),
+                        fullNameEnglish = identity.fullNameEnglish.orEmpty(),
+                        nationalityEnglish = identity.nationalityEnglish.orEmpty(),
+                        dateOfBirth = identity.dateOfBirth.orEmpty(),
+                        expiryDate = identity.expiryDate.orEmpty(),
+                        mobile = _state.value.contactMobile,
+                    )
+                } else {
+                    null
+                }
+
                 _state.value = _state.value.copy(
                     mrzText = text,
                     mrzComplete = false,
-                    busy = "Read ${identity.idNumber} \u2014 now turn the card over for the " +
-                        "name and dates.",
+                    mrzPrinted = printed,
+                    mrzNameWasCut = result.nameWasCut,
+                    busy = if (printed == null) {
+                        "Read ${identity.idNumber} \u2014 now turn the card over for the " +
+                            "name and dates."
+                    } else {
+                        "Read ${identity.idNumber} from the print. Turn the card over if it " +
+                            "has a back, or check the details below and continue."
+                    },
                 )
                 return@launch
             }
@@ -743,6 +788,12 @@ class VisitorViewModel(
             card = null,
             readRequestId = null,
             manual = draft,
+            /* The number typed in the dialog is the number the visit is contacted on. It used
+               to be the card's own mobile, which is a different field and empty on every card
+               tested here, while the visit screen asked for the real one separately - so the
+               desk met two mobile boxes and one of them said optional. Carried across rather
+               than asked for twice; still editable there. */
+            contactMobile = draft.mobile.trim().ifBlank { _state.value.contactMobile },
             error = null,
             step = Step.VisitorInformation,
         )

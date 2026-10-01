@@ -174,7 +174,36 @@ public static class VisitsApi
                 return Results.Ok(new MrzResultDto(false, read.Problem, false, null));
             }
 
-            return Results.Ok(new MrzResultDto(true, null, read.Complete, Identity(read)));
+            if (read.Complete)
+            {
+                return Results.Ok(new MrzResultDto(true, null, true, Identity(read)));
+            }
+
+            /*  No zone, so the fifteen-digit number is everything arithmetic could confirm.
+             *
+             *  What is printed around it is offered as well, and the UAE Pass digital card is
+             *  the reason: it has a QR code where a zone would be, so nothing here can ever
+             *  verify it - and meanwhile the name, the expiry and the nationality are on the
+             *  screen in large type being ignored. Leaving the officer to retype what the
+             *  camera is already looking at is not a security decision, it is a gap.
+             *
+             *  Returned as a suggestion and marked as one. Complete stays false, the back of a
+             *  plastic card still wins if it is presented, and a visit built from this is
+             *  recorded as Manual - the desk saw the card, the system did not. */
+            var printed = PrintedCard.Read(request.Text);
+
+            return Results.Ok(new MrzResultDto(
+                true, null, false,
+                Identity(read) with
+                {
+                    FullNameEnglish = printed.FullNameEnglish,
+                    NationalityEnglish = printed.NationalityEnglish,
+                    DateOfBirth = printed.DateOfBirth,
+                    ExpiryDate = printed.ExpiryDate,
+                    CardNumber = printed.CardNumber,
+                },
+                FromPrint: printed.Any,
+                NameWasCut: printed.NameWasCut));
         });
 
         /* Finish it. The body carries the signed XML and the visit details - never the
@@ -601,4 +630,16 @@ public sealed record MrzRequest(string? Text);
 /// printed ID number could be salvaged - the difference between a filled form and a filled
 /// ID field, and the thing the tablet needs in order to say "turn the card over".
 /// </summary>
-public sealed record MrzResultDto(bool Ok, string? Problem, bool Complete, ManualIdentity? Identity);
+/// <param name="FromPrint">
+/// The identity carries fields read off the face of the card rather than out of a zone, so
+/// nothing in it but the ID number has been checked by arithmetic. The screen says so, and
+/// the officer confirms them.
+/// </param>
+/// <param name="NameWasCut">
+/// The card itself truncated the name with an ellipsis, as UAE Pass does when it does not
+/// fit. What was read is right as far as it goes and is not the whole name - the officer has
+/// to finish it, which is a different instruction from checking it.
+/// </param>
+public sealed record MrzResultDto(
+    bool Ok, string? Problem, bool Complete, ManualIdentity? Identity,
+    bool FromPrint = false, bool NameWasCut = false);

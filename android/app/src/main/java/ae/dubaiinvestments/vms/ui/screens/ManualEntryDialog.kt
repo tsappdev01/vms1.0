@@ -74,7 +74,14 @@ fun ManualEntryDialog(
 
                 OutlinedTextField(
                     value = draft.idNumber,
-                    onValueChange = { draft = draft.copy(idNumber = it.take(FieldRules.IdNumber)) },
+                    /* The officer types fifteen digits; the hyphens are put in here. Two of
+                       them on a soft keyboard are two more chances for the number to come out
+                       a character wrong, and the field never needed them. */
+                    onValueChange = { entry ->
+                        draft = draft.copy(
+                            idNumber = FieldRules.retype(entry, draft.idNumber, FieldRules::groupIdNumber),
+                        )
+                    },
                     label = { Text("Emirates ID number") },
                     /* Said only once something has been typed: an empty required box is
                        already marked required, and one that turns red before it is touched
@@ -83,7 +90,7 @@ fun ManualEntryDialog(
                     supportingText = {
                         Text(
                             if (draft.idNumber.isNotBlank() && idProblem != null) idProblem
-                            else "784-…-…-…",
+                            else "Type the digits - the hyphens are added for you.",
                         )
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -109,9 +116,14 @@ fun ManualEntryDialog(
 
                 OutlinedTextField(
                     value = draft.dateOfBirth,
-                    onValueChange = { draft = draft.copy(dateOfBirth = it.take(FieldRules.CardField)) },
+                    onValueChange = { entry ->
+                        draft = draft.copy(
+                            dateOfBirth = FieldRules.retype(entry, draft.dateOfBirth, FieldRules::groupCardDate),
+                        )
+                    },
                     label = { Text("Date of birth") },
-                    supportingText = { Text("As printed on the card") },
+                    supportingText = { Text("Digits only - 13 12 1980 becomes 13/12/1980.") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -123,9 +135,17 @@ fun ManualEntryDialog(
 
                 OutlinedTextField(
                     value = draft.expiryDate,
-                    onValueChange = { draft = draft.copy(expiryDate = it.take(FieldRules.CardField)) },
+                    onValueChange = { entry ->
+                        draft = draft.copy(
+                            expiryDate = FieldRules.retype(entry, draft.expiryDate, FieldRules::groupCardDate),
+                        )
+                    },
                     label = { Text("Expiry date") },
-                    supportingText = { Text(expiryConcern ?: "Required. As printed - 25/08/2028") },
+                    isError = expiryConcern != null,
+                    supportingText = {
+                        Text(expiryConcern ?: "Required. Digits only - 25 08 2028 becomes 25/08/2028.")
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -138,14 +158,26 @@ fun ManualEntryDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                /* The card's own mobile, which is optional and usually empty. The number the
-                   visit is contacted on is asked for on the visit screen and is required
-                   there - these are two different numbers and always were. */
+                /*  Required, and it used to say "optional" here.
+                 *
+                 *  This box was the card's own mobile - a field that is empty on every card
+                 *  tested at DIP - sitting next to a visit screen that required a different
+                 *  mobile number. Two mobile fields at a reception desk, one of them marked
+                 *  optional, is a desk that fills in the wrong one.
+                 *
+                 *  So there is one number now. What is typed here is the number the visit is
+                 *  contacted on, it is carried to the visit screen, and the officer is not
+                 *  asked for it twice. */
+                val mobileConcern = FieldRules.mobileConcern(draft.mobile)
+
                 OutlinedTextField(
                     value = draft.mobile,
-                    onValueChange = { draft = draft.copy(mobile = it.take(FieldRules.CardField)) },
-                    label = { Text("Mobile on the card (optional)") },
-                    supportingText = { FieldRules.mobileConcern(draft.mobile)?.let { Text(it) } },
+                    onValueChange = { draft = draft.copy(mobile = it.take(FieldRules.ContactMobile)) },
+                    label = { Text("Mobile number") },
+                    isError = mobileConcern != null,
+                    supportingText = {
+                        Text(mobileConcern ?: "Required. How to reach the visitor.")
+                    },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Phone,
                         imeAction = ImeAction.Done,
