@@ -100,6 +100,8 @@ from — taken from git, not from memory.
 | 02 Oct | **This documentation set**, and a generator for the data dictionary |
 | 02 Oct | **Input validation moved to FluentValidation** (policy §4.4). A wrapper over `VisitorFields`, in three rule sets, because order is part of the behaviour |
 | 02 Oct | **CI publishes the web build.** Until now nothing produced an installable server package without a .NET SDK and a checkout |
+| 02 Oct | **The Linux Web App was given the win-x64 package and crash-looped.** Not a clean failure: the Windows build of Microsoft.Data.SqlClient looks up SQL aliases in the registry, which does not exist on Linux. K-27 |
+| 02 Oct | **Builds now name their commit.** Every build reported `v1.0.0` — the SDK default, since nothing set a version — so the screen could not answer which build was running. CI stamps `1.0.<run>-<commit>` |
 
 ## What is not here
 
