@@ -82,13 +82,13 @@ public sealed class SaveVisitRequestValidator : AbstractValidator<SaveVisitReque
              *  lost track of which path it is on, and the saved record would claim a
              *  provenance it cannot support. The two messages differ because the two
              *  mistakes differ, and both are kept exactly as they were. */
-            RuleFor(r => r)
-                .Must(r => r.ReadResponseXml is null && r.Manual is null)
+            RuleFor(r => r.MrzText)
+                .Must((request, _) => request.ReadResponseXml is null && request.Manual is null)
                 .When(r => r.MrzText is { Length: > 0 })
                 .WithMessage("Send a card read, a photographed card, or typed details - one of them.");
 
-            RuleFor(r => r)
-                .Must(r => r.ReadResponseXml is null)
+            RuleFor(r => r.ReadResponseXml)
+                .Must((request, _) => request.ReadResponseXml is null)
                 .When(r => r.MrzText is not { Length: > 0 } && r.Manual is not null)
                 .WithMessage("Send either a card read or manual details, not both.");
         });
@@ -111,14 +111,24 @@ public sealed class SaveVisitRequestValidator : AbstractValidator<SaveVisitReque
                     }
                 });
 
-            /* Null-safe on Manual although this set only runs where it is not null. A rule
-               that throws when it is asked the wrong question is a rule that turns a
-               refusal into a 500, and the set is one `IncludeRuleSets` away from being
-               run somewhere else by someone who has not read this file. */
-            RuleFor(r => r.Manual == null ? null : r.Manual.FullNameEnglish)
-                .NotEmpty()
-                .OverridePropertyName(nameof(ManualIdentity.FullNameEnglish))
-                .WithMessage("A name is required.");
+            /*  Also over Manual rather than over Manual.FullNameEnglish, and null-safe,
+             *  although this set only runs where Manual is not null. Two reasons, and the
+             *  second is the one that matters: a rule that throws when it is asked the
+             *  wrong question turns a refusal into a 500, and this set is one
+             *  `IncludeRuleSets` away from being run somewhere else by someone who has
+             *  not read this file.
+             *
+             *  A second rule rather than a second failure inside the one above, because
+             *  CascadeMode.Stop stops at the first failing rule - which is what keeps the
+             *  ID number's message ahead of this one, as it has always been. */
+            RuleFor(r => r.Manual)
+                .Custom((manual, context) =>
+                {
+                    if (string.IsNullOrWhiteSpace(manual?.FullNameEnglish))
+                    {
+                        context.AddFailure("A name is required.");
+                    }
+                });
         });
 
         RuleSet(VisitRules.Contact, () =>
