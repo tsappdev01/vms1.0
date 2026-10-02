@@ -17,7 +17,21 @@ Decided and created in the portal:
 |---|---|
 | Web App | **VMS**, resource group `DotNetSites`, plan `ASP-DotNetSites-8061` |
 | | `vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net`, UAE North |
-| OS / stack | **Windows**, .NET 8 — which is what allows the Blazor app to run there |
+| OS / stack | **Linux**, .NET 8 — `appsvc/dotnetcore:8.0_*.tuxprod`, Oryx, `/home/site/wwwroot` |
+
+> **This said Windows until 2 October 2026, and it was wrong.** The container log says
+> `A P P S E R V I C E   O N   L I N U X`. The plan was either created as Linux or recreated
+> as one, and nobody updated this table — so the wrong build was handed over and the site
+> crash-looped. The log is the authority on this, not the table; check it before deploying.
+>
+> **Use the portable build** (`-p:VmsAgentOnly=true`, no `-r`), with `Toolkit__Mode=Agent`.
+> A `-r win-x64` publish deployed here does not fail cleanly: it starts, reaches the
+> database, and dies with a `NullReferenceException` inside
+> `Microsoft.Data.SqlClient.TdsParserStaticMethods.AliasRegistryLookup` →
+> `ADP.LocalMachineRegistryValue`. A win-x64 publish ships the **Windows** build of
+> Microsoft.Data.SqlClient, which looks up SQL aliases in the registry; there is no registry
+> on Linux, so the lookup returns null and the client dereferences it. Nothing in the
+> message says "wrong RID" - see `docs/controlled/21-known-issues.md` K-27.
 
 > **The Web App's operating system decides which project can go on it, and it cannot be
 > changed after the Web App is created.**

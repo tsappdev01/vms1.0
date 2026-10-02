@@ -222,14 +222,21 @@ jobs:
           $count = (Get-ChildItem publish/reception -Filter *.dll).Count
           Write-Host "Reception build: $count DLLs."
 
+      #  Named for WHERE EACH GOES, not for what each is.
+      #
+      #  They were called vms-web-reception-win-x64 and vms-web-portable, which describes
+      #  the build and leaves the reader to work out the destination. On 2 October the
+      #  win-x64 one went to the Linux Web App and crash-looped - see K-27. A name that
+      #  answers "which do I deploy?" costs nothing and is read by whoever is deploying at
+      #  the time, which a comment in a document is not.
       - uses: actions/upload-artifact@v4
         with:
-          name: vms-web-reception-win-x64
+          name: vms-web-FOR-WINDOWS-HOST-uatweb01-or-reception-pc
           path: publish/reception/**
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
         with:
-          name: vms-web-portable
+          name: vms-web-FOR-LINUX-HOST-azure-web-app
           path: publish/portable/**
           if-no-files-found: error

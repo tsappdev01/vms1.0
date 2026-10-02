@@ -211,6 +211,38 @@ D1 — needs written Policy Owner approval.
 Web App's OS is fixed when the plan is created and cannot be changed afterwards. Build with
 `-p:VmsAgentOnly=true` and set `Toolkit__Mode=Agent` for Linux. `../azure-deployment.md`.
 
+### K-27 · A win-x64 package on the Linux Web App looks like a database fault — `Closed`
+
+On 2 October 2026 the Azure Web App was given the `-r win-x64` build. It did not fail
+cleanly. It started, reached the database, and died:
+
+```
+System.NullReferenceException
+   at Microsoft.Data.Common.ADP.LocalMachineRegistryValue(String subkey, String queryvalue)
+   at Microsoft.Data.SqlClient.TdsParserStaticMethods.AliasRegistryLookup(String& host, ...)
+```
+
+A `-r win-x64` publish ships the **Windows** build of `Microsoft.Data.SqlClient`, which
+looks up SQL Server aliases in the Windows registry before connecting. There is no registry
+on Linux, so the lookup returns null and the client dereferences it. Five retries, exit code
+134, crash loop.
+
+**Nothing in that message says "wrong platform" or "wrong RID".** It reads as a connectivity
+problem, and the startup retry treated it as one — the connection string was never at fault.
+Visits 196–203 were recorded normally right up to the deployment and none were lost.
+
+Two causes, both now fixed:
+
+1. `docs/azure-deployment.md` said the Web App was a **Windows** plan. It is Linux — the
+   container log says `A P P S E R V I C E   O N   L I N U X`. The plan was created or
+   recreated as Linux and the table was never updated, so the wrong build was handed over on
+   the strength of a document instead of the running system. Corrected, with this failure
+   named in it.
+2. The CI artifacts were called `vms-web-reception-win-x64` and `vms-web-portable`, which
+   says what each *is* and not where each *goes*. They now say where they go.
+
+**The running system is the authority on which host this is, not any document here.**
+
 ### K-26 · Four view-model functions were deleted by an edit — `Closed`
 
 `testServer`, `saveServer`, `resetServer` and `applySettings` were removed when a range of
@@ -226,7 +258,7 @@ member-diff check added afterwards.
 | Open | 8 |
 | Open, with a workaround | 1 |
 | By design | 8 |
-| Closed | 9 |
+| Closed | 10 |
 
 The eight open items are K-01, K-02, K-11, K-13, K-14, K-19, K-22, K-24. Of those,
 **K-19 is the one to act on before anything else**, and it is not a code change.

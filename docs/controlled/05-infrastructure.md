@@ -23,7 +23,7 @@ This document is the **inventory**: what exists, where, and what each piece depe
 |---|---|---|
 | Host | **UATWEB01**, IIS, Windows | Web App **VMS**, resource group `DotNetSites`, plan `ASP-DotNetSites-8061`, UAE North |
 | URL | internal | `vms-cebrd3evb0cyg0gn.uaenorth-01.azurewebsites.net` |
-| OS / stack | Windows, .NET 8 | **Windows**, .NET 8 |
+| OS / stack | Windows, .NET 8 | **Linux**, .NET 8 — confirmed from the container log, not from a table |
 | Database | SQL Server on UATWEB01, database **VMS** | `ts-db.database.windows.net`, database **vms**, admin `sqladmin` |
 | Reachable from | the office network only | the internet |
 | Rate limiting | **not registered** — it does not need it, and a policy name that is not registered throws at startup | 300 req/min per caller IP on `/api` |
@@ -126,7 +126,7 @@ Apply with `db/apply.cmd`. All scripts are re-runnable: DDL guarded with
 | Workflow | Does |
 |---|---|
 | `.github/workflows/dotnet.yml` — job `build` | restore + build `DI.Vms.Blazor` (`-p:VmsAgentOnly=true`) and `DI.Vms.Api`; `dotnet list package --vulnerable --include-transitive`; `--deprecated`; a tracked-file secret scan |
-| `.github/workflows/dotnet.yml` — job `publish` | on `windows-latest`: publishes `vms-web-reception-win-x64` (the Windows build, ICP toolkit included — for the Azure Web App, UATWEB01 and reception PCs) and `vms-web-portable` (agent-only, for a Linux host). Both are attached to the run. The job **fails** if either settings file reached the package, or if the native toolkit DLLs did not |
+| `.github/workflows/dotnet.yml` — job `publish` | on `windows-latest`: publishes `vms-web-FOR-WINDOWS-HOST-uatweb01-or-reception-pc` (ICP toolkit included) and `vms-web-FOR-LINUX-HOST-azure-web-app` (agent-only, portable). Named for where each goes — see K-27. Both are attached to the run. The job **fails** if either settings file reached the package, if the native toolkit DLLs did not, or if startup logging was not turned on |
 | `.github/workflows/android.yml` | builds the APK |
 
 The audit steps are `continue-on-error: true` and report into the job summary rather than
