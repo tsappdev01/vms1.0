@@ -1,6 +1,4 @@
-using DI.Vms.Blazor.Services;
-
-namespace DI.Vms.Blazor;
+namespace DI.Vms.Blazor.Services;
 
 /// <summary>
 /// The response headers a browser is told to enforce, and the cookie rules that go with them.
