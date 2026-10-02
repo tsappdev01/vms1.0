@@ -62,13 +62,22 @@ jobs:
       - name: Scan the working tree for secrets
         continue-on-error: true
         run: |
+          # The matches are collected before they are judged, deliberately. Testing a
+          # pipeline that ends in `tee` tests tee's exit status, which is always success -
+          # so the first version of this step warned on every run whether it had found
+          # anything or not, which is how a check teaches people to ignore it.
+          # `|| true` because grep exits 1 on no match and the shell runs with -e.
+          hits=$(grep -rInE "(Password|Pwd)\s*=\s*[^;\"'[:space:]]{6,}|AccountKey=|ClientSecret\"\s*:\s*\"[^\"]{10,}" \
+                   --include='*.json' --include='*.cs' --include='*.razor' --include='*.ps1' \
+                   --exclude-dir=bin --exclude-dir=obj src/ deploy/ db/ 2>/dev/null \
+                 | grep -vE "\"(Password|ClientSecret)\"\s*:\s*\"\"|<value>|template|example" || true)
+
           echo "## Possible secrets in tracked files" >> "$GITHUB_STEP_SUMMARY"
-          if grep -rInE "(Password|Pwd)\s*=\s*[^;\"'[:space:]]{6,}|AccountKey=|ClientSecret\"\s*:\s*\"[^\"]{10,}" \
-               --include='*.json' --include='*.cs' --include='*.razor' --include='*.ps1' \
-               --exclude-dir=bin --exclude-dir=obj src/ deploy/ db/ 2>/dev/null \
-             | grep -vE "\"(Password|ClientSecret)\"\s*:\s*\"\"|<value>|template|example" \
-             | tee -a "$GITHUB_STEP_SUMMARY"; then
+
+          if [ -n "$hits" ]; then
+            printf '%s\n' "$hits" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "::warning::Something that looks like a credential is in a tracked file."
           else
             echo "None found in the working tree." >> "$GITHUB_STEP_SUMMARY"
+            echo "No credentials found in tracked files."
           fi
