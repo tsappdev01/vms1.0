@@ -125,7 +125,8 @@ Apply with `db/apply.cmd`. All scripts are re-runnable: DDL guarded with
 
 | Workflow | Does |
 |---|---|
-| `.github/workflows/dotnet.yml` | restore + build `DI.Vms.Blazor` (`-p:VmsAgentOnly=true`) and `DI.Vms.Api`; `dotnet list package --vulnerable --include-transitive`; `--deprecated`; a tracked-file secret scan |
+| `.github/workflows/dotnet.yml` — job `build` | restore + build `DI.Vms.Blazor` (`-p:VmsAgentOnly=true`) and `DI.Vms.Api`; `dotnet list package --vulnerable --include-transitive`; `--deprecated`; a tracked-file secret scan |
+| `.github/workflows/dotnet.yml` — job `publish` | on `windows-latest`: publishes `vms-web-reception-win-x64` (the Windows build, ICP toolkit included — for the Azure Web App, UATWEB01 and reception PCs) and `vms-web-portable` (agent-only, for a Linux host). Both are attached to the run. The job **fails** if either settings file reached the package, or if the native toolkit DLLs did not |
 | `.github/workflows/android.yml` | builds the APK |
 
 The audit steps are `continue-on-error: true` and report into the job summary rather than

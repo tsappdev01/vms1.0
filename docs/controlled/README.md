@@ -43,7 +43,7 @@ anywhere in this set.
 
 | | Document | Here | State |
 |:-:|---|---|---|
-| 21 | Known Issues Log | [`21-known-issues.md`](21-known-issues.md) | ✅ 26 items, 10 open |
+| 21 | Known Issues Log | [`21-known-issues.md`](21-known-issues.md) | ✅ 26 items, 9 open |
 
 **Written: 21 of 21.** Nine need a decision, a signature, an execution or a screenshot from
 somebody other than the author, and each says which.
@@ -93,7 +93,7 @@ In the order they block each other:
 3. **Decide the three numbers** — retention (`08-…` §5), RPO and RTO (`17-…` §1).
 4. **Execute the testing** — 34 UAT scenarios, 20 security tests, OWASP ZAP baseline.
 5. **Test a restore.**
-6. **Get the seven deviations approved in writing** — `14-go-live-approval.md` §4.
+6. **Get the six remaining deviations approved in writing** — `14-go-live-approval.md` §4.
 7. **Sign** `13-uat-signoff.md`, then `14-go-live-approval.md`.
 
 ## Open against the policy
@@ -103,7 +103,6 @@ Carried here so the gap is one list rather than a search:
 | Policy | Gap | Tracked as |
 |---|---|---|
 | §4.4 audit trail table | None. There is no update or delete path through the application; the real gap is *reads* | D2, R-04 |
-| §4.4 FluentValidation | Validation is server-side and unified, but not this library | D3, K-23 |
 | §4.4, §7 Azure DevOps | GitHub with equivalent controls | D1, K-24 |
 | §7 Semgrep SAST | Not wired | D6, R-07 |
 | §6 retention | No period set; nothing deletes a visit | R-05 |

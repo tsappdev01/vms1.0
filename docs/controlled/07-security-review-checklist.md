@@ -20,7 +20,7 @@ line item.
 | A1 | **Entra ID SSO** — users authenticate with existing M365 credentials, no separate login | ✅ | `Program.cs`, `../entra-id-setup.md`. Configurable off for a desk before the tenant is wired; **must be on at go-live** (R-09) |
 | A2 | **Role-based access control enforced server-side on every API route** | ✅ | `Services/VmsRoles.cs`, `Program.cs`. `FallbackPolicy = DefaultPolicy` — nothing is anonymous. Matrix: `09-access-control-matrix.md` |
 | A3 | **Audit trail table in MSSQL** — every create, update and delete with UserID, timestamp, action, old and new values | ❌ | **Deviation, approved by the owner, requiring written Policy Owner sign-off.** There is no update or delete path through the application, so the row is its own record; `RecordedBy` and `RecordedAtUtc` capture the create. The real gap the policy is reaching for here is *reads* — see R-04 |
-| A4 | **Input validation using FluentValidation on all server-side entry points** | ❌ | Validation is present and server-side (`Services/VisitorFields.cs`, re-applied in `Api/VisitsApi.cs` for all three capture paths), but it is not FluentValidation. Approved as remediation item #7 |
+| A4 | **Input validation using FluentValidation on all server-side entry points** | ✅ | `Services/VisitValidators.cs` — `SaveVisitRequestValidator` (rule sets Request / TypedIdentity / Contact) and `CardIdentityValidator`, resolved from DI into `POST /api/visits` in both hosts. A **wrapper** over `Services/VisitorFields.cs`, not a second opinion: the judgements stay in the one place the screens and the tablet are written against |
 | A5 | **Security headers middleware** — CSP, X-Frame-Options, X-Content-Type-Options, HSTS | ✅ | `Services/SecurityHeaders.cs`. Also Referrer-Policy `same-origin` and Permissions-Policy `camera=(self)` |
 | A6 | **MSSQL database**, all data in a governed database | ✅ | Database `VMS`, schema `vms`. No Excel, no local storage, no shared drive |
 | A7 | **Azure DevOps repository** with branch policies and PR review | ❌ | **Deviation.** The repository is GitHub (`tsappdev01/vms1.0`) with equivalent controls. Requires written Policy Owner approval |
@@ -56,6 +56,7 @@ line item.
 | C9 | Request ID spent once, issued by the server | ✅ | `POST /api/reads` — the device cannot choose it and cannot prepare a response before being asked |
 | C10 | Card image served with its own hard CSP and nosniff | ✅ | `GET /visits/{id}/card` |
 | C11 | Field length clamping before the database | ✅ | `FieldLengths.Clamp` — so a response the server could not verify becomes a refusal, not a truncation error at a desk |
+| C11b | Save rules declared, not scattered | ✅ | Every refusal `POST /api/visits` can return is declared in `Services/VisitValidators.cs` and can be read without reading the endpoint |
 | C12 | Emirates ID masking | ❌ | R-03 |
 | C13 | Read/export access log | ❌ | R-04 |
 | C14 | Retention and deletion | ❌ | R-05 |

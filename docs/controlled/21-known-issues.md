@@ -184,10 +184,21 @@ ignore it. Fixed by capturing into a variable with `|| true` (`5788a45`).
 
 Required by policy §7. Risk R-07.
 
-### K-23 · Input validation is not FluentValidation — `Open`
+### K-23 · Input validation is not FluentValidation — `Closed`
 
-Required by policy §4.4. The validation is present, server-side and unified; the library is
-not the one named. Approved as a follow-up. Deviation D3.
+Required by policy §4.4. The validation was present, server-side and unified, but not in
+the named library.
+
+`Services/VisitValidators.cs` now declares every refusal `POST /api/visits` can return, as
+FluentValidation rules resolved from DI into the endpoint in both hosts. It is a wrapper:
+the judgements stay in `Services/VisitorFields.cs`, because a second opinion about what a
+valid Emirates ID number is — living in a validator — is exactly the drift that put three
+different answers in three places before `VisitorFields` existed.
+
+The rules are in **three rule sets** rather than one pass, because order is part of the
+behaviour: a request with no mobile number and an unverifiable card read must still be told
+about the card, since the tablet decides whether to send the officer back to it by the
+refusal's title. Deviation D3 closed.
 
 ### K-24 · The repository is GitHub, not Azure DevOps — `Open`
 
@@ -212,10 +223,10 @@ member-diff check added afterwards.
 
 | Status | Count |
 |---|:-:|
-| Open | 9 |
+| Open | 8 |
 | Open, with a workaround | 1 |
 | By design | 8 |
-| Closed | 8 |
+| Closed | 9 |
 
-The nine open items are K-01, K-02, K-11, K-13, K-14, K-19, K-22, K-23, K-24. Of those,
+The eight open items are K-01, K-02, K-11, K-13, K-14, K-19, K-22, K-24. Of those,
 **K-19 is the one to act on before anything else**, and it is not a code change.

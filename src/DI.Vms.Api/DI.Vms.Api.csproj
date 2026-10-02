@@ -71,6 +71,10 @@
     <Compile Include="..\DI.Vms.Blazor\Services\StaffDirectory.cs"     LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\SignInOptions.cs"      LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\VisitorFields.cs"     LinkBase="Shared\Services" />
+    <!-- The FluentValidation wrapper over those rules. Linked for the same reason
+         VisitsApi.cs is: one definition of what a save may be refused for, compiled into
+         both hosts, so a tablet talking to either is told the same thing. -->
+    <Compile Include="..\DI.Vms.Blazor\Services\VisitValidators.cs"   LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\VisitPurposes.cs"      LinkBase="Shared\Services" />
     <Compile Include="..\DI.Vms.Blazor\Services\VmsRoles.cs"           LinkBase="Shared\Services" />
 
@@ -81,6 +85,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+    <!-- Input validation, which DI-IT-POL-AIDEV-001 §4.4 names. A wrapper over
+         Services/VisitorFields.cs rather than a second opinion about what a valid Emirates
+         ID number is - see Services/VisitValidators.cs. 11.x is the line that targets
+         .NET 8; 12.x drops netstandard and changes the DI extensions, which is not a move
+         to make in the same change that introduces the library. -->
+    <PackageReference Include="FluentValidation" Version="11.11.0" />
     <!-- Azure Blob Storage, where the card images go when a storage account is
          configured. Only Blobs - not the Azure.Identity/Azure.Storage metapackages -
          because the connection string is the credential and nothing here needs a token

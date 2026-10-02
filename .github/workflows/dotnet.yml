@@ -81,3 +81,111 @@ jobs:
             echo "None found in the working tree." >> "$GITHUB_STEP_SUMMARY"
             echo "No credentials found in tracked files."
           fi
+
+  # The installable build, attached to the run.
+  #
+  # Here for the same reason the APK is built in CI: the people who need it - whoever is
+  # deploying to the Azure Web App, to UATWEB01, or to a reception PC - should not need a
+  # .NET SDK and a checkout to get one. A push produces a zip on the run page.
+  #
+  # windows-latest, not ubuntu. The reception build is net8.0-windows because it references
+  # ICP's IDCardToolkit.dll, a .NET Framework assembly that P/Invokes native Windows DLLs,
+  # and the Web App in use is a Windows plan. The build job above still runs on ubuntu with
+  # -p:VmsAgentOnly=true, which is the cheaper check that the shared code compiles; this one
+  # is the artefact.
+  publish:
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # The same arguments deploy/publish-azure.ps1 uses, so what comes out of CI is what
+      # comes off a build machine. Framework-dependent: App Service and UATWEB01 both have
+      # the runtime, and self-contained would quadruple the download for nothing.
+      - name: Publish the reception build
+        run: >
+          dotnet publish src/DI.Vms.Blazor/DI.Vms.Blazor.csproj
+          -c Release -r win-x64 --self-contained false
+          -o publish/reception
+
+      # The portable build, for a Linux Web App or an API-only host. Same application with
+      # ICP's toolkit left out - every screen, the report and /api are all there; the only
+      # thing it cannot do is read a card with a reader plugged into the server, which is a
+      # thing no server does. Toolkit__Mode=Agent is required on it.
+      - name: Publish the portable build
+        run: >
+          dotnet publish src/DI.Vms.Blazor/DI.Vms.Blazor.csproj
+          -c Release -p:VmsAgentOnly=true
+          -o publish/portable
+
+      #  Neither settings file ships, and this is the step that makes sure of it.
+      #
+      #  `dotnet publish` copies every appsettings.*.json it finds, so both arrive in the
+      #  output without anyone asking. appsettings.Production.json would put a connection
+      #  string into a zip that gets emailed around, and would silently win over the Web
+      #  App's own configuration. appsettings.Development.json is not a secret - it holds a
+      #  developer's local toolkit paths - but it describes somebody's machine, and its
+      #  DetailedErrors would turn on if ASPNETCORE_ENVIRONMENT were ever Development on
+      #  that host.
+      #
+      #  It fails the job rather than warning. A deleted file is only safe if the delete
+      #  happened, and a warning on a publish step is a warning nobody reads before
+      #  downloading the zip.
+      - name: Keep the settings files out of the package
+        shell: pwsh
+        run: |
+          foreach ($dir in 'publish/reception', 'publish/portable') {
+            foreach ($name in 'appsettings.Production.json', 'appsettings.Development.json') {
+              $path = Join-Path $dir $name
+              if (Test-Path $path) {
+                Remove-Item $path -Force
+                Write-Host "Removed $path"
+              }
+            }
+          }
+
+          $left = Get-ChildItem publish -Recurse -Include 'appsettings.Production.json', 'appsettings.Development.json'
+          if ($left) {
+            $left | ForEach-Object { Write-Host "::error::$($_.FullName) is still in the package." }
+            exit 1
+          }
+          Write-Host 'Neither settings file is in either package.'
+
+      # The native toolkit DLLs are what the reception build exists for, and they are
+      # copied by a CopyToPublishDirectory in the csproj rather than by the build itself -
+      # which means a refactor can drop them and the publish still succeeds. The app would
+      # then start and fail on the first read with 0x8007007E, naming the assembly it could
+      # not load rather than the dependency that was actually missing.
+      - name: Check the reception build carries the toolkit
+        shell: pwsh
+        run: |
+          $missing = @()
+          foreach ($dll in 'IDCardToolkit.dll', 'EIDAToolkit.dll') {
+            if (Test-Path "publish/reception/$dll") {
+              Write-Host "  ok   $dll"
+            } else {
+              Write-Host "::error::publish/reception/$dll is missing - card reading would fail at runtime."
+              $missing += $dll
+            }
+          }
+          if ($missing) { exit 1 }
+
+          $count = (Get-ChildItem publish/reception -Filter *.dll).Count
+          Write-Host "Reception build: $count DLLs."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vms-web-reception-win-x64
+          path: publish/reception/**
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vms-web-portable
+          path: publish/portable/**
+          if-no-files-found: error

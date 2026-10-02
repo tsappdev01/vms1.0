@@ -86,13 +86,14 @@ Each is a yes/no with evidence, not a judgement call.
 ## 4. Deviations requiring Policy Owner approval
 
 These are departures from DI-IT-POL-AIDEV-001 that the application will go live with. Each
-needs **written** approval; an unsigned row blocks go-live.
+needs **written** approval; an unsigned row blocks go-live. A struck-through row has been
+closed by a change and needs no approval.
 
 | # | Policy clause | Deviation | Why | Approved by | Date |
 |---|---|---|---|---|---|
 | D1 | §4.4, §7 — Azure DevOps repository | GitHub (`tsappdev01/vms1.0`) with branch protection, PR review and Actions pipelines | The organisation's repositories for this work are on GitHub | | |
 | D2 | §4.4 — Audit trail table in MSSQL with old and new values | No audit table. Visits cannot be edited or deleted through the application, so the row is its own record | There are no updates or deletes to audit. The real gap is *reads*, carried as R-04 | | |
-| D3 | §4.4 — Input validation using FluentValidation | Server-side validation in `Services/VisitorFields.cs`, one definition used by the desk, the tablet and the API | Functionally equivalent; FluentValidation is approved as a follow-up | | |
+| ~~D3~~ | §4.4 — Input validation using FluentValidation | **Closed.** `Services/VisitValidators.cs` wraps the `VisitorFields` rules in FluentValidation and `POST /api/visits` resolves them from DI | No deviation remains | — | — |
 | D4 | §4.4 — Roles Viewer / User / Admin | Officer / Supervisor / Admin / SystemAdmin / UnmaskedId | Finer-grained and named for the actual job. `UnmaskedId` exists because seniority is not a need to see an Emirates ID number | | |
 | D5 | §4.4 — IIS on Windows Server, no additional runtime dependencies | ICP toolkit and the desk agent service are required on reception PCs | A chip cannot be read without them | | |
 | D6 | §7 — Semgrep SAST on every merge | Not yet implemented | Carried as R-07, to be added | | |

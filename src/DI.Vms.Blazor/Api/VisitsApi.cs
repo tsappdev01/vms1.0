@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using DI.Vms.Blazor.Data;
 using DI.Vms.Blazor.Services;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -214,19 +215,24 @@ public static class VisitsApi
             IStaffDirectory directory,
             CardImageStore images,
             IDbContextFactory<VmsDbContext> factory,
+            IValidator<SaveVisitRequest> validation,
+            IValidator<CardData> cardValidation,
             ClaimsPrincipal user,
             ILoggerFactory loggers,
             CancellationToken ct) =>
         {
             var log = loggers.CreateLogger(typeof(VisitsApi));
 
-            if (request.EntityId <= 0) return Problem("An entity is required.");
-            if (string.IsNullOrWhiteSpace(request.PersonToVisit)) return Problem("A person to visit is required.");
-            if (string.IsNullOrWhiteSpace(request.Purpose)) return Problem("A purpose is required.");
-
-            if (request.Purpose == VisitPurposes.Other && string.IsNullOrWhiteSpace(request.PurposeOther))
+            /*  The visit fields, and that exactly one provenance was sent.
+             *
+             *  Three calls rather than one, here and below, because the sets have to run
+             *  where their checks can be made: what makes a name or an ID number
+             *  acceptable depends on whether a chip, a camera or a keyboard produced it,
+             *  and the expiry date does not exist until the card has been read. The
+             *  declarations and the reasoning are in Services/VisitValidators.cs. */
+            if (validation.FirstProblem(request, VisitRules.Request) is { } requestProblem)
             {
-                return Problem("Details are required when the purpose is Other.");
+                return Problem(requestProblem);
             }
 
             CardData card;
@@ -241,12 +247,10 @@ public static class VisitsApi
                  *  Recorded as DigitalCard, which the report shows below an unverified chip
                  *  read - because the zone is printed, not signed. The check digits prove the
                  *  photograph was read correctly and nothing whatever about whether the card
-                 *  is genuine or belongs to the person holding it. */
-                if (request.ReadResponseXml is not null || request.Manual is not null)
-                {
-                    return Problem("Send a card read, a photographed card, or typed details - one of them.");
-                }
-
+                 *  is genuine or belongs to the person holding it.
+                 *
+                 *  That this is the only provenance in the body was settled by the Request
+                 *  rule set above. */
                 var read = MrzFinder.ReadEitherSide(mrz);
                 if (!read.Ok) return Problem(read.Problem ?? "That card could not be read.");
                 if (read.IdNumber is not { Length: > 0 }) return Problem("An ID number is required.");
@@ -269,28 +273,21 @@ public static class VisitsApi
             }
             else if (request.Manual is { } manual)
             {
-                /* Typed in, because the chip would not read. Marked as such, and never
-                   allowed to arrive alongside a card read - one entry, one provenance. */
-                if (request.ReadResponseXml is not null)
-                {
-                    return Problem("Send either a card read or manual details, not both.");
-                }
-
-                /*  The number, judged rather than counted.
+                /*  Typed in, because the chip would not read. Marked as such, and never
+                 *  allowed to arrive alongside a card read - one entry, one provenance,
+                 *  which the Request rule set has already established.
                  *
-                 *  This used to ask only whether the field contained a digit, so "7" was an
-                 *  Emirates ID. It is the field a repeat visit is matched on, which makes a
-                 *  wrong one worse than a missing one: it does not produce a bad record, it
-                 *  produces a second person. The fifteenth digit is a Luhn checksum over the
-                 *  first fourteen, the officer is holding the card, and retyping costs
-                 *  seconds - so this is the one typed field that blocks. */
-                if (VisitorFields.TypedIdNumberProblem(manual.IdNumber) is { } idProblem)
+                 *  The ID number is judged rather than counted, and it is the one typed
+                 *  field that blocks: it is what a repeat visit is matched on, so a wrong
+                 *  one does not produce a bad record, it produces a second person. The
+                 *  fifteenth digit is a Luhn checksum over the first fourteen, the officer
+                 *  is holding the card, and retyping costs seconds. */
+                if (validation.FirstProblem(request, VisitRules.TypedIdentity) is { } typedProblem)
                 {
-                    return Problem(idProblem);
+                    return Problem(typedProblem);
                 }
 
                 var digits = VisitorFields.Digits(manual.IdNumber);
-                if (string.IsNullOrWhiteSpace(manual.FullNameEnglish)) return Problem("A name is required.");
 
                 card = new CardData
                 {
@@ -340,15 +337,20 @@ public static class VisitsApi
              *  A tablet built before the mobile number existed is refused by this, with a
              *  message that says which field. That is the intended trade: the alternative is a
              *  visitor recorded with no way to reach them, found out months later in a
-             *  report. */
-            if (string.IsNullOrWhiteSpace(card.ExpiryDate))
+             *  report.
+             *
+             *  The expiry date is validated against the card rather than the request,
+             *  because by here it is the card's - a chip read, a photographed zone and a
+             *  typed form have all become one CardData, and the rule is asked once of all
+             *  three. */
+            if (cardValidation.FirstProblem(card) is { } expiryProblem)
             {
-                return Problem("The card expiry date is required.");
+                return Problem(expiryProblem);
             }
 
-            if (string.IsNullOrWhiteSpace(request.ContactMobile))
+            if (validation.FirstProblem(request, VisitRules.Contact) is { } contactProblem)
             {
-                return Problem("A mobile number is required.");
+                return Problem(contactProblem);
             }
 
             /*  Said, never enforced.

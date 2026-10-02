@@ -2,6 +2,7 @@ using DI.Vms.Blazor.Components;
 using DI.Vms.Blazor.Data;
 using DI.Vms.Blazor.Services;
 using DI.Vms.Blazor.Api;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -218,6 +219,17 @@ else
         .AddScheme<AuthenticationSchemeOptions, OpenDeskAuthenticationHandler>(
             OpenDeskAuthenticationHandler.SchemeName, _ => { });
 }
+
+/*  The save endpoint's input validation, which DI-IT-POL-AIDEV-001 §4.4 requires to be
+    expressed with FluentValidation.
+
+    Registered by hand rather than with AddValidatorsFromAssembly, so that the two
+    validators this application has are named here and a third cannot appear by being
+    dropped into a folder. Singleton because both are stateless - they hold rules, not
+    state - and the rules themselves still live in Services/VisitorFields.cs, which the
+    screens and the tablet are written against. */
+builder.Services.AddSingleton<IValidator<SaveVisitRequest>, SaveVisitRequestValidator>();
+builder.Services.AddSingleton<IValidator<CardData>, CardIdentityValidator>();
 
 builder.Services.AddAuthorization(options =>
 {

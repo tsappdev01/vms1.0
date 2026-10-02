@@ -98,6 +98,8 @@ from — taken from git, not from memory.
 | 02 Oct | **Security headers, rate limiting, cookie flags**, and the first CI build of the server at all — until then nothing built the .NET projects in CI, only the APK |
 | 02 Oct | Secret-scan step fixed: `if grep … \| tee` tests `tee`'s exit status, which is always success, so it warned on every run whether it found anything or not |
 | 02 Oct | **This documentation set**, and a generator for the data dictionary |
+| 02 Oct | **Input validation moved to FluentValidation** (policy §4.4). A wrapper over `VisitorFields`, in three rule sets, because order is part of the behaviour |
+| 02 Oct | **CI publishes the web build.** Until now nothing produced an installable server package without a .NET SDK and a checkout |
 
 ## What is not here
 
