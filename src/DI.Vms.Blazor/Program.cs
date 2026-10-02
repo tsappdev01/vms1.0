@@ -7,11 +7,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+
+/* The rate-limit policy's name, used where it is defined and where the API group
+   requires it. */
+const string ApiRateLimit = "api";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -315,6 +321,67 @@ else
 
 /* Where the reader is, relative to this process - the deployment's central decision.
    Resolved once here so both readers and every screen agree on it. */
+/*  Rate limiting, required of every API endpoint by DI-IT-POL-AIDEV-001 §8.5.
+ *
+ *  The standalone API project has had this since it was written; this host - the one that is
+ *  actually deployed - did not, so the setting existed and was switched off by being null.
+ *
+ *  Partitioned by caller address rather than globally: two reception desks and two tablets
+ *  share this host, and a global bucket would let a stuck tablet retrying in a loop lock the
+ *  desks out. The limit is generous because the camera scanner posts a frame at a time while
+ *  a card is held up - it is there to stop a runaway client and a scripted probe, not to
+ *  pace ordinary use.
+ */
+builder.Services.AddRateLimiter(limiter =>
+{
+    limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    limiter.AddPolicy<string>(ApiRateLimit, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+
+    /* Logged, because a limit that is being hit silently is indistinguishable from an
+       application that is simply slow. Address and path only - never the key. */
+    limiter.OnRejected = (context, _) =>
+    {
+        context.HttpContext.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("RateLimiter")
+            .LogWarning(
+                "Rate limit reached by {Address} on {Path}.",
+                context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "(unknown)",
+                context.HttpContext.Request.Path);
+
+        return ValueTask.CompletedTask;
+    };
+});
+
+/*  The session cookie, hardened as §8.1 requires.
+ *
+ *  Only the application cookie. The handshake cookies Microsoft.Identity.Web uses during
+ *  sign-in - the nonce and the correlation - are deliberately left as the library sets them:
+ *  Entra posts the response back cross-site, and a Strict cookie is not sent on that request,
+ *  so forcing Strict there does not harden sign-in, it breaks it.
+ *
+ *  Always secure rather than SameAsRequest, because the deployment that matters is the
+ *  internet-facing one; the reception PC binds 127.0.0.1 where there is no certificate and
+ *  no sign-in either, so nothing there depends on this cookie.
+ */
+builder.Services.Configure<CookieAuthenticationOptions>(
+    CookieAuthenticationDefaults.AuthenticationScheme,
+    options =>
+    {
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+    });
+
 var capture = CardCaptureOptions.FromConfiguration(builder.Configuration);
 
 builder.Services.AddSingleton(capture);
@@ -425,6 +492,10 @@ if (HasHttpsEndpoint(builder.Configuration))
     app.UseHttpsRedirection();
 }
 
+/* Before the static files and the endpoints, so every response carries them - a script or a
+   stylesheet is as much a thing a browser enforces a policy on as a page. */
+app.UseVmsSecurityHeaders(digitalCard, capture, HasHttpsEndpoint(builder.Configuration));
+
 app.UseStaticFiles();
 
 /* Order matters: authentication establishes who, authorisation decides what, and
@@ -448,11 +519,14 @@ app.UseApiKey(signIn.Enabled ? [] : tabletKeys);
 app.UseAuthorization();
 app.UseAntiforgery();
 
+// After authorisation, so a rejected request is not counted against a caller's allowance.
+app.UseRateLimiter();
+
 app.MapControllers();
 
 /* The Android reception app's endpoints. With sign-in on they take an Entra token or the
    tablet's key; with it off, the open-desk scheme and the key middleware above. */
-app.MapVisitsApi(signIn.Enabled, acceptTabletKey: signIn.Enabled && tabletKeys.Count > 0);
+app.MapVisitsApi(signIn.Enabled, acceptTabletKey: signIn.Enabled && tabletKeys.Count > 0, rateLimitPolicy: ApiRateLimit);
 
 /* The stored card for one visit.
 

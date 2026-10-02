@@ -1,0 +1,74 @@
+name: Server
+
+# DI-IT-POL-AIDEV-001 §7: every merge runs build verification and a dependency audit.
+# Until this existed nothing built the server in CI at all - only the Android APK - so a
+# change that did not compile could be pushed and only discovered on a deployment.
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'db/**'
+      - '.github/workflows/dotnet.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # -r linux-x64 and VmsAgentOnly: the portable build, which is what the Linux Web App
+      # runs. The Windows target needs the ICP toolkit and cannot build on this runner.
+      - name: Restore
+        run: |
+          dotnet restore src/DI.Vms.Blazor/DI.Vms.Blazor.csproj -p:VmsAgentOnly=true
+          dotnet restore src/DI.Vms.Api/DI.Vms.Api.csproj
+
+      - name: Build the web app
+        run: dotnet build src/DI.Vms.Blazor/DI.Vms.Blazor.csproj -c Release -p:VmsAgentOnly=true --no-restore
+
+      - name: Build the standalone API
+        run: dotnet build src/DI.Vms.Api/DI.Vms.Api.csproj -c Release --no-restore
+
+      # The NuGet audit the policy asks for. Reported rather than enforced to begin with:
+      # a transitive advisory published overnight should not stop a reception desk being
+      # fixed, and a failure nobody can act on immediately teaches people to ignore the job.
+      - name: Dependency vulnerability audit
+        continue-on-error: true
+        run: |
+          echo "## Vulnerable packages" >> "$GITHUB_STEP_SUMMARY"
+          dotnet list src/DI.Vms.Blazor/DI.Vms.Blazor.csproj package --vulnerable --include-transitive \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+          dotnet list src/DI.Vms.Api/DI.Vms.Api.csproj package --vulnerable --include-transitive \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Deprecated packages are not a vulnerability, but they are how a project arrives at
+      # one, and the policy's annual review is the wrong place to find out.
+      - name: Deprecated package report
+        continue-on-error: true
+        run: dotnet list src/DI.Vms.Blazor/DI.Vms.Blazor.csproj package --deprecated --include-transitive
+
+      # Secrets must never be committed (§7). This is the backstop that says so out loud:
+      # the SQL password in this repository's history is exactly what it is looking for.
+      - name: Scan the working tree for secrets
+        continue-on-error: true
+        run: |
+          echo "## Possible secrets in tracked files" >> "$GITHUB_STEP_SUMMARY"
+          if grep -rInE "(Password|Pwd)\s*=\s*[^;\"'[:space:]]{6,}|AccountKey=|ClientSecret\"\s*:\s*\"[^\"]{10,}" \
+               --include='*.json' --include='*.cs' --include='*.razor' --include='*.ps1' \
+               --exclude-dir=bin --exclude-dir=obj src/ deploy/ db/ 2>/dev/null \
+             | grep -vE "\"(Password|ClientSecret)\"\s*:\s*\"\"|<value>|template|example" \
+             | tee -a "$GITHUB_STEP_SUMMARY"; then
+            echo "::warning::Something that looks like a credential is in a tracked file."
+          else
+            echo "None found in the working tree." >> "$GITHUB_STEP_SUMMARY"
+          fi
