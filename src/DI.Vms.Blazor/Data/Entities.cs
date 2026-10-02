@@ -74,7 +74,6 @@ public class VisitorEntry
     /// </summary>
     public VisitorCardImage? CardImage { get; set; }
 
-    /// <summary>The holder's signature as held on the card.</summary>
     /// <summary>
     /// The cardholder's signature image, as stored by earlier reads.
     ///

@@ -22,6 +22,9 @@ android/                    The reception app for a tablet, Kotlin — android/R
 db/                         Every SQL script, numbered — db/README.md says what each is for
 deploy/                     Publish and install scripts for UATWEB01 and the desks
 docs/                       Design and analysis — start with docs/README.md
+docs/controlled/            The DI-IT-POL-AIDEV-001 §6 documentation set for a Controlled
+                            application — docs/controlled/README.md maps all twenty
+docs/tools/                 Generators for the documents that must not drift
 id-card-toolkit-*/          ICP ID Card Toolkit v3.1.6 (Android, iOS, Windows, Web JS)
 IDCARDOFFLINE_config_*      Toolkit configuration bundle
 ```

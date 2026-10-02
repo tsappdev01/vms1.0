@@ -2,6 +2,20 @@
 
 Design documentation for the Dubai Investments Visitor Management System.
 
+## The policy documentation set
+
+[**`controlled/`**](controlled/README.md) is the twenty-document package
+DI-IT-POL-AIDEV-001 §6 requires of a Controlled application, plus the Known Issues Log
+§4.6 asks for — architecture, data flow, the generated data dictionary, the API reference,
+the security review checklist, the risk register, 34 UAT scenarios, the user manual, the
+admin guide, the operational procedures, and the governance forms awaiting signature.
+
+Read [`controlled/README.md`](controlled/README.md) first: it maps each of the twenty to
+its file, says which are complete and which are waiting on a decision or a signature, and
+lists what has to happen before go-live.
+
+The documents below remain the engineering record and are referenced from that set.
+
 ## Current
 
 | Document | Contents |

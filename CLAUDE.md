@@ -19,6 +19,19 @@ A script derived from a data file is **generated, never hand-written** — see
 `004_seed_people.sql`. Regenerate it when the source changes rather than editing the SQL,
 and have the generator fail loudly if the source's shape is not what it expects.
 
+## A document derived from the code is generated too
+
+Same rule, same reason. `docs/tools/generate_data_dictionary.py` reads the EF model and
+writes `docs/controlled/03-data-dictionary.md`; run it after any change to
+`src/DI.Vms.Blazor/Data/`, and never edit the output. It fails loudly — an unmapped class,
+a `HasMaxLength` naming a property that does not exist, an unknown CLR type — because a
+data dictionary that is quietly incomplete is worse than one that is missing.
+
+`docs/controlled/` is the DI-IT-POL-AIDEV-001 §6 documentation set. Anything there that
+states a fact about the code must be traceable to the code; where a fact is not yet
+decided, the document says `[ ]` and names who decides, rather than inventing a plausible
+value.
+
 Scripts must be **re-runnable**: guard DDL with `IF OBJECT_ID(...) IS NULL` and
 `sys.indexes`, guard inserts with `NOT EXISTS`, and put `CREATE SCHEMA` and each
 `CREATE INDEX` in its own `GO` batch. A batch aborts on error and takes the rest of the
